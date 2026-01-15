@@ -10,10 +10,6 @@ def load_sql(domain: str, filename: str):
     src_root = os.path.abspath(os.path.join(current_dir, ".."))
     file_path = os.path.join(src_root, "domains", domain, "queries", filename)
 
-    print(current_dir)
-    print(src_root)
-    print(file_path)
-
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"SQL 파일을 찾을 수 없습니다: {file_path}")
 
