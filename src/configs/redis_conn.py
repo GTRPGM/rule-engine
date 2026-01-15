@@ -7,7 +7,7 @@ redis_client = redis.StrictRedis(
     host=REDIS_HOST,
     port=REDIS_PORT,
     password=REDIS_PASSWORD,
-    decode_responses=True # 데이터를 문자열로 디코딩하여 편리하게 사용
+    decode_responses=True # 데이터를 문자열로 자동 디코딩
 )
 
 def check_redis_connection():
@@ -19,14 +19,13 @@ def check_redis_connection():
 
 
 def get_redis_client():
-    """FastAPI 종속성 주입(Dependency Injection)을 위한 함수"""
     try:
         # 연결 테스트
         redis_client.ping()
         return redis_client
     except redis.exceptions.ConnectionError as e:
         print(f"Redis 연결 실패: {e}")
-        # 실제 운영 환경에서는 서버 시작을 중단하거나 적절한 오류 처리 필요
+        # 운영 환경에서는 서버 시작을 중단하거나 적절한 오류 처리 추가 고려
         raise e
 
 check_redis_connection()
