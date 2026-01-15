@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
+from configs.redis_conn import check_redis_connection
 from src.configs.database import check_db_connection
 from src.common.dtos.common_response import CustomJSONResponse
 from src.configs.logging_config import LOGGING_CONFIG
@@ -35,6 +36,7 @@ def read_root():
 
 if __name__ == "__main__":
     check_db_connection()
+    check_redis_connection()
     import uvicorn
 
     LOGGING_CONFIG['handlers']['default']['stream'] = "ext://sys.stdout"
