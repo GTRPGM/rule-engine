@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from configs.database import check_db_connection
-from domains.common.dtos.common_response import CustomJSONResponse
-from configs.logging_config import LOGGING_CONFIG
+from src.configs.database import check_db_connection
+from src.common.dtos.common_response import CustomJSONResponse
+from src.configs.logging_config import LOGGING_CONFIG
 
 app = FastAPI(
     title="GTRPGM Rule Engine",
-    description="GTRPGM의 게임 진행의 Rule 위배여부를 판정해 재조정하는 엔진입니다.",
+    description="GTRPGM 게임 진행의 Rule 위배여부를 판정해 재조정하는 엔진입니다.",
     version="1.0.0",
     default_response_class=CustomJSONResponse,
 )
