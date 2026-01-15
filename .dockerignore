@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.git/
+.env
+.venv/
+.pytest_cache/
+test/
+docs/

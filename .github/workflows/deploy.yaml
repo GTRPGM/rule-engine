@@ -2,7 +2,8 @@ name: GTRPGM Rule Engine CI/CD
 
 on:
   push:
-    branches: [ "main", "dev" ]
+    #    branches: [ "main", "dev" ]
+    branches: [ "" ]
 
 jobs:
   build-and-test:
@@ -42,34 +43,41 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           uv run python src/main.py > test_server.log 2>&1 &
-
           sleep 3
-
           curl -f http://127.0.0.1:8000/ || (cat test_server.log && exit 1)
-
           pkill -f "src/main.py"
 
-#  deploy:
-#    needs: build-and-test
-#    runs-on: ubuntu-latest
-#    if: github.ref == 'refs/heads/main'
-#
-#    steps:
-#      - name: Deploy to Server via SSH
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.REMOTE_HOST }}
-#          username: ${{ secrets.REMOTE_USER }}
-#          key: ${{ secrets.REMOTE_SSH_KEY }}
-#          script: |
-#            cd ${{ secrets.REMOTE_PATH }}
-#
-#            git pull origin main
-#            ~/.local/bin/uv sync --frozen
-#
-#            fuser -k 8000/tcp || true
-#
-#            export PYTHONPATH=$PYTHONPATH:.
-#            nohup uv run python src/main.py > server.log 2>&1 &
-#
-#            echo "🚀 Deployment completed successfully!"
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-22.04
+    if: false # 배포환경이 확정되기 전까지 작업 비활성화
+    # if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: |
+          docker build -t gtrpgm-rule-engine:latest .
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.REMOTE_SSH_KEY }}
+          script: |
+            docker stop rule-engine || true
+            docker rm rule-engine || true
+
+            docker run -d \
+              --name rule-engine \
+              -p 8000:8000 \
+              -e DB_USER=${{ secrets.DB_USER }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e DB_HOST=${{ secrets.DB_HOST }} \
+              -e DB_PORT=${{ secrets.DB_PORT }} \
+              -e DB_NAME=${{ secrets.DB_NAME }} \
+              -e APP_ENV=prod \
+              gtrpgm-rule-engine:latest

@@ -33,10 +33,20 @@ yarn-error.log*
 # Python 가상 환경 폴더 (전역 무시)
 **/venv/
 **/.venv/
-
-# Python 컴파일된 바이트코드 및 캐시 (전역 무시)
-**/__pycache__/
+__pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-arg.txt
+*.egg-info/
+.coverage
+.pytest_cache/
+nosetests.xml
 
 # 훈련 모델 및 데이터셋 (전역 무시)
 **/data/
