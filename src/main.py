@@ -4,6 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 from src.configs.database import check_db_connection
 from src.common.dtos.common_response import CustomJSONResponse
 from src.configs.logging_config import LOGGING_CONFIG
+from src.configs.setting import APP_ENV, APP_HOST, APP_PORT
 
 app = FastAPI(
     title="GTRPGM Rule Engine",
@@ -14,10 +15,10 @@ app = FastAPI(
 
 # CORS 미들웨어 추가
 origins = [
-    "http://localhost:3000",    # Next.js 기본 개발 포트
+    "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "http://127.0.0.1:8000",    # 스웨거
-    # 추후 프로덕션 환경의 프론트엔드 도메인도 여기에 추가
+    f"http://localhost:{APP_PORT}",
+    f"http://127.0.0.1:{APP_PORT}",
 ]
 
 app.add_middleware(
@@ -28,7 +29,6 @@ app.add_middleware(
     allow_headers=["*"],            # 모든 HTTP 헤더 허용
 )
 
-# 루트 경로 ("/")에 대한 GET 요청 처리 함수 (경로 연산)
 @app.get("/", description="서버 연결 확인", summary="테스트 - 서버 연결을 확인합니다.")
 def read_root():
     return {"message": "반갑습니다. GTRPGM 룰 엔진입니다!"}
@@ -40,5 +40,10 @@ if __name__ == "__main__":
     LOGGING_CONFIG['handlers']['default']['stream'] = "ext://sys.stdout"
     LOGGING_CONFIG['handlers']['access']['stream'] = "ext://sys.stdout"
 
-    # 서버를 코드 레벨에서 실행
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True, log_config=LOGGING_CONFIG)
+    uvicorn.run(
+        "main:app",
+        host=APP_HOST,
+        port=APP_PORT,
+        reload=(APP_ENV == "local"),
+        log_config=LOGGING_CONFIG
+    )

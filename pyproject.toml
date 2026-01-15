@@ -12,3 +12,8 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "uvicorn>=0.40.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+]
