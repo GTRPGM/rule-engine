@@ -39,12 +39,14 @@ if __name__ == "__main__":
     check_redis_connection()
     import uvicorn
 
+    effective_host = "127.0.0.1" if APP_ENV == "local" else "0.0.0.0"
+
     LOGGING_CONFIG['handlers']['default']['stream'] = "ext://sys.stdout"
     LOGGING_CONFIG['handlers']['access']['stream'] = "ext://sys.stdout"
 
     uvicorn.run(
         "main:app",
-        host=APP_HOST,
+        host=effective_host,
         port=APP_PORT,
         reload=(APP_ENV == "local"),
         log_config=LOGGING_CONFIG
