@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 
 import psycopg2
-from psycopg2 import pool, extras
+from psycopg2 import extras
 
 from src.configs.setting import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
 
@@ -14,7 +14,7 @@ try:
         password=DB_PASSWORD,
         host=DB_HOST,
         port=DB_PORT,
-        database=DB_NAME
+        database=DB_NAME,
     )
     print("✅ 커넥션 풀이 생성되었습니다.")
 except Exception as e:
@@ -25,7 +25,7 @@ except Exception as e:
 @contextmanager
 def get_db_cursor():
     """
-    커넥션 풀에서 커넥션을 빌려오고, 
+    커넥션 풀에서 커넥션을 빌려오고,
     결과를 딕셔너리 형태로 반환하는 커서(DictCursor)를 제공합니다.
     """
     conn = connection_pool.getconn()
@@ -39,6 +39,7 @@ def get_db_cursor():
         connection_pool.getconn()
         connection_pool.putconn(conn)
 
+
 # 연결 테스트
 def check_db_connection():
     try:
@@ -47,5 +48,6 @@ def check_db_connection():
             print("✅ DB 연결 상태 확인 완료")
     except Exception as e:
         print(f"❌ DB 연결 확인 실패: {e}")
+
 
 check_db_connection()
