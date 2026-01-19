@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
+from configs.api_routers import API_ROUTERS
 from src.common.dtos.common_response import CustomJSONResponse
 from src.configs.database import check_db_connection
 from src.configs.logging_config import LOGGING_CONFIG
@@ -28,6 +29,9 @@ app.add_middleware(
     allow_methods=["*"],  # 모든 HTTP 메서드 허용 (GET, POST 등)
     allow_headers=["*"],  # 모든 HTTP 헤더 허용
 )
+
+for router in API_ROUTERS:
+    app.include_router(router)
 
 
 @app.get("/", description="서버 연결 확인", summary="테스트 - 서버 연결을 확인합니다.")
