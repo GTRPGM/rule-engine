@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Query
 
+from common.dtos.wrapped_response import WrappedResponse
+from src.domains.gm.dtos.dice_check_result import DiceCheckResult
 from utils.dice_util import DiceUtil
 
 gm_router = APIRouter(prefix="/gm", tags=["GM 요청"])
@@ -7,6 +9,7 @@ gm_router = APIRouter(prefix="/gm", tags=["GM 요청"])
 
 @gm_router.get(
     "/action/check",
+    response_model=WrappedResponse[DiceCheckResult],
     summary="주사위 판정 실행",
     description="2d6 주사위를 굴려 플레이어의 능력치를 더한 후, 설정된 난이도와 비교하여 성공 여부를 판정합니다.",
 )
@@ -41,8 +44,10 @@ async def perform_action(
         msg = "❌ 실패했습니다."
 
     return {
-        "message": msg,
-        "roll_result": result["roll_result"],
-        "total": result["total"],
-        "is_success": result["is_success"],
+        "data": {
+            "message": msg,
+            "roll_result": result["roll_result"],
+            "total": result["total"],
+            "is_success": result["is_success"],
+        }
     }
