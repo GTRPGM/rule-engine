@@ -1,18 +1,17 @@
 from contextlib import contextmanager
 
-import psycopg2
-from psycopg2 import extras
+from psycopg2 import extras, pool
 
-from src.configs.setting import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
+from src.configs.setting import DB_NAME, DB_PASSWORD, DB_PORT, DB_USER, REMOTE_HOST
 
 # 커넥션 풀 설정
 try:
-    connection_pool = psycopg2.pool.ThreadedConnectionPool(
+    connection_pool = pool.ThreadedConnectionPool(
         minconn=1,
         maxconn=20,
         user=DB_USER,
         password=DB_PASSWORD,
-        host=DB_HOST,
+        host=REMOTE_HOST,
         port=DB_PORT,
         database=DB_NAME,
     )

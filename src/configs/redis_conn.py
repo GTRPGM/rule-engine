@@ -1,14 +1,15 @@
 import redis
 
-from configs.setting import REDIS_HOST, REDIS_PORT, REDIS_PASSWORD
+from configs.setting import REDIS_PASSWORD, REDIS_PORT, REMOTE_HOST
 
 # Redis 클라이언트 초기화
 redis_client = redis.StrictRedis(
-    host=REDIS_HOST,
+    host=REMOTE_HOST,
     port=REDIS_PORT,
     password=REDIS_PASSWORD,
-    decode_responses=True # 데이터를 문자열로 자동 디코딩
+    decode_responses=True,  # 데이터를 문자열로 자동 디코딩
 )
+
 
 def check_redis_connection():
     try:
@@ -27,5 +28,6 @@ def get_redis_client():
         print(f"Redis 연결 실패: {e}")
         # 운영 환경에서는 서버 시작을 중단하거나 적절한 오류 처리 추가 고려
         raise e
+
 
 check_redis_connection()
