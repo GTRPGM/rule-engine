@@ -3,7 +3,6 @@ from starlette.middleware.cors import CORSMiddleware
 
 from configs.api_routers import API_ROUTERS
 from src.common.dtos.common_response import CustomJSONResponse
-from src.configs.database import check_db_connection
 from src.configs.logging_config import LOGGING_CONFIG
 from src.configs.setting import APP_ENV, APP_PORT
 
@@ -40,8 +39,6 @@ def read_root():
 
 
 if __name__ == "__main__":
-    check_db_connection()
-    # check_redis_connection() # 아직 고려 안 함
     import uvicorn
 
     effective_host = "127.0.0.1" if APP_ENV == "local" else "0.0.0.0"
