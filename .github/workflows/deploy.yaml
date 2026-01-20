@@ -54,7 +54,7 @@ jobs:
           fi
 
           echo "--- Attempting to connect to 127.0.0.1:8050 ---"
-          curl -v http://127.0.0.1:8000/ || (echo "❌ 접속 실패. 로그를 출력합니다:" && cat test_server.log && exit 1)
+          curl -v http://127.0.0.1:8050/ || (echo "❌ 접속 실패. 로그를 출력합니다:" && cat test_server.log && exit 1)
 
           echo "✅ Server is up and running!"
           pkill -f "main.py"
