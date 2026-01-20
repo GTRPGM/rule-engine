@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from common.dtos.pagination_meta import PaginationMeta
+from domains.info.dtos.npc_dtos import NpcDetailResponse
 from utils.load_sql import load_sql
 
 
@@ -10,7 +11,7 @@ class EnemyService:
         self.get_enemies_sql = load_sql("info", "get_enemies")
         self.count_enemies_sql = load_sql("info", "count_enemies")
 
-    async def get_npcs(self, enemy_ids: Optional[List[int]], skip: int, limit: int):
+    async def get_enemies(self, enemy_ids: Optional[List[int]], skip: int, limit: int):
         params = {
             "enemy_ids": enemy_ids if enemy_ids else None,
             "limit": limit,

@@ -11,7 +11,7 @@ from common.utils.get_services import (
     get_world_service, get_npc_service,
 )
 from domains.info.dtos.enemy_dtos import EnemyRequest, PaginatedEnemyResponse
-from domains.info.dtos.npc_dtos import PaginatedNpcResponse, NpcRequest
+from domains.info.dtos.npc_dtos import PaginatedNpcResponse, NpcRequest, NpcDetailResponse
 from domains.info.dtos.personality_dtos import (
     PaginatedPersonalityResponse,
     PersonalityRequest,
@@ -77,6 +77,18 @@ class InfoHandler:
         )
 
         return {"data": {"npcs": npcs, "meta": meta}}
+
+    @info_router.get("/npc/{npc_id}", response_model=WrappedResponse[NpcDetailResponse])
+    async def get_npc_detail(
+            self,
+            npc_id: int,
+            npc_service: NpcService = Depends(get_npc_service)
+    ):
+        """
+        특정 NPC의 상세 정보와 판매 아이템 목록을 조회합니다.
+        """
+        npc = await npc_service.get_npc_by_id(npc_id)
+        return {"data": npc}
 
 
     @info_router.post(

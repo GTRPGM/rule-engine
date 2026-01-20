@@ -31,3 +31,24 @@ class NpcResponse(BaseModel):
 class PaginatedNpcResponse(BaseModel):
     npcs: List[NpcResponse]
     meta: PaginationMeta
+
+
+class NpcInventoryItem(BaseModel):
+    inventory_id: int
+    item_id: int
+    base_price: int
+    is_infinite_stock: bool
+
+
+# 2. 아이템 목록을 포함한 NPC 상세 정보 DTO
+class NpcDetailResponse(BaseModel):
+    npc_id: int
+    name: str
+    disposition: Optional[str] = "중립"
+    occupation: Optional[str] = None
+    dialogue_style: Optional[str] = None
+    description: Optional[str] = None
+    base_difficulty: int = 10
+    combat_description: Optional[str] = None
+    created_at: datetime
+    inventory_list: List[NpcInventoryItem] = Field(default_factory=list)

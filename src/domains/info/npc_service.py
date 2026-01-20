@@ -1,7 +1,9 @@
 from typing import List, Optional
 
 from common.dtos.pagination_meta import PaginationMeta
+from domains.info.dtos.npc_dtos import NpcDetailResponse
 from utils.load_sql import load_sql
+from fastapi import HTTPException
 
 
 class NpcService:
@@ -9,6 +11,7 @@ class NpcService:
         self.cursor = cursor
         self.get_npcs_sql = load_sql("info", "get_npcs")
         self.count_npcs_sql = load_sql("info", "count_npcs")
+        self.get_npc_sql = load_sql("info", "get_npc")
 
     async def get_npcs(self, npc_ids: Optional[List[int]], skip: int, limit: int):
         params = {
@@ -40,3 +43,12 @@ class NpcService:
         )
 
         return npcs, meta
+
+    async def get_npc_by_id(self, npc_id: int) -> NpcDetailResponse:
+        self.cursor.execute(self.get_npc_sql, {"npc_id": npc_id})
+        row = self.cursor.fetchone()
+
+        if not row:
+            raise HTTPException(status_code=404, detail="NPC를 찾을 수 없습니다.")
+
+        return NpcDetailResponse(**row)
