@@ -1,5 +1,4 @@
 -- name: get_enemies
--- 아이템 목록 조회 및 필터링
 SELECT * FROM enemies
 WHERE (
     %(enemy_ids)s IS NULL

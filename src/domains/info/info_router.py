@@ -2,9 +2,18 @@ from fastapi import APIRouter, Depends
 from fastapi_utils.cbv import cbv
 
 from common.dtos.wrapped_response import WrappedResponse
-from common.utils.get_services import get_enemy_service, get_item_service
+from common.utils.get_services import (
+    get_enemy_service,
+    get_item_service,
+    get_personality_service,
+)
 from domains.info.dtos.enemy_dtos import EnemyRequest, PaginatedEnemyResponse
+from domains.info.dtos.personality_dtos import (
+    PaginatedPersonalityResponse,
+    PersonalityRequest,
+)
 from domains.info.enemy_service import EnemyService
+from domains.info.personality_service import PersonalityService
 from src.domains.info.dtos.item_dtos import ItemRequest, PaginatedItemResponse
 from src.domains.info.item_service import ItemService
 
@@ -44,4 +53,20 @@ class InfoHandler:
             request_data.enemy_ids, request_data.skip, request_data.limit
         )
 
-        return {"data": {"items": enemies, "meta": meta}}
+        return {"data": {"enemies": enemies, "meta": meta}}
+
+    @info_router.post(
+        "/personalities",
+        summary="NPC 생성 시 필요한 성격 정보를 조회합니다.",
+        response_model=WrappedResponse[PaginatedPersonalityResponse],
+    )
+    async def read_personalities(
+        self,
+        request_data: PersonalityRequest,
+        personality_service: PersonalityService = Depends(get_personality_service),
+    ):
+        personalities, meta = await personality_service.get_personalities(
+            request_data.personality_ids, request_data.skip, request_data.limit
+        )
+
+        return {"data": {"personalities": personalities, "meta": meta}}
