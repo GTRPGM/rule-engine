@@ -112,7 +112,7 @@ class InfoHandler:
 
     @info_router.get(
         "/world",
-        summary="시나리오 생성 시 필요한 시스템 설정·공간적·시간적 배경·캐릭터 정보를 조회합니다.",
+        summary="시나리오 생성 시 필요한 시스템 설정·공간적·시간적 배경·캐릭터·능력 정보를 조회합니다.",
         response_model=WrappedResponse[WorldResponse],
     )
     async def read_world(
