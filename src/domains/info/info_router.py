@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends
 from fastapi_utils.cbv import cbv
 
 from common.dtos.wrapped_response import WrappedResponse
-from common.utils.get_services import get_item_service
+from common.utils.get_services import get_enemy_service, get_item_service
+from domains.info.dtos.enemy_dtos import EnemyRequest, PaginatedEnemyResponse
+from domains.info.enemy_service import EnemyService
 from src.domains.info.dtos.item_dtos import ItemRequest, PaginatedItemResponse
 from src.domains.info.item_service import ItemService
 
@@ -13,7 +15,7 @@ info_router = APIRouter(prefix="/info", tags=["게임 정보 조회"])
 class InfoHandler:
     @info_router.post(
         "/items",
-        summary="아이템 목록 조회",
+        summary="아이템 조회",
         response_model=WrappedResponse[PaginatedItemResponse],
     )
     async def read_items(
@@ -27,3 +29,19 @@ class InfoHandler:
         )
 
         return {"data": {"items": items, "meta": meta}}
+
+    @info_router.post(
+        "/enemies",
+        summary="적 정보 조회",
+        response_model=WrappedResponse[PaginatedEnemyResponse],
+    )
+    async def read_enemies(
+        self,
+        request_data: EnemyRequest,
+        enemy_service: EnemyService = Depends(get_enemy_service),
+    ):
+        enemies, meta = await enemy_service.get_enemies(
+            request_data.enemy_ids, request_data.skip, request_data.limit
+        )
+
+        return {"data": {"items": enemies, "meta": meta}}
