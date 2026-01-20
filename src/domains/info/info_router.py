@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends
 from fastapi_utils.cbv import cbv
 
@@ -6,14 +8,17 @@ from common.utils.get_services import (
     get_enemy_service,
     get_item_service,
     get_personality_service,
+    get_world_service,
 )
 from domains.info.dtos.enemy_dtos import EnemyRequest, PaginatedEnemyResponse
 from domains.info.dtos.personality_dtos import (
     PaginatedPersonalityResponse,
     PersonalityRequest,
 )
+from domains.info.dtos.world_dtos import WorldRequest, WorldResponse
 from domains.info.enemy_service import EnemyService
 from domains.info.personality_service import PersonalityService
+from domains.info.world_service import WorldService
 from src.domains.info.dtos.item_dtos import ItemRequest, PaginatedItemResponse
 from src.domains.info.item_service import ItemService
 
@@ -70,3 +75,21 @@ class InfoHandler:
         )
 
         return {"data": {"personalities": personalities, "meta": meta}}
+
+    @info_router.post(
+        "/world",
+        summary="시나리오 생성 시 필요한 시스템 설정·공간적·시간적 배경·캐릭터 정보를 조회합니다.",
+        response_model=WrappedResponse[WorldResponse],
+    )
+    async def read_world(
+        self,
+        request_data: Optional[WorldRequest] = None,
+        world_service: WorldService = Depends(get_world_service),
+    ):
+        # 요청 데이터가 전혀 없는 경우 처리
+        include_keys = request_data.include_keys if request_data else None
+
+        # 딕셔너리 형태로 한 번에 반환받음
+        world_data = await world_service.get_world(include_keys)
+
+        return {"data": world_data}
