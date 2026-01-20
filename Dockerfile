@@ -6,7 +6,7 @@ ENV PYTHONPATH=/app
 WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-cache --no-dev --no-install-project
+RUN uv sync --frozen --no-cache --no-dev
 COPY . .
 EXPOSE 8050
 CMD ["uv", "run", "python", "src/main.py"]
