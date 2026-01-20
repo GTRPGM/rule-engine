@@ -42,22 +42,25 @@ jobs:
       - name: Server Smoke Test (Health Check)
         run: |
           export PYTHONPATH=$PYTHONPATH:.
+          # 1. 서버 실행 (reload 모드 없이 실행하는 것을 권장)
           uv run python src/main.py > test_server.log 2>&1 &
 
+          # 2. 서버가 응답할 때까지 대기 (최대 10번 시도)
           echo "Waiting for server to start..."
-          sleep 5
+          for i in {1..10}; do
+            if curl -s http://127.0.0.1:8050/ > /dev/null; then
+              echo "✅ Server is up and running!"
+              pkill -f "python src/main.py" || true
+              exit 0
+            fi
+            echo "Attempt $i: Server not ready yet... (waiting 3s)"
+            sleep 3
+          done
 
-          if ! ps aux | grep -v grep | grep "python main.py" > /dev/null; then
-            echo "❌ 서버 프로세스가 실행 직후 종료되었습니다. 로그를 출력합니다:"
-            cat test_server.log
-            exit 1
-          fi
-
-          echo "--- Attempting to connect to 127.0.0.1:8050 ---"
-          curl -v http://127.0.0.1:8050/ || (echo "❌ 접속 실패. 로그를 출력합니다:" && cat test_server.log && exit 1)
-
-          echo "✅ Server is up and running!"
-          pkill -f "main.py"
+          # 3. 10번 시도 후에도 안 되면 실패 처리
+          echo "❌ 서버 응답 테스트 실패. 로그를 출력합니다:"
+          cat test_server.log
+          exit 1
 
   deploy:
     needs: build-and-test
