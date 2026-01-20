@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi_utils.cbv import cbv
 
 from common.dtos.wrapped_response import WrappedResponse
@@ -15,7 +15,7 @@ from domains.info.dtos.personality_dtos import (
     PaginatedPersonalityResponse,
     PersonalityRequest,
 )
-from domains.info.dtos.world_dtos import WorldRequest, WorldResponse
+from domains.info.dtos.world_dtos import WorldInfoKey, WorldResponse
 from domains.info.enemy_service import EnemyService
 from domains.info.personality_service import PersonalityService
 from domains.info.world_service import WorldService
@@ -76,20 +76,22 @@ class InfoHandler:
 
         return {"data": {"personalities": personalities, "meta": meta}}
 
-    @info_router.post(
+    @info_router.get(
         "/world",
         summary="시나리오 생성 시 필요한 시스템 설정·공간적·시간적 배경·캐릭터 정보를 조회합니다.",
         response_model=WrappedResponse[WorldResponse],
     )
     async def read_world(
         self,
-        request_data: Optional[WorldRequest] = None,
+        include_keys: Optional[List[WorldInfoKey]] = Query(
+            None,
+            description=(
+                "조회할 정보 키 리스트입니다. (예: ?include_keys=configs&include_keys=eras)<br>"
+                "선택하지 않으면 전체 정보를 반환합니다.<br>"
+                "• **configs**: 시스템 설정<br>• **eras**: 시대<br>• **locales**: 장소<br>• **characters**: 캐릭터"
+            ),
+        ),
         world_service: WorldService = Depends(get_world_service),
     ):
-        # 요청 데이터가 전혀 없는 경우 처리
-        include_keys = request_data.include_keys if request_data else None
-
-        # 딕셔너리 형태로 한 번에 반환받음
         world_data = await world_service.get_world(include_keys)
-
         return {"data": world_data}
