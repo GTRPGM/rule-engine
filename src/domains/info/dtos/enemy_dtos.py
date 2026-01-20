@@ -26,5 +26,5 @@ class EnemyResponse(BaseModel):
 
 
 class PaginatedEnemyResponse(BaseModel):
-    items: List[EnemyResponse]
+    enemies: List[EnemyResponse]
     meta: PaginationMeta
