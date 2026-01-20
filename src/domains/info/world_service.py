@@ -11,15 +11,16 @@ class WorldService:
         self.get_world_eras_sql = load_sql("info", "get_world_eras")
         self.get_world_locales_sql = load_sql("info", "get_world_locales")
         self.get_characters_sql = load_sql("info", "get_characters")
+        self.get_abilities_sql = load_sql("info", "get_abilities")
 
     async def get_world(self, include_keys: Optional[List[WorldInfoKey]] = None):
         target_keys = (
             include_keys
             if include_keys
-            else ["configs", "eras", "locales", "characters"]
+            else ["configs", "eras", "locales", "characters", "abilities"]
         )
 
-        result = {"configs": None, "eras": None, "locales": None, "characters": None}
+        result = {"configs": None, "eras": None, "locales": None, "characters": None, "abilities": None}
 
         if "configs" in target_keys:
             self.cursor.execute(self.get_sys_configs_sql)
@@ -36,5 +37,9 @@ class WorldService:
         if "characters" in target_keys:
             self.cursor.execute(self.get_characters_sql)
             result["characters"] = self.cursor.fetchall()
+
+        if "abilities" in target_keys:
+            self.cursor.execute(self.get_abilities_sql)
+            result["abilities"] = self.cursor.fetchall()
 
         return result

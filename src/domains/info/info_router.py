@@ -64,7 +64,7 @@ class InfoHandler:
 
     @info_router.post(
         "/npcs",
-        summary="적 정보 조회",
+        summary="NPC 목록 조회",
         response_model=WrappedResponse[PaginatedNpcResponse],
     )
     async def read_npcs(
@@ -78,7 +78,10 @@ class InfoHandler:
 
         return {"data": {"npcs": npcs, "meta": meta}}
 
-    @info_router.get("/npc/{npc_id}", response_model=WrappedResponse[NpcDetailResponse])
+    @info_router.get(
+        "/npc/{npc_id}",
+        summary="NPC 상세 조회",
+        response_model=WrappedResponse[NpcDetailResponse])
     async def get_npc_detail(
             self,
             npc_id: int,
@@ -119,7 +122,7 @@ class InfoHandler:
             description=(
                 "조회할 정보 키 리스트입니다. (예: ?include_keys=configs&include_keys=eras)<br>"
                 "선택하지 않으면 전체 정보를 반환합니다.<br>"
-                "• **configs**: 시스템 설정<br>• **eras**: 시대<br>• **locales**: 장소<br>• **characters**: 캐릭터"
+                "• **configs**: 시스템 설정<br>• **eras**: 시대<br>• **locales**: 장소<br>• **characters**: 캐릭터<br>• **abilities**: 능력"
             ),
         ),
         world_service: WorldService = Depends(get_world_service),

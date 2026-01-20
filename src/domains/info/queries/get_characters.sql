@@ -1,2 +1,3 @@
 SELECT *
-FROM characters;
+FROM characters
+ORDER BY character_id;

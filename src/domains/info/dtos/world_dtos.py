@@ -10,6 +10,7 @@ class WorldInfoKey(str, Enum):
     ERAS = "eras"
     LOCALES = "locales"
     CHARACTERS = "characters"
+    ABILITIES = "abilities"
 
 
 class WorldRequest(BaseModel):
@@ -50,8 +51,15 @@ class Character(BaseModel):
     starting_item_id: int | None = None
 
 
+class Ability(BaseModel):
+    ability_id: int
+    name: str
+    description: str
+
+
 class WorldResponse(BaseModel):
     configs: Optional[List[SysConfig]] = None
     eras: Optional[List[WorldEra]] = None
     locales: Optional[List[WorldLocale]] = None
     characters: Optional[List[Character]] = None
+    abilities: Optional[List[Ability]] = None

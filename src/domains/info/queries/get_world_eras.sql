@@ -1,1 +1,2 @@
-SELECT * FROM world_eras;
+SELECT * FROM world_eras
+ORDER BY era_id;
