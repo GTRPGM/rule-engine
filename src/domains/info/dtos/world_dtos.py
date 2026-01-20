@@ -25,7 +25,7 @@ class WorldRequest(BaseModel):
             "• **characters**: 선택 가능한 초기 캐릭터 클래스 정보"
         ),
         # Swagger 예시 값 설정
-        examples=[["configs", "eras"]],
+        examples=[["configs", "eras", "locales", "characters"]],
     )
 
 
