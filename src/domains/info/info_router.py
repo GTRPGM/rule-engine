@@ -8,15 +8,17 @@ from common.utils.get_services import (
     get_enemy_service,
     get_item_service,
     get_personality_service,
-    get_world_service,
+    get_world_service, get_npc_service,
 )
 from domains.info.dtos.enemy_dtos import EnemyRequest, PaginatedEnemyResponse
+from domains.info.dtos.npc_dtos import PaginatedNpcResponse, NpcRequest
 from domains.info.dtos.personality_dtos import (
     PaginatedPersonalityResponse,
     PersonalityRequest,
 )
 from domains.info.dtos.world_dtos import WorldInfoKey, WorldResponse
 from domains.info.enemy_service import EnemyService
+from domains.info.npc_service import NpcService
 from domains.info.personality_service import PersonalityService
 from domains.info.world_service import WorldService
 from src.domains.info.dtos.item_dtos import ItemRequest, PaginatedItemResponse
@@ -59,6 +61,23 @@ class InfoHandler:
         )
 
         return {"data": {"enemies": enemies, "meta": meta}}
+
+    @info_router.post(
+        "/npcs",
+        summary="적 정보 조회",
+        response_model=WrappedResponse[PaginatedNpcResponse],
+    )
+    async def read_npcs(
+            self,
+            request_data: NpcRequest,
+            npc_service: NpcService = Depends(get_npc_service),
+    ):
+        npcs, meta = await npc_service.get_npcs(
+            request_data.npc_ids, request_data.skip, request_data.limit
+        )
+
+        return {"data": {"npcs": npcs, "meta": meta}}
+
 
     @info_router.post(
         "/personalities",
