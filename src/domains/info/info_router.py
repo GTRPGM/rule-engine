@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi_utils.cbv import cbv
 
 from common.dtos.wrapped_response import WrappedResponse
@@ -10,7 +10,7 @@ from common.utils.get_services import (
     get_personality_service,
     get_world_service, get_npc_service,
 )
-from domains.info.dtos.enemy_dtos import EnemyRequest, PaginatedEnemyResponse
+from domains.info.dtos.enemy_dtos import EnemyRequest, PaginatedEnemyResponse, EnemyDetailResponse
 from domains.info.dtos.npc_dtos import PaginatedNpcResponse, NpcRequest, NpcDetailResponse
 from domains.info.dtos.personality_dtos import (
     PaginatedPersonalityResponse,
@@ -61,6 +61,22 @@ class InfoHandler:
         )
 
         return {"data": {"enemies": enemies, "meta": meta}}
+
+    @info_router.get(
+        "/enemies/{enemy_id}",
+        summary="적 정보 상세 조회 - 드롭 아이템 포함",
+        response_model=WrappedResponse[EnemyDetailResponse]
+    )
+    async def read_enemy_detail(
+            self,
+            enemy_id: int,
+            enemy_service: EnemyService = Depends(get_enemy_service)
+    ):
+        enemy = await enemy_service.get_enemy_detail(enemy_id)
+        if not enemy:
+            raise HTTPException(status_code=404, detail="해당 적을 찾을 수 없습니다.")
+        return {"data": enemy}
+
 
     @info_router.post(
         "/npcs",

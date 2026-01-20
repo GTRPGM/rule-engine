@@ -10,6 +10,7 @@ class EnemyService:
         self.cursor = cursor
         self.get_enemies_sql = load_sql("info", "get_enemies")
         self.count_enemies_sql = load_sql("info", "count_enemies")
+        self.get_enemy_detail_sql = load_sql("info", "get_enemy_detail")
 
     async def get_enemies(self, enemy_ids: Optional[List[int]], skip: int, limit: int):
         params = {
@@ -41,3 +42,20 @@ class EnemyService:
         )
 
         return enemies, meta
+
+    async def get_enemy_detail(self, enemy_id: int):
+        """
+        특정 적의 상세 정보와 전리품(drops) 목록을 통합 조회합니다.
+        """
+        params = {"enemy_id": enemy_id}
+
+        # 1. 상세 정보 쿼리 실행 (JSON 집계 쿼리 사용 권장)
+        # self.get_enemy_detail_sql = load_sql("info", "get_enemy_detail")
+        self.cursor.execute(self.get_enemy_detail_sql, params)
+        enemy_detail = self.cursor.fetchone()
+
+        # 2. 데이터 존재 여부 확인
+        if not enemy_detail or enemy_detail.get("enemy_id") is None:
+            return None
+
+        return enemy_detail
