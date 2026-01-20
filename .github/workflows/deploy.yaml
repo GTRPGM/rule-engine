@@ -2,8 +2,8 @@ name: GTRPGM Rule Engine CI/CD
 
 on:
   push:
-    #    branches: [ "main", "dev" ]
-    branches: [ "" ]
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build-and-test:
@@ -15,7 +15,7 @@ jobs:
       DB_PORT: ${{ secrets.DB_PORT }}
       DB_NAME: ${{ secrets.DB_NAME }}
       APP_HOST: "127.0.0.1"
-      APP_PORT: 8000
+      APP_PORT: ${{ secrets.APP_PORT }}
       APP_ENV: "local"
 
     steps:
@@ -43,24 +43,47 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           uv run python src/main.py > test_server.log 2>&1 &
-          sleep 3
-          curl -f http://127.0.0.1:8000/ || (cat test_server.log && exit 1)
-          pkill -f "src/main.py"
+
+          echo "Waiting for server to start..."
+          sleep 5
+
+          if ! ps aux | grep -v grep | grep "python main.py" > /dev/null; then
+            echo "❌ 서버 프로세스가 실행 직후 종료되었습니다. 로그를 출력합니다:"
+            cat test_server.log
+            exit 1
+          fi
+
+          echo "--- Attempting to connect to 127.0.0.1:8050 ---"
+          curl -v http://127.0.0.1:8000/ || (echo "❌ 접속 실패. 로그를 출력합니다:" && cat test_server.log && exit 1)
+
+          echo "✅ Server is up and running!"
+          pkill -f "main.py"
 
   deploy:
     needs: build-and-test
     runs-on: ubuntu-22.04
-    if: false # 배포환경이 확정되기 전까지 작업 비활성화
-    # if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 1. GitHub에 있는 코드를 GCP 서버의 /home/postelian/app/rule-engine 폴더로 전송
+      - name: Copy files via SCP
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.REMOTE_SSH_KEY }}
+          source: "."
+          target: "/home/${{ secrets.REMOTE_USER }}/app/rule-engine"
+          rm: true # 전송 전 target 폴더를 비워서 옛날 파일과 섞이지 않게 명시
+
       - name: Build Docker Image
         run: |
-          docker build -t gtrpgm-rule-engine:latest .
+          docker build -t rule-engine:latest .
 
+      # 2. 서버에 접속해서 빌드 및 배포 실행
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -68,16 +91,40 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.REMOTE_SSH_KEY }}
           script: |
+            cd /home/${{ secrets.REMOTE_USER }}/app/rule-engine
+
+            # 8050번 포트를 점유 중인 컨테이너가 있다면 강제 정리
+            echo "Cleaning up any container using port 8050..."
+            EXISTING_CONTAINER=$(docker ps -q --filter "publish=8050")
+            if [ ! -z "$EXISTING_CONTAINER" ]; then
+              echo "Stopping container: $EXISTING_CONTAINER"
+              docker stop $EXISTING_CONTAINER || true
+              docker rm $EXISTING_CONTAINER || true
+            fi
+
+            # 신규 이미지 빌드를 최우선으로 실행 (빌드 실패 시 기존 서버 영향 0)
+            echo "Building new Docker image..."
+            docker build -t rule-engine:latest .
+
             docker stop rule-engine || true
             docker rm rule-engine || true
 
+            # 빌드 성공 시에만 기존 컨테이너 이름 변경 (백업)
+            echo "Backing up old container..."
+            docker stop rule-engine-old || true
+            docker rm rule-engine-old || true
+            docker rename rule-engine rule-engine-old || true
+
+            # 새 컨테이너 실행
+            echo "Starting new container..."
             docker run -d \
               --name rule-engine \
-              -p 8000:8000 \
+              -p 8050:8050 \
               -e DB_USER=${{ secrets.DB_USER }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
               -e REMOTE_HOST=${{ secrets.REMOTE_HOST }} \
               -e DB_PORT=${{ secrets.DB_PORT }} \
               -e DB_NAME=${{ secrets.DB_NAME }} \
+              -e APP_PORT=${{ secrets.APP_PORT }} \
               -e APP_ENV=prod \
-              gtrpgm-rule-engine:latest
+              rule-engine:latest
