@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
@@ -24,6 +25,8 @@ class ItemResponse(BaseModel):
     weight: int
     grade: Optional[str]
     base_price: int
+    creator: str
+    created_at: datetime
 
 
 class PaginatedItemResponse(BaseModel):

@@ -22,12 +22,14 @@ class EnemyResponse(BaseModel):
     base_difficulty: int
     description: str
     type: str
+    creator: str
     created_at: datetime
 
 
 class PaginatedEnemyResponse(BaseModel):
     enemies: List[EnemyResponse]
     meta: PaginationMeta
+
 
 class EnemyDropDetail(BaseModel):
     drop_id: int = Field(..., description="드롭 규칙 고유 ID")
@@ -39,6 +41,7 @@ class EnemyDropDetail(BaseModel):
     max_quantity: int = Field(..., description="최대 드롭 수량")
     grade: Optional[str] = Field(None, description="아이템 등급")
 
+
 class EnemyDetailResponse(BaseModel):
     enemy_id: int = Field(..., description="적 고유 식별자")
     name: str = Field(..., description="적 이름")
@@ -46,7 +49,9 @@ class EnemyDetailResponse(BaseModel):
     description: Optional[str] = Field(None, description="적 상세 묘사")
     type: Optional[str] = Field(None, description="적 유형 (기계, 정령 등)")
     created_at: datetime = Field(..., description="생성 일시")
-    drops: List[EnemyDropDetail] = Field(default_factory=list, description="드롭 가능한 아이템 목록")
+    drops: List[EnemyDropDetail] = Field(
+        default_factory=list, description="드롭 가능한 아이템 목록"
+    )
 
     class Config:
         # DB 조회 결과(dict)를 Pydantic 모델로 자동 변환하기 위한 설정

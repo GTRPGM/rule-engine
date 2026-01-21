@@ -1,9 +1,8 @@
-from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 
-from configs.setting import ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY
+from configs.setting import APP_ENV, GEMINI_API_KEY, OPENAI_API_KEY
 
 
 class LLMManager:
@@ -17,18 +16,16 @@ class LLMManager:
             return cls._instances[provider]
 
         if provider == "gemini":
+            selected_model = (
+                "gemini-2.5-flash" if APP_ENV == "local" else "gemini-3-pro-preview"
+            )
             instance = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash", temperature=0.0, api_key=GEMINI_API_KEY
+                model=selected_model, temperature=0.0, api_key=GEMINI_API_KEY
             )
         elif provider == "openai":
+            selected_model = "gpt-4o-mini" if APP_ENV == "local" else "gpt-4o"
             instance = ChatOpenAI(
-                model="gpt-4o-mini", temperature=0.0, api_key=OPENAI_API_KEY
-            )
-        elif provider == "claude":
-            instance = ChatAnthropic(
-                model="claude-3-5-sonnet-20240620",
-                temperature=0.0,
-                api_key=ANTHROPIC_API_KEY,
+                model=selected_model, temperature=0.0, api_key=OPENAI_API_KEY
             )
         elif provider == "ollama":
             # 로컬 Ollama 설정
@@ -39,7 +36,6 @@ class LLMManager:
                 # model="qwen3:4b",  # 이건 더 시간이 오래 걸림. 재고할 가치도 없음
                 # model="qwen3:8b",  # - 처리속도 약간 느림
                 temperature=0.0,
-                # base_url="http://localhost:11434" # 기본값이므로 생략 가능
             )
         else:
             raise ValueError(f"지원하지 않는 모델 제공자입니다: {provider}")
@@ -50,5 +46,4 @@ class LLMManager:
 
 gemini = LLMManager.get_instance("gemini")
 # gpt = LLMManager.get_instance("openai")
-# claude = LLMManager.get_instance("claude")
 ollama = LLMManager.get_instance("ollama")

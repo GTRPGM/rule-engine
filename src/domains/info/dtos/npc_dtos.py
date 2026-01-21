@@ -1,5 +1,5 @@
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -25,6 +25,7 @@ class NpcResponse(BaseModel):
     description: Optional[str]
     base_difficulty: int
     combat_description: Optional[str]
+    creator: str
     created_at: datetime
 
 
