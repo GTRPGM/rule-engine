@@ -26,16 +26,12 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = [
-    "pytest>=9.0.2",
-    "pytest-asyncio>=1.3.0",
-    "ruff>=0.14.11",
-]
+dev = ["pytest>=9.0.2", "pytest-asyncio>=1.3.0", "ruff>=0.14.11"]
 
 [tool.setuptools]
 package-dir = { "" = "src" }
 
-[pytest]
+[tool.pytest]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 pythonpath = ["src"]
