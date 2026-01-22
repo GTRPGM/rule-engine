@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/rule-engine
+  IMAGE_NAME: gtrpgm/rule-engine
 
 jobs:
   build-and-test:
