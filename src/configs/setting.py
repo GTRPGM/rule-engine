@@ -18,7 +18,8 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 APP_HOST = os.getenv("APP_HOST")  # 운영 환경에서는 '0.0.0.0' 주입
 APP_PORT = int(os.getenv("APP_PORT"))
 APP_ENV = os.getenv("APP_ENV")  # local, dev, prod 등
-
+# 웹
+WEB_PORT = os.getenv("WEB_PORT")
 # 인증 - JWT 인증 관련 설정
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"

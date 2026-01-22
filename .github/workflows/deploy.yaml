@@ -5,6 +5,10 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/rule-engine
+
 jobs:
   build-and-test:
     runs-on: ubuntu-22.04
@@ -16,6 +20,7 @@ jobs:
       DB_NAME: ${{ secrets.DB_NAME }}
       APP_HOST: "127.0.0.1"
       APP_PORT: ${{ secrets.APP_PORT }}
+      WEB_PORT: ${{ secrets.WEB_PORT }}
       APP_ENV: "local"
 
     steps:
@@ -62,31 +67,37 @@ jobs:
           cat test_server.log
           exit 1
 
-  deploy:
+  build-docker-image:
     needs: build-and-test
     runs-on: ubuntu-22.04
-    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. GitHub에 있는 코드를 GCP 서버의 /home/postelian/app/rule-engine 폴더로 전송
-      - name: Copy files via SCP
-        uses: appleboy/scp-action@master
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          host: ${{ secrets.REMOTE_HOST }}
-          username: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.REMOTE_SSH_KEY }}
-          source: "."
-          target: "/home/${{ secrets.REMOTE_USER }}/app/rule-engine"
-          rm: true # 전송 전 target 폴더를 비워서 옛날 파일과 섞이지 않게 명시
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker Image
-        run: |
-          docker build -t rule-engine:latest .
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-      # 2. 서버에 접속해서 빌드 및 배포 실행
+  deploy:
+    needs: build-docker-image
+    runs-on: ubuntu-22.04
+    if: github.ref == 'refs/heads/main'
+
+    steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -94,40 +105,33 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.REMOTE_SSH_KEY }}
           script: |
-            cd /home/${{ secrets.REMOTE_USER }}/app/rule-engine
+            # 1. GHCR 로그인 (서버에서 이미지를 받아오기 위함)
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # 8050번 포트를 점유 중인 컨테이너가 있다면 강제 정리
-            echo "Cleaning up any container using port 8050..."
-            EXISTING_CONTAINER=$(docker ps -q --filter "publish=8050")
-            if [ ! -z "$EXISTING_CONTAINER" ]; then
-              echo "Stopping container: $EXISTING_CONTAINER"
-              docker stop $EXISTING_CONTAINER || true
-              docker rm $EXISTING_CONTAINER || true
+            # 2. 최신 이미지 Pull (빌드가 아니므로 리소스 소모가 매우 적음)
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+            # 3. 기존 컨테이너 정리 (필요한 경우에만 중지/삭제)
+            if [ "$(docker ps -aq -f name=rule-engine)" ]; then
+                echo "Stopping and removing existing container..."
+                docker stop rule-engine || true
+                docker rm rule-engine || true
             fi
 
-            # 신규 이미지 빌드를 최우선으로 실행 (빌드 실패 시 기존 서버 영향 0)
-            echo "Building new Docker image..."
-            docker build -t rule-engine:latest .
-
-            docker stop rule-engine || true
-            docker rm rule-engine || true
-
-            # 빌드 성공 시에만 기존 컨테이너 이름 변경 (백업)
-            echo "Backing up old container..."
-            docker stop rule-engine-old || true
-            docker rm rule-engine-old || true
-            docker rename rule-engine rule-engine-old || true
-
-            # 새 컨테이너 실행
-            echo "Starting new container..."
+            # 4. 새 컨테이너 실행
             docker run -d \
               --name rule-engine \
-              -p 8050:8050 \
+              -p ${{ secrets.APP_PORT }}:${{ secrets.APP_PORT }} \
+              --restart unless-stopped \
               -e DB_USER=${{ secrets.DB_USER }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
               -e REMOTE_HOST=${{ secrets.REMOTE_HOST }} \
               -e DB_PORT=${{ secrets.DB_PORT }} \
               -e DB_NAME=${{ secrets.DB_NAME }} \
               -e APP_PORT=${{ secrets.APP_PORT }} \
+              -e WEB_PORT=${{ secrets.WEB_PORT }} \
               -e APP_ENV=prod \
-              rule-engine:latest
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+            # 5. 사용하지 않는 오래된 이미지 정리 (디스크 용량 확보)
+            docker image prune -f

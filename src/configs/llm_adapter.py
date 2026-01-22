@@ -19,6 +19,7 @@ from configs.llm import (
 from configs.llm import (
     ChatMessage as SchemaChatMessage,
 )
+from configs.setting import REMOTE_HOST
 
 
 class NarrativeChatModel(BaseChatModel):
@@ -26,7 +27,7 @@ class NarrativeChatModel(BaseChatModel):
     Custom LangChain ChatModel adapter for the LLM Gateway Narrative endpoint.
     """
 
-    base_url: str = Field(default_factory=lambda: 'http://localhost:8060')
+    base_url: str = Field(default_factory=lambda: f"http://${REMOTE_HOST}:8060")
     client: httpx.AsyncClient = Field(default_factory=lambda: httpx.AsyncClient())
 
     @property

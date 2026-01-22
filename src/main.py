@@ -4,7 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 from configs.api_routers import API_ROUTERS
 from src.common.dtos.common_response import CustomJSONResponse
 from src.configs.logging_config import LOGGING_CONFIG
-from src.configs.setting import APP_ENV, APP_PORT
+from src.configs.setting import APP_ENV, APP_PORT, REMOTE_HOST, WEB_PORT
 
 app = FastAPI(
     title="GTRPGM Rule Engine",
@@ -15,10 +15,13 @@ app = FastAPI(
 
 # CORS 미들웨어 추가
 origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    f"http://localhost:{WEB_PORT}",
+    f"http://127.0.0.1:{WEB_PORT}",
     f"http://localhost:{APP_PORT}",
     f"http://127.0.0.1:{APP_PORT}",
+    f"http://{REMOTE_HOST}:{APP_PORT}",
+    f"http://{REMOTE_HOST}:{WEB_PORT}",
+    f"http://{REMOTE_HOST}",
 ]
 
 app.add_middleware(
