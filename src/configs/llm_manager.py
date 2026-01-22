@@ -3,6 +3,7 @@ from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 
 from configs.setting import APP_ENV, GEMINI_API_KEY, OPENAI_API_KEY
+from configs.llm_adapter import NarrativeChatModel
 
 
 class LLMManager:
@@ -15,7 +16,10 @@ class LLMManager:
         if provider in cls._instances:
             return cls._instances[provider]
 
-        if provider == "gemini":
+        if provider == "gateway":
+            instance = NarrativeChatModel()
+
+        elif provider == "gemini":
             selected_model = (
                 "gemini-2.5-flash" if APP_ENV == "local" else "gemini-3-pro-preview"
             )
