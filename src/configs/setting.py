@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=False)
 
 # DB 설정
 DB_USER = os.getenv("DB_USER")
