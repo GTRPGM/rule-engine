@@ -42,8 +42,3 @@ class LLMManager:
 
         cls._instances[provider] = instance
         return instance
-
-
-gemini = LLMManager.get_instance("gemini")
-# gpt = LLMManager.get_instance("openai")
-ollama = LLMManager.get_instance("ollama")
