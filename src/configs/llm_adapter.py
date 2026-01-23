@@ -79,6 +79,9 @@ class NarrativeChatModel(BaseChatModel):
             messages=schema_messages,
             temperature=kwargs.get("temperature", 0.7),
             max_tokens=kwargs.get("max_tokens"),
+            response_format=kwargs.get("response_format"),
+            tools=kwargs.get("tools"),
+            tool_choice=kwargs.get("tool_choice"),
         )
 
         response = await self.client.post(
@@ -93,11 +96,18 @@ class NarrativeChatModel(BaseChatModel):
             return ChatResult(generations=[])
 
         choice = chat_response.choices[0]
-        content = choice.message.content or ""
 
-        # Convert back to LangChain format
+        msg_kwargs = {}
+        if choice.message.tool_calls:
+            msg_kwargs["tool_calls"] = [
+                tc.model_dump() for tc in choice.message.tool_calls
+            ]
+
         generation = ChatGeneration(
-            message=AIMessage(content=content),
+            message=AIMessage(
+                content=choice.message.content or "",
+                **msg_kwargs,
+            ),
             generation_info={"finish_reason": choice.finish_reason},
         )
 

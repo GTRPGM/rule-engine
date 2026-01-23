@@ -43,19 +43,17 @@ class TestPlayService(unittest.IsolatedAsyncioTestCase):
         )
 
     async def test_analyze_scene_logic(self):
-        print(f"\n{'=' * 60}\n 로컬 LLM(Ollama) 성능 및 정확도 테스트 시작\n{'=' * 60}")
+        print(f"\n{'=' * 60}\n LLM 성능 및 정확도 테스트 시작\n{'=' * 60}")
 
         for expected_type, story in SAMPLE_STORIES:
             with self.subTest(story=story[:20]):  # 요약해서 표시
                 # 1. 시간 측정 시작
                 start_time = time.perf_counter()
-                print("test expected_type")
-                print(expected_type)
-                print("test story")
-                print(story)
                 # 2. Execute
                 result = await self.service.analyze_scene(story)
 
+                print("result")
+                print(result)
                 # 3. 시간 측정 종료
                 end_time = time.perf_counter()
                 elapsed = end_time - start_time
