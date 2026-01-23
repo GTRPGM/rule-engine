@@ -1,0 +1,27 @@
+    원본
+    {
+        "session_id": "",
+        "scenario_id": "",
+        "phase_type": PhaseType  # 룰 엔진이 추론한 페이즈 유형
+        "reason": str
+        "success": "True",
+        "suggested": {
+           diffs: [
+              {
+                  "entity_id": "player",
+                  "diff": {"hp": -10},
+              }
+           ],
+           "relations": [
+              {
+                  "target_entity_id": "",
+                  "update_relation": {
+                      "cause_entity_id": # 원인
+                      "effect_entity_id": # 결과
+                      "type": RelationType
+                  }
+              },
+           ]
+        },
+        "value_range": "None"
+    }

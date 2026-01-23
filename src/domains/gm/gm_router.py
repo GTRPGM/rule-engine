@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
 from common.dtos.wrapped_response import WrappedResponse
+from common.utils.get_services import get_gm_service
+from domains.gm.gm_service import GmService
 from src.domains.gm.dtos.dice_check_result import DiceCheckResult
-from utils.dice_util import DiceUtil
 
 gm_router = APIRouter(prefix="/gm", tags=["GM 요청"])
 
@@ -11,7 +12,7 @@ gm_router = APIRouter(prefix="/gm", tags=["GM 요청"])
     "/action/check",
     response_model=WrappedResponse[DiceCheckResult],
     summary="주사위 판정 실행",
-    description="2d6 주사위를 굴려 플레이어의 능력치를 더한 후, 설정된 난이도와 비교하여 성공 여부를 판정합니다.",
+    description="2d6 주사위를 굴려 플레이어의 능력치를 더한 후, 설정된 난이도와 비교해 성공 여부를 판정합니다.",
 )
 async def perform_action(
     ability_val: int = Query(
@@ -30,24 +31,9 @@ async def perform_action(
         le=30,
         examples=[10],
     ),
+    gm_service: GmService = Depends(get_gm_service),
 ):
     """주사위 판정을 실행합니다."""
-    result = DiceUtil.check_success(ability_val, diff)
+    result = await gm_service.rolling_dice(ability_val, diff)
 
-    if result["is_critical_success"]:
-        msg = "🎯 대성공! 완벽한 운이 따랐습니다."
-    elif result["is_critical_fail"]:
-        msg = "💀 대실패... 운명의 신이 당신을 저버렸습니다."
-    elif result["is_success"]:
-        msg = "✅ 성공했습니다."
-    else:
-        msg = "❌ 실패했습니다."
-
-    return {
-        "data": {
-            "message": msg,
-            "roll_result": result["roll_result"],
-            "total": result["total"],
-            "is_success": result["is_success"],
-        }
-    }
+    return {"data": result}

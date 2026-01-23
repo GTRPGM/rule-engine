@@ -12,8 +12,17 @@ class PhaseType(str, Enum):
     UNKNOWN = "알 수 없음"
 
 
-# 아직 구체화되지 않음 - 상상 자료형
 class RelationType(str, Enum):
+    HOSTILE = "적대적"
+    LITTLE_HOSTILE = "약간 적대적"
+    NEUTRAL = "중립적"
+    LITTLE_FRIENDLY = "약간 우호적"
+    FRIENDLY = "우호적"
+    OWNERSHIP = "소유"
+
+
+# 아직 구체화되지 않음 - 상상 자료형
+class ActionType(str, Enum):
     ATTACK = "공격"
     DAMAGED = "피해"
     DEFENCE = "방어"
@@ -25,7 +34,7 @@ class RelationType(str, Enum):
 
 
 class SceneAnalysis(BaseModel):
-    play_type: PhaseType = Field(description="현재 시나리오의 플레이 유형")
+    phase_type: PhaseType = Field(description="현재 시나리오의 플레이 유형")
     reason: str = Field(description="그렇게 판단한 이유 요약")
     confidence: float = Field(description="판단 확신도 (0.0 ~ 1.0)")
 
@@ -37,49 +46,46 @@ class PlaySceneData(BaseModel):
     where: str
 
 
-class PlaySceneRequest(BaseModel):
-    session_id: int
-    scenario_id: int
-    data: PlaySceneData
+class EntityUnit(BaseModel):
+    entity_id: int
+    entity_name: str
 
 
-class EntityRelation(BaseModel):
-    target_entity_id: int
-    update_relation: str
-    target_entity_attribute: Optional[Any] = None
+class EntityDiff(BaseModel):
+    entity_id: int
+    diff: Any  # { "entity_id": "player", "hp": -10 }, - 플레이어 변동치 - 가변적
+
+
+class UpdateRelation(BaseModel):
+    cause_entity_id: int = Field(default_factory=list, description="원인")
+    effect_entity_id: int = Field(default_factory=list, description="결과")
+    type: RelationType
 
 
 class PhaseUpdate(BaseModel):
-    entity_id: int
-    entity_attribute: Optional[Any] = None
-    entity_relation: Optional[EntityRelation] = None  # 아직 구체화되지 않음
+    diffs: List[EntityDiff] = Field(
+        default_factory=list, description="엔티티 변동 내역"
+    )
+    relations: List[UpdateRelation] = Field(
+        default_factory=list, description="관계 변동 내역"
+    )
 
 
-class FeedbackResponse(BaseModel):
-    play_type: PhaseType
-    reason: str
-    requirements: Optional[List[str]] = None
+class PlaySceneRequest(BaseModel):
+    session_id: int
+    scenario_id: int
+    entities: List[EntityUnit]
+    relations: List[UpdateRelation]
+    story: str
 
 
 class PlaySceneResponse(BaseModel):
     session_id: int
     scenario_id: int
-    update: List[Optional[PhaseUpdate]]
-    feedback: Optional[FeedbackResponse] = None
-
-    # {
-    #     "session_id": "",
-    #     "scenario_id": "",
-    #     "update": [
-    #         {
-    #             "entity_id": "",
-    #             "entity_attribute": {
-    #                 "hp": -1
-    #             },
-    #             "entity_relation": {
-    #                 "target_entity_id": " ",
-    #                 "update_relation": " "
-    #             }
-    #         }
-    #     ]
-    # }
+    phase_type: PhaseType  # 룰 엔진이 추론한 페이즈 유형
+    reason: str  # 페이즈 유형 판정 이유
+    success: bool  # 룰 엔진 주사위 행동 판정 결과 → 시나리오 참고용(무시당할 수 있음)
+    suggested: PhaseUpdate = Field(default_factory=list, description="제안된 판정 결과")
+    value_range: Optional[int] = (
+        None  # 룰 엔진 주사위 판정 기준(2d6 or 1d6) → 최대 / 최소
+    )

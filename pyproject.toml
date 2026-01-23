@@ -9,6 +9,7 @@ description = "GTRPGM 게임의 규칙 위배 여부를 판정하는 엔진입�
 requires-python = ">=3.11"
 dependencies = [
     "aiofiles>=25.1.0",
+    "black>=26.1.0",
     "fastapi>=0.128.0",
     "fastapi-utils>=0.8.0",
     "langchain-anthropic>=1.3.1",
@@ -27,6 +28,13 @@ dependencies = [
 
 [dependency-groups]
 dev = ["pytest>=9.0.2", "pytest-asyncio>=1.3.0", "ruff>=0.14.11"]
+
+[tool.ruff]
+ignore = ["E501"]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
 
 [tool.setuptools]
 package-dir = { "" = "src" }

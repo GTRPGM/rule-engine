@@ -1,6 +1,7 @@
 from fastapi.params import Depends
 
 from configs.database import get_db_cursor
+from domains.gm.gm_service import GmService
 from domains.info.enemy_service import EnemyService
 from domains.info.npc_service import NpcService
 from domains.info.world_service import WorldService
@@ -8,6 +9,10 @@ from domains.play.play_service import PlayService
 from domains.scenario.scenario_service import ScenarioService
 from src.domains.info.item_service import ItemService
 from src.domains.info.personality_service import PersonalityService
+
+
+def get_gm_service(cursor=Depends(get_db_cursor)):
+    return GmService(cursor)
 
 
 def get_item_service(cursor=Depends(get_db_cursor)):
