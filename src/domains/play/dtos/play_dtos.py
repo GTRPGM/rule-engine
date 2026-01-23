@@ -4,15 +4,28 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, Field
 
 
-class PlayType(str, Enum):
-    BATTLE = "전투"
-    NEGOTIATE = "협상"
-    EXPLORE = "탐험"
+class PhaseType(str, Enum):
+    EXPLORATION = "탐험"
+    COMBAT = "전투"
+    DIALOGUE = "대화"
+    REST = "휴식"
     UNKNOWN = "알 수 없음"
 
 
+# 아직 구체화되지 않음 - 상상 자료형
+class RelationType(str, Enum):
+    ATTACK = "공격"
+    DAMAGED = "피해"
+    DEFENCE = "방어"
+    AVOID = "회피"
+    DISCOVER = "발견"
+    DEAD = "사망"
+    ACQUIRE = "습득"
+    THROW = "버림"
+
+
 class SceneAnalysis(BaseModel):
-    play_type: PlayType = Field(description="현재 시나리오의 플레이 유형")
+    play_type: PhaseType = Field(description="현재 시나리오의 플레이 유형")
     reason: str = Field(description="그렇게 판단한 이유 요약")
     confidence: float = Field(description="판단 확신도 (0.0 ~ 1.0)")
 
@@ -33,16 +46,17 @@ class PlaySceneRequest(BaseModel):
 class EntityRelation(BaseModel):
     target_entity_id: int
     update_relation: str
+    target_entity_attribute: Optional[Any] = None
 
 
-class PlaySceneUpdate(BaseModel):
+class PhaseUpdate(BaseModel):
     entity_id: int
-    entity_attribute: Any
-    entity_relation: Optional[EntityRelation] = None
+    entity_attribute: Optional[Any] = None
+    entity_relation: Optional[EntityRelation] = None  # 아직 구체화되지 않음
 
 
 class FeedbackResponse(BaseModel):
-    play_type: PlayType
+    play_type: PhaseType
     reason: str
     requirements: Optional[List[str]] = None
 
@@ -50,7 +64,7 @@ class FeedbackResponse(BaseModel):
 class PlaySceneResponse(BaseModel):
     session_id: int
     scenario_id: int
-    update: List[Optional[PlaySceneUpdate]]
+    update: List[Optional[PhaseUpdate]]
     feedback: Optional[FeedbackResponse] = None
 
     # {

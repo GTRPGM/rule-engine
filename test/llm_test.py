@@ -3,32 +3,32 @@ import time  # 시간 측정을 위해 추가
 import unittest
 from unittest.mock import MagicMock
 
-from domains.play.play_service import PlayService, PlayType
+from domains.play.play_service import PhaseType, PlayService
 
 # 샘플 데이터 정의 (기존과 동일)
 SAMPLE_STORIES = [
     (
-        PlayType.BATTLE,
+        PhaseType.BATTLE,
         "어둠 속에서 갑자기 고블린 무리가 무딘 단검을 휘두르며 달려듭니다.",
     ),
-    (PlayType.NEGOTIATE, "성문 앞 경비병이 통행료로 100골드를 요구합니다."),
-    (PlayType.EXPLORE, "오래된 유적의 벽면에 새겨진 기괴한 문양을 조사합니다."),
+    (PhaseType.NEGOTIATE, "성문 앞 경비병이 통행료로 100골드를 요구합니다."),
+    (PhaseType.EXPLORE, "오래된 유적의 벽면에 새겨진 기괴한 문양을 조사합니다."),
     (
-        PlayType.BATTLE,
+        PhaseType.BATTLE,
         "주점에서 술을 마시던 중, 옆 테이블의 용병과 시비가 붙었습니다...",
     ),  # 중략
-    (PlayType.NEGOTIATE, "상인 길드장에게 희귀 약초를 팔려고 합니다..."),  # 중략
-    (PlayType.EXPLORE, "안개 낀 늪지대에서 길을 잃었습니다..."),  # 중략
+    (PhaseType.NEGOTIATE, "상인 길드장에게 희귀 약초를 팔려고 합니다..."),  # 중략
+    (PhaseType.EXPLORE, "안개 낀 늪지대에서 길을 잃었습니다..."),  # 중략
     (
-        PlayType.UNKNOWN,
+        PhaseType.UNKNOWN,
         "배가 고파진 당신은 가방을 열어 딱딱한 빵 한 조각을 꺼내 씹어 먹습니다...",
     ),
     (
-        PlayType.UNKNOWN,
+        PhaseType.UNKNOWN,
         "오늘 날씨가 참 좋군요. 당신은 성벽 위를 거닐며 멀리 보이는 산맥을 바라봅니다...",
     ),
     (
-        PlayType.BATTLE,
+        PhaseType.BATTLE,
         "협상을 하러 갔지만, 상대가 갑자기 탁자를 내리치며 부하들에게 신호를 보냈습니다!...",
     ),
 ]
