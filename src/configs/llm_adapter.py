@@ -9,6 +9,7 @@ from langchain_core.messages import (
     ChatMessage,
     SystemMessage,
 )
+from langchain_core.runnables import RunnableLambda
 from langchain_core.outputs import ChatGeneration, ChatResult
 from pydantic import Field
 
@@ -70,6 +71,8 @@ class NarrativeChatModel(BaseChatModel):
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> ChatResult:
+        import json
+
         schema_messages = [self._convert_message_to_schema(m) for m in messages]
 
         request_body = ChatCompletionRequest(
@@ -95,18 +98,69 @@ class NarrativeChatModel(BaseChatModel):
 
         choice = chat_response.choices[0]
 
+        # tool_calls 처리
         msg_kwargs = {}
         if choice.message.tool_calls:
             msg_kwargs["tool_calls"] = [
                 tc.model_dump() for tc in choice.message.tool_calls
             ]
 
+        raw_content = choice.message.content or ""
+
+        # structured output 처리
+        parsed_content = None
+        response_format = kwargs.get("response_format")
+
+        if response_format and isinstance(raw_content, str):
+            fmt_type = response_format.get("type")
+            if fmt_type in ("json_object", "json_schema"):
+                try:
+                    parsed_content = json.loads(raw_content)
+                except json.JSONDecodeError:
+                    parsed_content = None
+
+        if parsed_content is not None:
+            if isinstance(parsed_content, list):
+                final_content = parsed_content
+            else:
+                final_content = [parsed_content]
+
+            msg_kwargs["parsed"] = parsed_content
+        else:
+            final_content = raw_content
+
         generation = ChatGeneration(
             message=AIMessage(
-                content=choice.message.content or "",
-                **msg_kwargs,
+                content=final_content,
+                additional_kwargs=msg_kwargs,  # 항상 dict
             ),
             generation_info={"finish_reason": choice.finish_reason},
         )
 
         return ChatResult(generations=[generation])
+
+    def with_structured_output(self, schema, *, method: str = "json_schema", **kwargs):
+
+        async def _call(messages):
+            result = await self.ainvoke(
+                messages,
+                response_format={
+                    "type": "json_schema",
+                    "json_schema": {"schema": schema.model_json_schema()},
+                },
+            )
+
+            content = result.content
+
+            # LangChain content 규격(list[str|dict]) 처리
+            if isinstance(content, list):
+                if not content:
+                    raise ValueError("Empty structured output")
+                data = content[0]
+            else:
+                data = content
+
+            # Pydantic 객체로 직접 변환
+            return schema.model_validate(data)
+
+        return RunnableLambda(_call)
