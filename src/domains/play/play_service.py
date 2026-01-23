@@ -8,6 +8,7 @@ from configs.llm_manager import LLMManager
 from configs.setting import APP_ENV
 from domains.play.dtos.play_dtos import (
     EntityRelation,
+    FeedbackResponse,
     PlaySceneRequest,
     PlaySceneResponse,
     PlaySceneUpdate,
@@ -76,5 +77,8 @@ class PlayService:
             session_id=request.session_id,
             scenario_id=request.scenario_id,
             update=updates,
-            feedback=analysis.play_type,
+            feedback=FeedbackResponse(
+                play_type=analysis.play_type,
+                reason=analysis.reason,
+            ),
         )

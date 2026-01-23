@@ -42,7 +42,8 @@ class PlaySceneUpdate(BaseModel):
 
 
 class FeedbackResponse(BaseModel):
-    message: str
+    play_type: PlayType
+    reason: str
     requirements: Optional[List[str]] = None
 
 
