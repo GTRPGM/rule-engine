@@ -21,6 +21,7 @@ jobs:
       APP_HOST: "127.0.0.1"
       APP_PORT: ${{ secrets.APP_PORT }}
       WEB_PORT: ${{ secrets.WEB_PORT }}
+      LANGCHAIN_GATEWAY_PORT: ${{ secrets.LANGCHAIN_GATEWAY_PORT }}
       APP_ENV: "local"
 
     steps:
@@ -130,6 +131,7 @@ jobs:
               -e DB_NAME=${{ secrets.DB_NAME }} \
               -e APP_PORT=${{ secrets.APP_PORT }} \
               -e WEB_PORT=${{ secrets.WEB_PORT }} \
+              -e LANGCHAIN_GATEWAY_PORT=${{ secrets.LANGCHAIN_GATEWAY_PORT }} \
               -e APP_ENV=prod \
               ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 

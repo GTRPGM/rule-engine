@@ -19,7 +19,7 @@ from configs.llm import (
 from configs.llm import (
     ChatMessage as SchemaChatMessage,
 )
-from configs.setting import REMOTE_HOST
+from configs.setting import LANGCHAIN_GATEWAY_PORT, REMOTE_HOST
 
 
 class NarrativeChatModel(BaseChatModel):
@@ -27,7 +27,9 @@ class NarrativeChatModel(BaseChatModel):
     Custom LangChain ChatModel adapter for the LLM Gateway Narrative endpoint.
     """
 
-    base_url: str = Field(default_factory=lambda: f"http://${REMOTE_HOST}:8060")
+    base_url: str = Field(
+        default_factory=lambda: f"http://{REMOTE_HOST}:{LANGCHAIN_GATEWAY_PORT}"
+    )
     client: httpx.AsyncClient = Field(default_factory=lambda: httpx.AsyncClient())
 
     @property
@@ -73,7 +75,7 @@ class NarrativeChatModel(BaseChatModel):
         schema_messages = [self._convert_message_to_schema(m) for m in messages]
 
         request_body = ChatCompletionRequest(
-            model="gemini-2.0-flash-light",
+            model="gemini-2.0-flash",
             messages=schema_messages,
             temperature=kwargs.get("temperature", 0.7),
             max_tokens=kwargs.get("max_tokens"),
@@ -100,3 +102,22 @@ class NarrativeChatModel(BaseChatModel):
         )
 
         return ChatResult(generations=[generation])
+
+    # def with_structured_output(
+    #     self,
+    #     schema: Union[Dict, Type],
+    #     **kwargs: Any,
+    # ) -> Runnable:
+    #     """
+    #     커스텀 모델에 구조화된 출력 기능을 추가합니다.
+    #     가장 범용적인 방식인 JSON Output Parser를 연결하는 방식으로 구현합니다.
+    #     """
+    #     parser = JsonOutputParser(pydantic_object=schema)
+    #
+    #     def debug_log(input_data):
+    #         print("=" * 50)
+    #         print(f"[LLM RAW OUTPUT]: {input_data.content}")  # LLM이 보낸 실제 텍스트
+    #         print("=" * 50)
+    #         return input_data
+    #
+    #     return self | RunnableLambda(debug_log) | parser

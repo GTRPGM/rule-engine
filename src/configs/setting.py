@@ -14,6 +14,7 @@ DB_NAME = os.getenv("DB_NAME")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+LANGCHAIN_GATEWAY_PORT = os.getenv("LANGCHAIN_GATEWAY_PORT")
 # 원격 서버
 APP_HOST = os.getenv("APP_HOST")  # 운영 환경에서는 '0.0.0.0' 주입
 APP_PORT = int(os.getenv("APP_PORT"))

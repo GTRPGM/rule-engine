@@ -3,7 +3,6 @@ import time  # 시간 측정을 위해 추가
 import unittest
 from unittest.mock import MagicMock
 
-
 from domains.play.play_service import PlayService, PlayType
 
 # 샘플 데이터 정의 (기존과 동일)
@@ -40,7 +39,7 @@ class TestPlayService(unittest.IsolatedAsyncioTestCase):
         self.mock_cursor = MagicMock()
         self.service = PlayService(
             cursor=self.mock_cursor,
-            llm_provider="ollama",
+            llm_provider="gateway",
         )
 
     async def test_analyze_scene_logic(self):
@@ -50,7 +49,10 @@ class TestPlayService(unittest.IsolatedAsyncioTestCase):
             with self.subTest(story=story[:20]):  # 요약해서 표시
                 # 1. 시간 측정 시작
                 start_time = time.perf_counter()
-
+                print("test expected_type")
+                print(expected_type)
+                print("test story")
+                print(story)
                 # 2. Execute
                 result = await self.service.analyze_scene(story)
 
