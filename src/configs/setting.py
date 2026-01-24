@@ -4,12 +4,15 @@ from dotenv import load_dotenv
 
 load_dotenv(override=False)
 
-# DB 설정
+# RDB 설정
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 REMOTE_HOST = os.getenv("REMOTE_HOST")
 DB_PORT = int(os.getenv("DB_PORT"))
 DB_NAME = os.getenv("DB_NAME")
+# REDIS
+REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 # LLM
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")

@@ -4,6 +4,7 @@ from starlette.responses import StreamingResponse
 
 from common.dtos.wrapped_response import WrappedResponse
 from common.utils.get_services import get_minigame_service, get_play_service
+from domains.play.dtos.minigame_dtos import AnswerRequest, AnswerResponse
 from domains.play.dtos.play_dtos import PlaySceneRequest, PlaySceneResponse
 from domains.play.minigame_service import MinigameService
 from domains.play.play_service import PlayService
@@ -33,23 +34,48 @@ class PlayRouter:
                 detail="알 수 없는 오류가 발생했습니다.",
             )
 
-    @play_router.get("/minigame", summary="수수께끼 미니게임을 진행합니다.")
+    @play_router.get(
+        "/riddle/{user_id}",
+        summary = "새로운 수수께끼를 생성하고 스트리밍으로 반환합니다. 동시에 Redis에 정답과 초기 상태를 저장합니다.",
+    )
     async def get_riddle(
-        self,
-        minigame_service: MinigameService = Depends(get_minigame_service),
+            self,
+            user_id: int,
+            service: MinigameService = Depends(get_minigame_service)
     ):
-        """스트리밍 응답 반환 엔드포인트"""
-        return StreamingResponse(
-            minigame_service.generate_riddle(), media_type="text/event-stream"
-        )
+        """
+        새로운 수수께끼를 생성하고 스트리밍으로 반환합니다.
+        동시에 Redis에 정답과 초기 상태를 저장합니다.
+        """
+        try:
+            # 서비스에서 스트리밍 제너레이터 획득
+            riddle_stream = await service.generate_and_save_riddle(user_id)
 
-    # @play_router.post("/check-answer")
-    # async def check_answer(user_id: str, user_guess: str, service: MinigameService):
-    # Todo: 1. REDIS에서 해당 유저의 정답 조회
-    # correct_answer = service.get_saved_answer(user_id)
+            return StreamingResponse(
+                riddle_stream,
+                media_type="text/event-stream"
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"수수께끼 생성 실패: {str(e)}")
 
-    # 2. 비교 (공백 제거, 대소문자 무시 등)
-    # if user_guess.strip() == correct_answer.strip():
-    #     return {"result": "correct", "message": "정답입니다! 🎉"}
-    # else:
-    #     return {"result": "wrong", "message": "틀렸습니다. 다시 생각해보세요!"}
+    @play_router.post(
+        "/answer/{user_id}",
+        summary = "사용자가 입력한 수수께끼 정답을 확인합니다. 3회 실패 시 힌트를 포함하며, 남은 시간(TTL)을 반환합니다.",
+        response_model=WrappedResponse[AnswerResponse],
+    )
+    async def submit_answer(
+            self,
+            user_id: int,
+            request: AnswerRequest,
+            service: MinigameService = Depends(get_minigame_service)
+    ):
+        """
+        사용자가 입력한 정답을 확인합니다.
+        3회 실패 시 힌트를 포함하며, 남은 시간(TTL)을 반환합니다.
+        """
+        feedback = await service.check_user_answer(user_id, request.user_guess)
+
+        if feedback.result == "error":
+            raise HTTPException(status_code=404, detail=feedback.message)
+
+        return WrappedResponse[AnswerResponse](data=feedback)
