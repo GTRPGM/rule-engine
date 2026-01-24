@@ -1,12 +1,13 @@
 import asyncio
 import json
+import random
 from datetime import timedelta
 
 from langchain_core.prompts import ChatPromptTemplate
 
 from configs.llm_manager import LLMManager
 from configs.redis_conn import get_redis_client
-from domains.play.dtos.minigame_dtos import RiddleData, AnswerResponse
+from domains.play.dtos.minigame_dtos import AnswerResponse, RiddleData
 
 
 class MinigameService:
@@ -14,22 +15,28 @@ class MinigameService:
         self.cursor = cursor
         self.redis = get_redis_client()
         self.REDIS_KEY_PREFIX = "riddle:answer:"
-        self.llm = LLMManager.get_instance(llm_provider)
+        self.riddle_llm = LLMManager.get_instance(llm_provider, temperature=0.9) # 문제 생성용 (창의적 - 높은 온도)
+        self.eval_llm = LLMManager.get_instance(llm_provider, temperature=0.0) # 정답 검증용 (정확함 - 낮은 온도)
         self.LIMIT_TIME_MINUTES = 15  # 문제 당 제한 시간
-        # 프롬프트 정의
+        self.riddle_themes = ["동물", "물건", "자연", "음식", "직업", "추상적인 개념"]
         self.prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", "당신은 재미있는 수수께끼를 내는 챗봇입니다."),
                 ("human", "{input}"),
             ]
         )
-        self.chain = self.prompt | self.llm
+        self.chain = self.prompt | self.riddle_llm
 
-    async def generate_and_save_riddle(self, user_id: str):
+    async def generate_and_save_riddle(self, user_id: int):
         # 1. 구조화된 데이터 생성 (힌트 포함)
-        structured_llm = self.llm.with_structured_output(RiddleData)
+        structured_llm = self.riddle_llm.with_structured_output(RiddleData)
+        selected_theme = random.choice(self.riddle_themes)
         riddle_obj = await structured_llm.ainvoke(
-            "재미있는 수수께끼와 정답, 힌트, 해설을 하나씩 만들어줘."
+            f"""
+            {selected_theme}을(를) 주제로 한 창의적이고 어려운 수수께끼를 하나 만들어줘.
+            이전에 자주 나오는 뻔한 문제는 피하고, 사람들이 잘 모를만한 신선한 문제를 만들어야 해.
+            반드시 한국어로 작성해줘.
+            """
         )
 
         # 2. REDIS에 정보 저장 (fail_count 초기값 0 추가)
@@ -108,7 +115,7 @@ class MinigameService:
 
         # 2차 의미적 비교
         check_prompt = f"수수께끼 정답이 '{correct_answer}'일 때, 사용자가 '{user_guess}'라고 답했습니다. 의미상 정답인가요? 오직 Y 또는 N으로만 대답하세요."
-        response = await self.llm.ainvoke(check_prompt)
+        response = await self.eval_llm.ainvoke(check_prompt)
 
         # "Y"가 포함되어 있는지 검사 (대소문자 무시 및 공백 제거)
         result_text = response.content.strip().upper()

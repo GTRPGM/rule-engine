@@ -32,6 +32,7 @@ class NarrativeChatModel(BaseChatModel):
         default_factory=lambda: f"http://{REMOTE_HOST}:{LANGCHAIN_GATEWAY_PORT}"
     )
     client: httpx.AsyncClient = Field(default_factory=lambda: httpx.AsyncClient())
+    temperature: float = 0.7
 
     @property
     def _llm_type(self) -> str:
@@ -80,7 +81,7 @@ class NarrativeChatModel(BaseChatModel):
         request_body = ChatCompletionRequest(
             model="gemini-2.0-flash",
             messages=schema_messages,
-            temperature=kwargs.get("temperature", 0.7),
+            temperature=kwargs.get("temperature", self.temperature),
             max_tokens=kwargs.get("max_tokens"),
             response_format=kwargs.get("response_format"),
             tools=kwargs.get("tools"),
