@@ -18,6 +18,8 @@ jobs:
       REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
       DB_PORT: ${{ secrets.DB_PORT }}
       DB_NAME: ${{ secrets.DB_NAME }}
+      REDIS_PORT: ${{ secrets.REDIS_PORT }}
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
       APP_HOST: "127.0.0.1"
       APP_PORT: ${{ secrets.APP_PORT }}
       WEB_PORT: ${{ secrets.WEB_PORT }}
@@ -44,6 +46,11 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:.
           uv run python -c "from src.configs.database import check_db_connection; check_db_connection()"
+
+      - name: Check Redis Connection
+        run: |
+          export PYTHONPATH=$PYTHONPATH:.
+          uv run python -c "from src.configs.redis_conn import check_redis_connection; check_redis_connection()"
 
       - name: Server Smoke Test (Health Check)
         run: |
@@ -129,6 +136,8 @@ jobs:
               -e REMOTE_HOST=${{ secrets.REMOTE_HOST }} \
               -e DB_PORT=${{ secrets.DB_PORT }} \
               -e DB_NAME=${{ secrets.DB_NAME }} \
+              -e REDIS_PORT=${{ secrets.REDIS_PORT }} \
+              -e REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
               -e APP_PORT=${{ secrets.APP_PORT }} \
               -e WEB_PORT=${{ secrets.WEB_PORT }} \
               -e LANGCHAIN_GATEWAY_PORT=${{ secrets.LANGCHAIN_GATEWAY_PORT }} \
