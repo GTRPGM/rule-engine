@@ -8,6 +8,7 @@ from src.domains.gm.dtos.dice_check_result import DiceCheckResult
 gm_router = APIRouter(prefix="/gm", tags=["GM 요청"])
 
 
+# 아래 라우터는 백업용으로 존치 → 주사위만 따로 호출하는 케이스가 없으므로 엔드 포인트에서 배제
 @gm_router.get(
     "/action/check",
     response_model=WrappedResponse[DiceCheckResult],
