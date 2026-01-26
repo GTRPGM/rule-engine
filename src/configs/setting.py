@@ -24,11 +24,3 @@ APP_PORT = int(os.getenv("APP_PORT"))
 APP_ENV = os.getenv("APP_ENV")  # local, dev, prod 등
 # 웹
 WEB_PORT = os.getenv("WEB_PORT")
-# 인증 - JWT 인증 관련 설정
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_DAYS = 7  # 7일 동안 유효
-REFRESH_TOKEN_EXPIRE_SECONDS = (
-    REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
-)  # 7일 만료 (초단위)

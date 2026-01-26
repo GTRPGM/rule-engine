@@ -47,7 +47,7 @@ class PlayService:
         return await chain.ainvoke({"story": story}, config)
 
     async def play_scene(self, request: PlaySceneRequest) -> PlaySceneResponse:
-        analysis = await self.analyze_scene(request.data.story)
+        analysis = await self.analyze_scene(request.story)
         print(f"분석된 플레이 유형: {analysis}")
 
         # Todo: 플레이어 상태 조회 및 주사위 굴리기 → PhaseUpdate
