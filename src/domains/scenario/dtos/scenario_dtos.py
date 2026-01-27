@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
 from enum import Enum
 from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class ItemCategory(str, Enum):
@@ -17,6 +18,7 @@ class ItemCategory(str, Enum):
     def list_values(cls):
         return [c.value for c in cls]
 
+
 class ItemGrade(str, Enum):
     Common = "Common"
     Rare = "Rare"
@@ -27,6 +29,7 @@ class ItemGrade(str, Enum):
     def list_values(cls):
         return [c.value for c in cls]
 
+
 class ItemCreateRequest(BaseModel):
     name: str
     type: ItemCategory
@@ -36,11 +39,13 @@ class ItemCreateRequest(BaseModel):
     grade: ItemGrade
     base_price: int = 0
 
+
 class EnemyCreateRequest(BaseModel):
     name: str
     base_difficulty: int
     description: str | None = None
     type: str
+
 
 class EnemyDropCreateRequest(BaseModel):
     enemy_id: int
@@ -48,6 +53,7 @@ class EnemyDropCreateRequest(BaseModel):
     drop_rate: float
     min_quantity: int
     max_quantity: int
+
 
 class NpcCreateRequest(BaseModel):
     name: str
@@ -58,11 +64,13 @@ class NpcCreateRequest(BaseModel):
     base_difficulty: int
     combat_description: str
 
+
 class NpcInventoryCreateRequest(BaseModel):
     npc_id: int = Field(..., description="판매 주체 NPC의 ID")
     item_id: int = Field(..., description="판매할 아이템의 ID")
-    base_price: Optional[int] = Field(0, description="NPC 전용 판매 가격 (기본값 0)")
-    is_infinite_stock: Optional[bool] = Field(False, description="재고 무한 여부 (True: 무한, False: 한정)")
+    is_infinite_stock: Optional[bool] = Field(
+        False, description="재고 무한 여부 (True: 무한, False: 한정)"
+    )
 
     class Config:
         json_schema_extra = {
@@ -70,6 +78,6 @@ class NpcInventoryCreateRequest(BaseModel):
                 "npc_id": 1,
                 "item_id": 10,
                 "base_price": 500,
-                "is_infinite_stock": True
+                "is_infinite_stock": True,
             }
         }
