@@ -6,7 +6,7 @@ SELECT
     e.type,
     e.created_at,
     COALESCE(
-        json_agg(
+        (SELECT json_agg(
             json_build_object(
                 'drop_id', ed.drop_id,
                 'item_id', i.item_id,
@@ -17,11 +17,11 @@ SELECT
                 'max_quantity', ed.max_quantity,
                 'grade', i.grade
             )
-        ) FILTER (WHERE ed.drop_id IS NOT NULL),
-        '[]'
+        )
+        FROM enemy_drops ed
+        JOIN items i ON ed.item_id = i.item_id
+        WHERE ed.enemy_id = e.enemy_id),
+        '[]'::json
     ) AS drops
 FROM enemies e
-LEFT JOIN enemy_drops ed ON e.enemy_id = ed.enemy_id
-LEFT JOIN items i ON ed.item_id = i.item_id
-WHERE e.enemy_id = %(enemy_id)s
-GROUP BY e.enemy_id;
+WHERE e.enemy_id = %(enemy_id)s;

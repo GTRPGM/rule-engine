@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from common.dtos.pagination_meta import PaginationMeta
 
@@ -52,6 +52,17 @@ class EnemyDetailResponse(BaseModel):
     drops: List[EnemyDropDetail] = Field(
         default_factory=list, description="드롭 가능한 아이템 목록"
     )
+
+    @field_validator("drops", mode="before")
+    @classmethod
+    def ensure_list(cls, v):
+        if v is None:
+            return []
+        if isinstance(v, str):
+            import json
+
+            return json.loads(v)
+        return v
 
     class Config:
         # DB 조회 결과(dict)를 Pydantic 모델로 자동 변환하기 위한 설정

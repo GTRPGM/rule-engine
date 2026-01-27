@@ -1,9 +1,10 @@
 from typing import List, Optional
 
+from fastapi import HTTPException
+
 from common.dtos.pagination_meta import PaginationMeta
 from domains.info.dtos.npc_dtos import NpcDetailResponse
 from utils.load_sql import load_sql
-from fastapi import HTTPException
 
 
 class NpcService:
@@ -51,4 +52,9 @@ class NpcService:
         if not row:
             raise HTTPException(status_code=404, detail="NPC를 찾을 수 없습니다.")
 
-        return NpcDetailResponse(**row)
+        npc_data = dict(row)
+
+        if npc_data.get("inventory_list") is None:
+            npc_data["inventory_list"] = []
+
+        return NpcDetailResponse(**npc_data)
