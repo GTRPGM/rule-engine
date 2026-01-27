@@ -3,7 +3,7 @@ LOGGING_CONFIG = {
     "disable_existing_loggers": True,
     "formatters": {
         "default": {
-            "()": "uvicorn.logging.DefaultFormatter",
+            "()": "src.configs.color_hint_formatter.ColorHintFormatter",
             "fmt": "%(levelprefix)s %(message)s",
             "use_colors": True,
         },
@@ -29,6 +29,10 @@ LOGGING_CONFIG = {
         "uvicorn": {"handlers": ["default"], "level": "INFO"},
         "uvicorn.error": {"handlers": ["default"], "level": "INFO", "propagate": False},
         "uvicorn.access": {"handlers": ["access"], "level": "INFO", "propagate": False},
-        "sqlalchemy.engine": {"handlers": ["default"], "level": "INFO", "propagate": False},
+        "sqlalchemy.engine": {
+            "handlers": ["default"],
+            "level": "INFO",
+            "propagate": False,
+        },
     },
 }
