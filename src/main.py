@@ -50,7 +50,6 @@ async def universal_exception_handler(request: Request, exc: Exception):
 # 2. 의도된 HTTP 에러 (400, 401, 404, 503 등) - 중복 제거 및 통합
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
-    # 이모지는 ⚠️를 써서 500 에러(🔥)와 구분하면 디버깅이 편합니다.
     logger.error(f"⚠️ HTTP {exc.status_code} Error: {request.method} {request.url.path}")
     logger.error(f"Detail: {exc.detail}")
     return JSONResponse(
