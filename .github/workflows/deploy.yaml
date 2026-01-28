@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - "main"
-      - "ops/28-deploy-standard"
+      - "ops/deploy-compose"
   workflow_dispatch:
 
 env:
@@ -154,6 +154,12 @@ jobs:
           script: |
             set -e
 
+            if [ "$(docker ps -aq -f name=rule-engine)" ]; then
+                echo "Stopping and removing existing container..."
+                docker stop rule-engine || true
+                docker rm rule-engine || true
+            fi
+
             export DOCKER_CONFIG=$(mktemp -d)
             trap 'rm -rf "$DOCKER_CONFIG"' EXIT
 
@@ -178,14 +184,14 @@ jobs:
             export DB_NAME="${{ secrets.DB_NAME }}"
 
             # Redis Settings
-            REDIS_PORT="${{ secrets.REDIS_PORT }}"
-            REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
+            export REDIS_PORT="${{ secrets.REDIS_PORT }}"
+            export REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
 
-            # External Service URLs
-            export STATE_SERVICE_URL="${{ vars.STATE_SERVICE_URL }}"
-            export SCENARIO_SERVICE_URL="${{ vars.SCENARIO_SERVICE_URL }}"
-            export RULE_SERVICE_URL="${{ vars.RULE_SERVICE_URL }}"
-            export LLM_GATEWAY_URL="${{ vars.LLM_GATEWAY_URL }}"
+            # External Service
+            export BE_ROUTER_PORT=${{ secrets.BE_ROUTER_PORT }}
+            export GM_PORT=${{ secrets.GM_PORT }}
+            export STATE_MANAGER_PORT=${{ secrets.STATE_MANAGER_PORT }}
+            export SCENARIO_SERVICE_PORT=${{ secrets.SCENARIO_SERVICE_PORT }}
             export LANGCHAIN_GATEWAY_PORT=${{ secrets.LANGCHAIN_GATEWAY_PORT }} 
 
             # Others
