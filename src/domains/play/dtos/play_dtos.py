@@ -46,9 +46,18 @@ class PlaySceneData(BaseModel):
     where: str
 
 
+class EntityType(Enum):
+    PLAYER = "player"
+    NPC = "npc"
+    ENEMY = "enemy"
+    ITEM = "item"
+
+
 class EntityUnit(BaseModel):
-    entity_id: int
+    entity_id: str
+    phase_id: int
     entity_name: str
+    entity_type: EntityType
 
 
 class EntityDiff(BaseModel):

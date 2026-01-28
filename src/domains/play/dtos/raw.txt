@@ -1,4 +1,29 @@
-    원본
+원본
+request
+
+    {
+      "session_id": 0,
+      "scenario_id": 0,
+      "entities": [
+        {
+          "entity_id": "string",
+          "phase_id": 0,
+          "entity_name": "string",  # 불필요할지도...
+          "entity_type": "player"   # player, npc, enemy, item
+        }
+      ],
+      "relations": [
+        {
+          "cause_entity_id": 0,
+          "effect_entity_id": 0,
+          "type": "적대적"
+        }
+      ],
+      "story": "string"
+    }
+
+response
+
     {
         "session_id": "",
         "scenario_id": "",
