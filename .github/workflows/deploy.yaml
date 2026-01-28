@@ -2,12 +2,20 @@ name: GTRPGM Rule Engine CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - "main"
+      - "ops/28-deploy-standard"
   workflow_dispatch:
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: gtrpgm/rule-engine
+  # service settings
+  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+  PORT: ${{ vars.PORT}}
+  TAG: ${{ vars.TAG || 'latest' }}
+  # system settings
+  REGISTRY: ${{ vars.REGISTRY }}
+  ORG_NAME: ${{ vars.ORG_NAME }}
+  IMAGE_NAME: ${{ vars.REGISTRY }}/${{ vars.ORG_NAME }}/${{ vars.SERVICE_NAME }}
 
 jobs:
   build-and-test:
@@ -75,39 +83,68 @@ jobs:
           cat test_server.log
           exit 1
 
-  build-docker-image:
+  build-and-push:
     needs: build-and-test
     runs-on: ubuntu-22.04
     permissions:
       contents: read
       packages: write
+      id-token: write
+
+    outputs:
+      image: ${{ env.IMAGE_NAME }}:${{ env.TAG }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v5
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ env.TAG }}
+            type=sha,format=short
+
+      - uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             APP_PORT=${{ secrets.APP_PORT }}
 
   deploy:
-    needs: build-docker-image
-    runs-on: ubuntu-22.04
-    if: github.ref == 'refs/heads/main'
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'nektos/act' }}
 
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            docker-compose.yml
+          sparse-checkout-cone-mode: false
+
+      - name: Upload docker-compose.yml
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USERNAME }}
+          key: ${{ secrets.REMOTE_SSH_KEY }}
+          source: docker-compose.yml
+          target: /opt/services/${{ env.SERVICE_NAME }}
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -115,36 +152,48 @@ jobs:
           username: ${{ secrets.REMOTE_USERNAME }}
           key: ${{ secrets.REMOTE_SSH_KEY }}
           script: |
-            # 1. GHCR 로그인 (서버에서 이미지를 받아오기 위함)
+            set -e
+
+            export DOCKER_CONFIG=$(mktemp -d)
+            trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # 2. 최신 이미지 Pull (빌드가 아니므로 리소스 소모가 매우 적음)
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            cd /opt/services/${{ env.SERVICE_NAME }}
 
-            # 3. 기존 컨테이너 정리 (필요한 경우에만 중지/삭제)
-            if [ "$(docker ps -aq -f name=rule-engine)" ]; then
-                echo "Stopping and removing existing container..."
-                docker stop rule-engine || true
-                docker rm rule-engine || true
-            fi
+            export IMAGE_NAME=${{ env.IMAGE_NAME }}:${{ env.TAG }}
 
-            # 4. 새 컨테이너 실행
-            docker run -d \
-              --name rule-engine \
-              -p ${{ secrets.APP_PORT }}:${{ secrets.APP_PORT }} \
-              --restart unless-stopped \
-              -e DB_USER=${{ secrets.DB_USER }} \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e REMOTE_HOST=${{ secrets.REMOTE_HOST }} \
-              -e DB_PORT=${{ secrets.DB_PORT }} \
-              -e DB_NAME=${{ secrets.DB_NAME }} \
-              -e REDIS_PORT=${{ secrets.REDIS_PORT }} \
-              -e REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
-              -e APP_PORT=${{ secrets.APP_PORT }} \
-              -e WEB_PORT=${{ secrets.WEB_PORT }} \
-              -e LANGCHAIN_GATEWAY_PORT=${{ secrets.LANGCHAIN_GATEWAY_PORT }} \
-              -e APP_ENV=prod \
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            # --- Environment Variables from Secrets/Vars ---
 
-            # 5. 사용하지 않는 오래된 이미지 정리 (디스크 용량 확보)
+            export REMOTE_HOST="${{ secrets.REMOTE_HOST }}"
+
+            export APP_PORT=${{ secrets.APP_PORT }}
+            export WEB_PORT=${{ secrets.WEB_PORT }}
+
+            # Database Settings
+            export DB_USER="${{ secrets.DB_USER }}"
+            export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+            export DB_HOST="${{ secrets.DB_HOST }}"
+            export DB_PORT="${{ secrets.DB_PORT }}"
+            export DB_NAME="${{ secrets.DB_NAME }}"
+
+            # Redis Settings
+            REDIS_PORT="${{ secrets.REDIS_PORT }}"
+            REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
+
+            # External Service URLs
+            export STATE_SERVICE_URL="${{ vars.STATE_SERVICE_URL }}"
+            export SCENARIO_SERVICE_URL="${{ vars.SCENARIO_SERVICE_URL }}"
+            export RULE_SERVICE_URL="${{ vars.RULE_SERVICE_URL }}"
+            export LLM_GATEWAY_URL="${{ vars.LLM_GATEWAY_URL }}"
+            export LANGCHAIN_GATEWAY_PORT=${{ secrets.LANGCHAIN_GATEWAY_PORT }} 
+
+            # Others
+            export LLM_MODEL_NAME="${{ vars.LLM_MODEL_NAME }}"
+
+            # Logic Settings
+
+            docker compose pull
+            docker compose up -d
+
             docker image prune -f

@@ -1,0 +1,45 @@
+services:
+  rule-engine:
+    image: ${IMAGE_NAME}
+    container_name: rule-engine
+    restart: unless-stopped
+
+    ports:
+      - "0.0.0.0:${APP_PORT:-8050}:${APP_PORT-8050}"
+
+    environment:
+      APP_ENV: prod
+
+      APP_PORT: ${APP_PORT:-8050}
+      WEB_PORT: ${WEB_PORT}
+
+      REMOTE_HOST: ${REMOTE_HOST}
+
+      # Database Settings
+      DB_USER: "${DB_USER}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT:-5432}"
+      DB_NAME: "${DB_NAME}"
+
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      # External Service URLs
+      STATE_SERVICE_URL: ${STATE_SERVICE_URL}
+      SCENARIO_SERVICE_URL: ${SCENARIO_SERVICE_URL}
+      RULE_SERVICE_URL: ${RULE_SERVICE_URL}
+      LLM_GATEWAY_URL: ${LLM_GATEWAY_URL}
+
+      LANGCHAIN_GATEWAY_PORT: ${LANGCHAIN_GATEWAY_PORT}
+
+      # LLM Settings
+      LLM_MODEL_NAME: "${LLM_MODEL_NAME:-gemini-2.5-flash-lite}"
+
+    networks:
+      - platform-net
+
+networks:
+  platform-net:
+    name: platform-net
+    external: true
