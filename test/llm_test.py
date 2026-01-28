@@ -3,7 +3,8 @@ import time  # 시간 측정을 위해 추가
 import unittest
 from unittest.mock import MagicMock
 
-from domains.play.play_service import PhaseType, PlayService
+from domains.play.dtos.play_dtos import PhaseType
+from domains.play.play_service import PlayService
 
 # 샘플 데이터 정의 (기존과 동일)
 SAMPLE_STORIES = [
