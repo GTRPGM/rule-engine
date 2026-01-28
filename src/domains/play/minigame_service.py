@@ -8,6 +8,11 @@ from langchain_core.prompts import ChatPromptTemplate
 from configs.llm_manager import LLMManager
 from configs.redis_conn import get_redis_client
 from domains.play.dtos.minigame_dtos import AnswerResponse, RiddleData
+from domains.play.prompts.answer_validation_prompt import (
+    generate_answer_validation_prompt,
+)
+from domains.play.prompts.riddle_generator_prompt import generate_riddle_prompt
+from utils.load_prompt import load_prompt
 
 
 class MinigameService:
@@ -15,13 +20,20 @@ class MinigameService:
         self.cursor = cursor
         self.redis = get_redis_client()
         self.REDIS_KEY_PREFIX = "riddle:answer:"
-        self.riddle_llm = LLMManager.get_instance(llm_provider, temperature=0.9) # 문제 생성용 (창의적 - 높은 온도)
-        self.eval_llm = LLMManager.get_instance(llm_provider, temperature=0.0) # 정답 검증용 (정확함 - 낮은 온도)
+        self.riddle_llm = LLMManager.get_instance(
+            llm_provider, temperature=0.9
+        )  # 문제 생성용 (창의적 - 높은 온도)
+        self.eval_llm = LLMManager.get_instance(
+            llm_provider, temperature=0.0
+        )  # 정답 검증용 (정확함 - 낮은 온도)
         self.LIMIT_TIME_MINUTES = 15  # 문제 당 제한 시간
         self.riddle_themes = ["동물", "물건", "자연", "음식", "직업", "추상적인 개념"]
         self.prompt = ChatPromptTemplate.from_messages(
             [
-                ("system", "당신은 재미있는 수수께끼를 내는 챗봇입니다."),
+                (
+                    "system",
+                    load_prompt(domain="play", filename="riddle_system_prompt.md"),
+                ),
                 ("human", "{input}"),
             ]
         )
@@ -32,22 +44,21 @@ class MinigameService:
         structured_llm = self.riddle_llm.with_structured_output(RiddleData)
         selected_theme = random.choice(self.riddle_themes)
         riddle_obj = await structured_llm.ainvoke(
-            f"""
-            {selected_theme}을(를) 주제로 한 창의적이고 어려운 수수께끼를 하나 만들어줘.
-            이전에 자주 나오는 뻔한 문제는 피하고, 사람들이 잘 모를만한 신선한 문제를 만들어야 해.
-            반드시 한국어로 작성해줘.
-            """
+            generate_riddle_prompt(theme=selected_theme)
         )
 
         # 2. REDIS에 정보 저장 (fail_count 초기값 0 추가)
         redis_key = f"{self.REDIS_KEY_PREFIX}{user_id}"
-        riddle_data_json = json.dumps({
-            "answer": riddle_obj.answer,
-            "hint": riddle_obj.hint,
-            "explanation": riddle_obj.explanation,
-            "fail_count": 0,  # 틀린 횟수 추적용
-            "total_time_limit": self.LIMIT_TIME_MINUTES * 60  # 초 단위 저장
-        }, ensure_ascii=False)
+        riddle_data_json = json.dumps(
+            {
+                "answer": riddle_obj.answer,
+                "hint": riddle_obj.hint,
+                "explanation": riddle_obj.explanation,
+                "fail_count": 0,  # 틀린 횟수 추적용
+                "total_time_limit": self.LIMIT_TIME_MINUTES * 60,  # 초 단위 저장
+            },
+            ensure_ascii=False,
+        )
 
         self.redis.setex(redis_key, timedelta(minutes=15), riddle_data_json)
 
@@ -64,13 +75,13 @@ class MinigameService:
         redis_key = f"{self.REDIS_KEY_PREFIX}{user_id}"
         stored_data = self.redis.get(redis_key)
 
-        remaining_ttl = self.redis.ttl(redis_key) # 남은 시간 조회
+        remaining_ttl = self.redis.ttl(redis_key)  # 남은 시간 조회
 
         if not stored_data or remaining_ttl <= 0:
             return AnswerResponse(
                 result="error",
                 message="시간이 초과되었거나 진행 중인 퀴즈가 없습니다.",
-                remaining_time=0
+                remaining_time=0,
             )
 
         data = json.loads(stored_data)
@@ -83,9 +94,9 @@ class MinigameService:
             self.redis.delete(redis_key)
             return AnswerResponse(
                 result="correct",
-                message=f"정답입니다! 🎉",
+                message="정답입니다! 🎉",
                 explanation=data["explanation"],
-                remaining_time=remaining_ttl
+                remaining_time=remaining_ttl,
             )
         else:
             data["fail_count"] += 1
@@ -95,26 +106,37 @@ class MinigameService:
             if fail_count == 3:
                 response_message = f"아쉽게도 틀렸습니다. (힌트: {data['hint']})"
             else:
-                response_message = f"틀렸습니다. 다시 생각해보세요! (현재 {fail_count}회 시도)"
+                response_message = (
+                    f"틀렸습니다. 다시 생각해보세요! (현재 {fail_count}회 시도)"
+                )
 
             # 데이터 업데이트 시 TTL 유지
-            self.redis.setex(redis_key, timedelta(seconds=remaining_ttl), json.dumps(data, ensure_ascii=False))
+            self.redis.setex(
+                redis_key,
+                timedelta(seconds=remaining_ttl),
+                json.dumps(data, ensure_ascii=False),
+            )
 
             return AnswerResponse(
                 result="wrong",
                 message=response_message,
                 fail_count=fail_count,
-                remaining_time=remaining_ttl
+                remaining_time=remaining_ttl,
             )
 
     async def validate_with_llm(self, user_guess: str, correct_answer: str):
         """단순 텍스트 매칭이 아닌 LLM의 판단을 활용"""
         # 1차 비교 (소문자 변환 추가로 더 정확하게)
-        if user_guess.strip().replace(" ", "").lower() == correct_answer.strip().replace(" ", "").lower():
+        if (
+            user_guess.strip().replace(" ", "").lower()
+            == correct_answer.strip().replace(" ", "").lower()
+        ):
             return True
 
         # 2차 의미적 비교
-        check_prompt = f"수수께끼 정답이 '{correct_answer}'일 때, 사용자가 '{user_guess}'라고 답했습니다. 의미상 정답인가요? 오직 Y 또는 N으로만 대답하세요."
+        check_prompt = generate_answer_validation_prompt(
+            correct_answer=correct_answer, user_guess=user_guess
+        )
         response = await self.eval_llm.ainvoke(check_prompt)
 
         # "Y"가 포함되어 있는지 검사 (대소문자 무시 및 공백 제거)

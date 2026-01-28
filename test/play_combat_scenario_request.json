@@ -1,0 +1,37 @@
+{
+  "session_id": 12345,
+  "scenario_id": 1,
+  "entities": [
+    {
+      "entity_id": "player_char_1",
+      "phase_id": 1,
+      "entity_name": "아리",
+      "entity_type": "player"
+    },
+    {
+      "entity_id": "enemy_goblin_101",
+      "phase_id": 2,
+      "entity_name": "고블린",
+      "entity_type": "enemy"
+    },
+    {
+      "entity_id": "item_sword_3",
+      "phase_id": 3,
+      "entity_name": "녹슨 검",
+      "entity_type": "item"
+    }
+  ],
+  "relations": [
+    {
+      "cause_entity_id": 1,
+      "effect_entity_id": 2,
+      "type": "적대적"
+    },
+    {
+      "cause_entity_id": 1,
+      "effect_entity_id": 3,
+      "type": "소유"
+    }
+  ],
+  "story": "아리는 어두운 숲에서 마주친 고블린을 향해 녹슨 검을 휘둘렀다. 고블린은 비명을 지르며 쓰러졌다."
+}
