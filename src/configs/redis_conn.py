@@ -1,10 +1,10 @@
 import redis
 
-from configs.setting import REDIS_PASSWORD, REDIS_PORT, REMOTE_HOST
+from configs.setting import REDIS_HOST, REDIS_PASSWORD, REDIS_PORT
 
 # Redis 클라이언트 초기화
 redis_client = redis.StrictRedis(
-    host=REMOTE_HOST,
+    host=REDIS_HOST,
     port=REDIS_PORT,
     password=REDIS_PASSWORD,
     decode_responses=True,  # 데이터를 문자열로 자동 디코딩
