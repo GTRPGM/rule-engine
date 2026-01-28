@@ -2,12 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_utils.cbv import cbv
 from starlette.responses import StreamingResponse
 
+from common.dtos.proxy_service_dto import ProxyService
 from common.dtos.wrapped_response import WrappedResponse
 from common.utils.get_services import get_minigame_service, get_play_service
 from domains.play.dtos.minigame_dtos import AnswerRequest, AnswerResponse
 from domains.play.dtos.play_dtos import PlaySceneRequest, PlaySceneResponse
+from domains.play.dtos.player_dtos import FullPlayerState
 from domains.play.minigame_service import MinigameService
 from domains.play.play_service import PlayService
+from utils.proxy_request import proxy_request
 
 play_router = APIRouter(prefix="/play", tags=["게임 플레이"])
 
@@ -35,13 +38,23 @@ class PlayRouter:
             )
 
     @play_router.get(
+        "/player/{player_id}",
+        summary="대상 플레이어의 상세 정보(상태, 보유 아이템 목록, NPC 우호도 목록)를 조회합니다.",
+        response_model=WrappedResponse[FullPlayerState],
+    )
+    async def player(self, player_id: str):
+        return await proxy_request(
+            "GET",
+            f"/state/player/{player_id}",
+            provider=ProxyService.STATE_MANAGER,
+        )
+
+    @play_router.get(
         "/riddle/{user_id}",
-        summary = "새로운 수수께끼를 생성하고 스트리밍으로 반환합니다. 동시에 Redis에 정답과 초기 상태를 저장합니다.",
+        summary="새로운 수수께끼를 생성하고 스트리밍으로 반환합니다. 동시에 Redis에 정답과 초기 상태를 저장합니다.",
     )
     async def get_riddle(
-            self,
-            user_id: int,
-            service: MinigameService = Depends(get_minigame_service)
+        self, user_id: int, service: MinigameService = Depends(get_minigame_service)
     ):
         """
         새로운 수수께끼를 생성하고 스트리밍으로 반환합니다.
@@ -51,23 +64,20 @@ class PlayRouter:
             # 서비스에서 스트리밍 제너레이터 획득
             riddle_stream = await service.generate_and_save_riddle(user_id)
 
-            return StreamingResponse(
-                riddle_stream,
-                media_type="text/event-stream"
-            )
+            return StreamingResponse(riddle_stream, media_type="text/event-stream")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"수수께끼 생성 실패: {str(e)}")
 
     @play_router.post(
         "/answer/{user_id}",
-        summary = "사용자가 입력한 수수께끼 정답을 확인합니다. 3회 실패 시 힌트를 포함하며, 남은 시간(TTL)을 반환합니다.",
+        summary="사용자가 입력한 수수께끼 정답을 확인합니다. 3회 실패 시 힌트를 포함하며, 남은 시간(TTL)을 반환합니다.",
         response_model=WrappedResponse[AnswerResponse],
     )
     async def submit_answer(
-            self,
-            user_id: int,
-            request: AnswerRequest,
-            service: MinigameService = Depends(get_minigame_service)
+        self,
+        user_id: int,
+        request: AnswerRequest,
+        service: MinigameService = Depends(get_minigame_service),
     ):
         """
         사용자가 입력한 정답을 확인합니다.

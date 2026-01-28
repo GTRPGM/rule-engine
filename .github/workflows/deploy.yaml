@@ -23,6 +23,8 @@ jobs:
       APP_HOST: "127.0.0.1"
       APP_PORT: ${{ secrets.APP_PORT }}
       WEB_PORT: ${{ secrets.WEB_PORT }}
+      SCENARIO_SERVICE_PORT: ${{ secrets.SCENARIO_SERVICE_PORT }}
+      STATE_MANAGER_PORT: ${{ secrets.STATE_MANAGER_PORT }}
       LANGCHAIN_GATEWAY_PORT: ${{ secrets.LANGCHAIN_GATEWAY_PORT }}
       APP_ENV: "local"
 
@@ -142,6 +144,8 @@ jobs:
               -e REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
               -e APP_PORT=${{ secrets.APP_PORT }} \
               -e WEB_PORT=${{ secrets.WEB_PORT }} \
+              -e SCENARIO_SERVICE_PORT=${{ secrets.SCENARIO_SERVICE_PORT }} \
+              -e STATE_MANAGER_PORT=${{ secrets.STATE_MANAGER_PORT }} \
               -e LANGCHAIN_GATEWAY_PORT=${{ secrets.LANGCHAIN_GATEWAY_PORT }} \
               -e APP_ENV=prod \
               ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest

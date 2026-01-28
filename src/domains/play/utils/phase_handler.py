@@ -31,6 +31,7 @@ class CombatHandler(PhaseHandler):
         relations: List[UpdateRelation] = []
 
         # Todo: 주사위 판정결과를 로직에 녹여넣기
+        print(f"주사위 판정결과를 로직에 녹여넣기 → {dice}")
 
         # mock
         # 범위 공격
@@ -77,7 +78,7 @@ class DialogueHandler(PhaseHandler):
         relations: List[UpdateRelation] = []
 
         # Todo: 주사위 판정결과를 로직에 녹여넣기
-        print(dice)
+        print(f"주사위 판정결과를 로직에 녹여넣기 → {dice}")
 
         # mock
         diffs.append(
@@ -104,7 +105,7 @@ class ExplorationHandler(PhaseHandler):
         relations: List[UpdateRelation] = []
 
         # Todo: 주사위 판정결과를 로직에 녹여넣기
-        print(dice)
+        print(f"주사위 판정결과를 로직에 녹여넣기 → {dice}")
 
         # mock
         relations.append(
@@ -135,7 +136,7 @@ class RestHandler(PhaseHandler):
         relations: List[UpdateRelation] = []
 
         # Todo: 주사위 판정결과를 로직에 녹여넣기
-        print(dice)
+        print(f"주사위 판정결과를 로직에 녹여넣기 → {dice}")
 
         # mock
         diffs.append(EntityDiff(entity_id=1, diff={"hp": 18}))
@@ -152,6 +153,6 @@ class UnknownHandler(PhaseHandler):
         relations: List[UpdateRelation] = []
 
         # Todo: 주사위 판정결과를 로직에 녹여넣기
-        print(dice)
+        print(f"주사위 판정결과를 로직에 녹여넣기 → {dice}")
 
         return PhaseUpdate(diffs=diffs, relations=relations)
