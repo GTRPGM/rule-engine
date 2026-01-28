@@ -42,6 +42,9 @@ STATE_MANAGER_PORT = os.getenv("STATE_MANAGER_PORT")
 LLM_GATEWAY_HOST = os.getenv("LLM_GATEWAY_HOST", REMOTE_HOST)
 LLM_GATEWAY_PORT = os.getenv("LLM_GATEWAY_PORT")
 
+WEB_HOST = os.getenv("WEB_HOST", REMOTE_HOST)
+WEB_PORT = os.getenv("WEB_PORT")
+
 # 원격 서버
 APP_HOST = os.getenv("APP_HOST")  # 운영 환경에서는 '0.0.0.0' 주입
 APP_PORT = int(os.getenv("APP_PORT"))
