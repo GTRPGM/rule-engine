@@ -51,6 +51,7 @@ class EntityType(Enum):
     NPC = "npc"
     ENEMY = "enemy"
     ITEM = "item"
+    OBJECT = "object" # 상자 등 상호작용 가능한 대상 물체
 
 
 class EntityUnit(BaseModel):

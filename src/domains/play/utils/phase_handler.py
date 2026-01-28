@@ -10,12 +10,17 @@ from domains.play.dtos.play_dtos import (
     SceneAnalysis,
     UpdateRelation,
 )
+from domains.play.dtos.player_dtos import FullPlayerState
 
 
 class PhaseHandler(ABC):
     @abstractmethod
     async def handle(
-        self, request: PlaySceneRequest, analysis: SceneAnalysis, dice: DiceCheckResult
+        self,
+        request: PlaySceneRequest,
+        analysis: SceneAnalysis,
+        dice: DiceCheckResult,
+        player: FullPlayerState
     ) -> PhaseUpdate:
         """각 페이즈에 맞는 로직을 수행하고 변화량(diffs, relations)을 반환합니다."""
         pass
@@ -23,7 +28,7 @@ class PhaseHandler(ABC):
 
 class CombatHandler(PhaseHandler):
     async def handle(
-        self, request: PlaySceneRequest, analysis: SceneAnalysis, dice: DiceCheckResult
+        self, *args, **kwargs
     ) -> PhaseUpdate:
         # 전투 관련 주사위 룰, HP 계산 로직 구현
         # 예: LLM에게 공격 대상과 피해량을 한 번 더 추론하게 하거나 룰 북 적용
@@ -31,7 +36,11 @@ class CombatHandler(PhaseHandler):
         relations: List[UpdateRelation] = []
 
         # Todo: 주사위 판정결과를 로직에 녹여넣기
-        print(f"주사위 판정결과를 로직에 녹여넣기 → {dice}")
+        dice = kwargs.get('dice') or args[2]
+        player = kwargs.get('player') or args[3]
+        print("주사위 판정결과를 로직에 녹여넣기")
+        print(f"dice → {dice}")
+        print(f"player → {player}")
 
         # mock
         # 범위 공격
@@ -71,14 +80,18 @@ class CombatHandler(PhaseHandler):
 
 class DialogueHandler(PhaseHandler):
     async def handle(
-        self, request: PlaySceneRequest, analysis: SceneAnalysis, dice: DiceCheckResult
+        self, *args, **kwargs
     ) -> PhaseUpdate:
         # 대화 내용에 따른 호감도(Relation) 변화, 아이템 교환 로직
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
         # Todo: 주사위 판정결과를 로직에 녹여넣기
-        print(f"주사위 판정결과를 로직에 녹여넣기 → {dice}")
+        dice = kwargs.get('dice') or args[2]
+        player = kwargs.get('player') or args[3]
+        print("주사위 판정결과를 로직에 녹여넣기")
+        print(f"dice → {dice}")
+        print(f"player → {player}")
 
         # mock
         diffs.append(
@@ -98,14 +111,18 @@ class DialogueHandler(PhaseHandler):
 
 class ExplorationHandler(PhaseHandler):
     async def handle(
-        self, request: PlaySceneRequest, analysis: SceneAnalysis, dice: DiceCheckResult
+        self, *args, **kwargs
     ) -> PhaseUpdate:
         # 탐험 활동에 따른 관계 변화 로직 구현
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
         # Todo: 주사위 판정결과를 로직에 녹여넣기
-        print(f"주사위 판정결과를 로직에 녹여넣기 → {dice}")
+        dice = kwargs.get('dice') or args[2]
+        player = kwargs.get('player') or args[3]
+        print("주사위 판정결과를 로직에 녹여넣기")
+        print(f"dice → {dice}")
+        print(f"player → {player}")
 
         # mock
         relations.append(
@@ -129,14 +146,18 @@ class ExplorationHandler(PhaseHandler):
 
 class RestHandler(PhaseHandler):
     async def handle(
-        self, request: PlaySceneRequest, analysis: SceneAnalysis, dice: DiceCheckResult
+        self, *args, **kwargs
     ) -> PhaseUpdate:
         # 플레이어의 휴식 활동에 따른 관계 변화 로직 구현
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
         # Todo: 주사위 판정결과를 로직에 녹여넣기
-        print(f"주사위 판정결과를 로직에 녹여넣기 → {dice}")
+        dice = kwargs.get('dice') or args[2]
+        player = kwargs.get('player') or args[3]
+        print("주사위 판정결과를 로직에 녹여넣기")
+        print(f"dice → {dice}")
+        print(f"player → {player}")
 
         # mock
         diffs.append(EntityDiff(entity_id=1, diff={"hp": 18}))
@@ -146,13 +167,17 @@ class RestHandler(PhaseHandler):
 
 class UnknownHandler(PhaseHandler):
     async def handle(
-        self, request: PlaySceneRequest, analysis: SceneAnalysis, dice: DiceCheckResult
+        self, *args, **kwargs
     ) -> PhaseUpdate:
         # 플레이어의 알 수 없는 행동에 따른 관계 변화 로직 구현
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
         # Todo: 주사위 판정결과를 로직에 녹여넣기
-        print(f"주사위 판정결과를 로직에 녹여넣기 → {dice}")
+        dice = kwargs.get('dice') or args[2]
+        player = kwargs.get('player') or args[3]
+        print("주사위 판정결과를 로직에 녹여넣기")
+        print(f"dice → {dice}")
+        print(f"player → {player}")
 
         return PhaseUpdate(diffs=diffs, relations=relations)

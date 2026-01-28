@@ -17,6 +17,11 @@ from domains.play.dtos.play_dtos import (
     PlaySceneResponse,
     SceneAnalysis,
 )
+from domains.play.dtos.player_dtos import (
+    FullPlayerState,
+    NPCRelation,
+    PlayerStateResponse,
+)
 from domains.play.utils.phase_handler_factory import PhaseHandlerFactory
 from utils.proxy_request import proxy_request
 
@@ -48,10 +53,24 @@ class PlayService:
 
         return await chain.ainvoke({"story": story}, config)
 
-    async def get_player(self, player_id: str):
+    async def get_player(self, player_id: str) -> FullPlayerState:
         """
         플레이어 상태를 GDB로 관리하는 외부 마이크로서비스를 호출해서 정보를 조회합니다.
         """
+
+        return FullPlayerState(
+            player=PlayerStateResponse(hp=150, gold=800, items=[28, 29, 78, 79, 80]),
+            player_npc_relations=[
+                NPCRelation(npc_id="2", affinity_score=-40, npc_name="그림자 눈 카이엔"),
+                NPCRelation(npc_id="5", affinity_score=-30, npc_name="광기 어린 릭스"),
+                NPCRelation(npc_id="8", affinity_score=50, npc_name="대장장이 한스"),
+                NPCRelation(npc_id="9", affinity_score=50, npc_name="주모 엘리"),
+                NPCRelation(npc_id="10", affinity_score=50, npc_name="은퇴한 용병 케인"),
+                NPCRelation(npc_id="11", affinity_score=50, npc_name="떠돌이 약사 미아"),
+            ]
+        )
+
+        # 준비되는 대로 교체
         return await proxy_request(
             "GET",
             f"/state/player/{player_id}",
@@ -88,14 +107,15 @@ class PlayService:
                 detail="요청에 플레이어 엔티티가 포함되어 있지 않습니다.",
             )
 
-        player_data = await self.get_player(player_entity_id)
-        print("조회된 플레이어 데이터:", player_data)
+        player = await self.get_player(player_entity_id)
+        print("조회된 플레이어 데이터:", player)
+
 
         # Todo: 주사위 굴리기 → PhaseUpdate
         dice_chk = await self.gm_service.rolling_dice(3, 12)
 
         # Todo: 플레이 유형별 상세 로직 진행 → 룰 엔진에서 제안하는 상태/관계 변경 사항 도출
-        suggested_update = await handler.handle(request, analysis, dice_chk)
+        suggested_update = await handler.handle(request, analysis, dice_chk, player)
 
         return PlaySceneResponse(
             session_id=request.session_id,
