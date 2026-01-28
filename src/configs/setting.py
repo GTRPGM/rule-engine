@@ -49,9 +49,3 @@ WEB_PORT = os.getenv("WEB_PORT")
 APP_HOST = os.getenv("APP_HOST")  # 운영 환경에서는 '0.0.0.0' 주입
 APP_PORT = int(os.getenv("APP_PORT"))
 APP_ENV = os.getenv("APP_ENV")  # local, dev, prod 등
-# 웹
-WEB_PORT = os.getenv("WEB_PORT")
-# 시나리오 작성자(서비스)
-SCENARIO_SERVICE_PORT = os.getenv("SCENARIO_SERVICE_PORT")
-# 상태 관리자
-STATE_MANAGER_PORT = os.getenv("STATE_MANAGER_PORT")
