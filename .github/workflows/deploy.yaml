@@ -203,8 +203,8 @@ jobs:
             export LLM_GATEWAY_HOST=${{ vars.LLM_GATEWAY_HOST }} 
             export LLM_GATEWAY_PORT=${{ vars.LLM_GATEWAY_PORT }} 
 
-            export WEB_HOST=${{ WEB_HOST }}
-            export WEB_PORT=${{ WEB_PORT }}
+            export WEB_HOST=${{ vars.WEB_HOST }}
+            export WEB_PORT=${{ vars.WEB_PORT }}
 
             # Others
             export LLM_MODEL_NAME="${{ vars.LLM_MODEL_NAME }}"
