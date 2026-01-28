@@ -1,23 +1,45 @@
+# builder stage
+FROM python:3.11-slim-bookworm AS builder
+
+COPY --from=ghcr.io/astral-sh/uv:0.5.7 /uv /bin/uv
+
+ENV UV_PROJECT_ENVIRONMENT="/usr/local"
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project --no-dev
+
+# final stage
 FROM python:3.11-slim-bookworm
 LABEL authors="elian118"
 
 ARG APP_PORT
-
 ENV APP_PORT=${APP_PORT}
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
 
 WORKDIR /app
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-cache --no-dev --no-install-project
-COPY . .
+RUN useradd -m appuser
 
-EXPOSE ${APP_PORT}
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+COPY --chown=appuser:appuser src /app/src
+
+# runtime config
+ENV PORT=8050
+
+USER appuser
+
+EXPOSE 8050
 
 HEALTHCHECK --start-period=20s --interval=30s --timeout=3s --retries=3 \
     CMD ["python", "-c", "import os, urllib.request; port=os.environ.get('APP_PORT'); urllib.request.urlopen(f'http://localhost:{port}/health')"]
 
-CMD ["uv", "run", "python", "src/main.py"]
+CMD ["python", "src/main.py"]
