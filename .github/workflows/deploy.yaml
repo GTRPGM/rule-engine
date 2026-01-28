@@ -21,17 +21,15 @@ jobs:
   build-and-test:
     runs-on: ubuntu-22.04
     env:
+      REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
       DB_PORT: ${{ secrets.DB_PORT }}
       DB_NAME: ${{ secrets.DB_NAME }}
       REDIS_PORT: ${{ secrets.REDIS_PORT }}
       REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
       APP_HOST: "127.0.0.1"
       APP_PORT: ${{ secrets.APP_PORT }}
-      WEB_PORT: ${{ secrets.WEB_PORT }}
-      LANGCHAIN_GATEWAY_PORT: ${{ secrets.LANGCHAIN_GATEWAY_PORT }}
       APP_ENV: "local"
 
     steps:
@@ -174,7 +172,6 @@ jobs:
             export REMOTE_HOST="${{ secrets.REMOTE_HOST }}"
 
             export APP_PORT=${{ secrets.APP_PORT }}
-            export WEB_PORT=${{ secrets.WEB_PORT }}
 
             # Database Settings
             export DB_USER="${{ secrets.DB_USER }}"
@@ -188,11 +185,26 @@ jobs:
             export REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
 
             # External Service
-            export BE_ROUTER_PORT=${{ secrets.BE_ROUTER_PORT }}
-            export GM_PORT=${{ secrets.GM_PORT }}
-            export STATE_MANAGER_PORT=${{ secrets.STATE_MANAGER_PORT }}
-            export SCENARIO_SERVICE_PORT=${{ secrets.SCENARIO_SERVICE_PORT }}
-            export LANGCHAIN_GATEWAY_PORT=${{ secrets.LANGCHAIN_GATEWAY_PORT }} 
+            export BE_ROUTER_HOST=${{ vars.BE_ROUTER_HOST }}
+            export BE_ROUTER_PORT=${{ vars.BE_ROUTER_PORT }}
+
+            export GM_HOST=${{ vars.GM_HOST }}
+            export GM_PORT=${{ vars.GM_PORT }}
+
+            export STATE_MANAGER_HOST=${{ vars.STATE_MANAGER_HOST }}
+            export STATE_MANAGER_PORT=${{ vars.STATE_MANAGER_PORT }}
+
+            export SCENARIO_SERVICE_HOST=${{ vars.SCENARIO_SERVICE_HOST }}
+            export SCENARIO_SERVICE_PORT=${{ vars.SCENARIO_SERVICE_PORT }}
+
+            export RULE_ENGINE_HOST=${{ vars.RULE_ENGINE_HOST }}
+            export RULE_ENGINE_PORT=${{ vars.RULE_ENGINE_PORT }}
+
+            export LLM_GATEWAY_HOST=${{ vars.LLM_GATEWAY_HOST }} 
+            export LLM_GATEWAY_PORT=${{ vars.LLM_GATEWAY_PORT }} 
+
+            export WEB_HOST=${{ WEB_HOST }}
+            export WEB_PORT=${{ WEB_PORT }}
 
             # Others
             export LLM_MODEL_NAME="${{ vars.LLM_MODEL_NAME }}"

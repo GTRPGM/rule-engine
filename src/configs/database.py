@@ -2,7 +2,7 @@ from contextlib import contextmanager
 
 from psycopg2 import extras, pool
 
-from src.configs.setting import DB_NAME, DB_PASSWORD, DB_PORT, DB_USER, REMOTE_HOST
+from src.configs.setting import DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER
 
 # 커넥션 풀 설정
 try:
@@ -11,7 +11,7 @@ try:
         maxconn=20,
         user=DB_USER,
         password=DB_PASSWORD,
-        host=REMOTE_HOST,
+        host=DB_HOST,
         port=DB_PORT,
         database=DB_NAME,
     )
