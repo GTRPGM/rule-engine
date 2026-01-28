@@ -21,7 +21,7 @@ SAMPLE_STORIES = [
     (PhaseType.DIALOGUE, "상인 길드장에게 희귀 약초를 팔려고 합니다..."),  # 중략
     (PhaseType.EXPLORATION, "안개 낀 늪지대에서 길을 잃었습니다..."),  # 중략
     (
-        PhaseType.UNKNOWN,
+        PhaseType.REST,
         "배가 고파진 당신은 가방을 열어 딱딱한 빵 한 조각을 꺼내 씹어 먹습니다...",
     ),
     (
