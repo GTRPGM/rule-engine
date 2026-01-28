@@ -1,0 +1,15 @@
+{
+  "session_id": 12345,
+  "scenario_id": 3,
+  "locale_id": 5,
+  "entities": [
+    {
+      "entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "phase_id": 1,
+      "entity_name": "아리",
+      "entity_type": "player"
+    }
+  ],
+  "relations": [],
+  "story": "아리는 낡은 지도를 들고 고대 유적의 숨겨진 통로를 찾기 위해 주변을 샅샅이 뒤졌다. 덩굴로 뒤덮인 벽을 만져보며 비밀 문이 있는지 확인했다."
+}

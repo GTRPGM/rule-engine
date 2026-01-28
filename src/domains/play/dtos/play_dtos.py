@@ -83,6 +83,7 @@ class PhaseUpdate(BaseModel):
 class PlaySceneRequest(BaseModel):
     session_id: int
     scenario_id: int
+    locale_id: int
     entities: List[EntityUnit]
     relations: List[UpdateRelation]
     story: str
