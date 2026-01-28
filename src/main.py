@@ -20,20 +20,25 @@ logger = logging.getLogger("uvicorn.error")
 async def lifespan(app: FastAPI):
     # 서버가 시작될 때 실행
     print("\n" + "⭐" * 40)
-    print("  Swagger UI: http://127.0.0.1:8050/docs")
-    print("  ReDoc:      http://127.0.0.1:8050/redoc")
+    print(f"  Swagger UI: http://127.0.0.1:{APP_PORT}/docs")
+    print(f"  ReDoc:      http://127.0.0.1:{APP_PORT}/redoc")
     print("⭐" * 40 + "\n")
 
     yield  # 서버가 동작하는 지점
 
     # 서버가 종료될 때 실행 (필요 시 작성)
-    print("룰 엔진을 종료하는 중...")
+    print("룰 엔진을 종료 중...")
 
 app = FastAPI(
     title="GTRPGM Rule Engine",
     description="GTRPGM 게임 진행의 Rule 위배여부를 판정해 재조정하는 엔진입니다.",
     version="1.0.0",
     default_response_class=CustomJSONResponse,
+    servers=[
+        {"url": "/", "description": "Auto (Current Host)"},
+        {"url": f"http://localhost:{APP_PORT}", "description": "Local env"},
+        {"url": f"http://{REMOTE_HOST}:{APP_PORT}", "description": "Dev env"},
+    ],
     lifespan=lifespan
 )
 
