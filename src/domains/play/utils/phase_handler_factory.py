@@ -3,6 +3,7 @@ from domains.play.utils.phase_handler import (
     CombatHandler,
     DialogueHandler,
     ExplorationHandler,
+    NegoHandler,
     RestHandler,
     UnknownHandler,
 )
@@ -13,6 +14,7 @@ class PhaseHandlerFactory:
         PhaseType.COMBAT: CombatHandler(),
         PhaseType.EXPLORATION: ExplorationHandler(),
         PhaseType.DIALOGUE: DialogueHandler(),
+        PhaseType.NEGO: NegoHandler(),
         PhaseType.REST: RestHandler(),
         PhaseType.UNKNOWN: UnknownHandler(),
     }

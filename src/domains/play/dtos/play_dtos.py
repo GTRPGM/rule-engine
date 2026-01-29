@@ -8,6 +8,7 @@ class PhaseType(str, Enum):
     EXPLORATION = "탐험"
     COMBAT = "전투"
     DIALOGUE = "대화"
+    NEGO = "흥정"
     REST = "휴식"
     UNKNOWN = "알 수 없음"
 
@@ -73,6 +74,7 @@ class UpdateRelation(BaseModel):
     cause_entity_id: str = Field(default_factory=list, description="원인")
     effect_entity_id: str = Field(default_factory=list, description="결과")
     type: RelationType
+    affinity_score: Optional[int] = Field(default=None, description="우호도 점수")
 
 
 class PhaseUpdate(BaseModel):

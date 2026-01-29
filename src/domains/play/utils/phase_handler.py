@@ -51,6 +51,7 @@ class PhaseHandler(ABC):
                 NPCRelation(npc_id="5", affinity_score=-30, npc_name="광기 어린 릭스"),
                 NPCRelation(npc_id="8", affinity_score=50, npc_name="대장장이 한스"),
                 NPCRelation(npc_id="9", affinity_score=50, npc_name="주모 엘리"),
+                NPCRelation(npc_id="33", affinity_score=-20, npc_name="공허의 상인"),
                 NPCRelation(
                     npc_id="10", affinity_score=50, npc_name="은퇴한 용병 케인"
                 ),
@@ -69,7 +70,6 @@ class PhaseHandler(ABC):
 
     async def _categorize_entities(self, entities: List[Any]):
         player_entity_id = None
-        player_state: FullPlayerState | None = None
         npcs, enemies, drop_items, objects = [], [], [], []
 
         # 중복 방지를 위해 set을 쓰거나, 필요에 따라 list 유지
@@ -241,7 +241,7 @@ class CombatHandler(PhaseHandler):
         )
 
 
-class DialogueHandler(PhaseHandler):
+class NegoHandler(PhaseHandler):
     async def handle(
         self,
         request: PlaySceneRequest,
@@ -249,7 +249,7 @@ class DialogueHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
-    ) -> PhaseUpdate:
+    ) -> HandlerUpdatePhase:
         (
             player_id,
             player_state,
@@ -258,28 +258,211 @@ class DialogueHandler(PhaseHandler):
             items,
             objs,
         ) = await self._categorize_entities(request.entities)
-        # 대화 내용에 따른 호감도(Relation) 변화, 아이템 교환 로직
+        # 대화 내용에 따른 우호도(Relation) 변화, 아이템 교환에 따른 골드 변화 로직
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
-        # Todo: 주사위 판정결과를 로직에 녹여넣기
-        print("주사위 판정결과를 로직에 녹여넣기")
-        print(f"player → {player_state.player}")
+        # 1. 아이템 정보 사전 생성
+        item_ids = list(set([e.entity_id for e in items if e.entity_id is not None]))
+        item_data, _ = await item_service.get_items(
+            item_ids=item_ids, skip=0, limit=100
+        )
+        item_dict = {item["item_id"]: item for item in item_data}
 
-        # mock
-        diffs.append(
-            EntityDiff(entity_id=1, diff={"gold": -50, "item_id": 7, "quantity": 5})
+        # 2. 흥정 주사위 판정
+        bargain_ability = 3  # 플레이어의 흥정 능력치 (임시값)
+
+        # NPC 우호도 점수를 기반으로 흥정 난이도 설정
+        target_npc_affinity_score = 0
+        for npc_entity in npcs:
+            for rel in request.relations:
+                if (
+                    rel.cause_entity_id == player_id
+                    and rel.effect_entity_id == npc_entity.state_entity_id
+                ) or (
+                    rel.effect_entity_id == player_id
+                    and rel.cause_entity_id == npc_entity.state_entity_id
+                ):
+                    if rel.affinity_score is not None:
+                        target_npc_affinity_score = rel.affinity_score
+                        break
+            if target_npc_affinity_score != 0:
+                break
+
+        bargain_difficulty = -target_npc_affinity_score
+        print(f"NPC 우호도: {target_npc_affinity_score}")
+        print(f"할인 능력치: {bargain_ability}")
+        print(f"할인 난이도: {bargain_difficulty}")
+        dice_result = await gm_service.rolling_dice(bargain_ability, bargain_difficulty)
+
+        print(
+            f"흥정 주사위 판정 결과: {dice_result.message} (굴림값: {dice_result.total}, 성공여부: {dice_result.is_success})"
         )
 
-        relations.append(
-            UpdateRelation(
-                cause_entity_id=1,
-                effect_entity_id=7,
-                type=RelationType.OWNERSHIP,
+        # 3. 흥정 결과에 따른 골드 변동치 적용
+        bargain_gold_change = 0
+        if dice_result.is_success:
+            # 거래 대상 아이템 (현재는 scene에 있는 첫 번째 아이템으로 가정)
+            if item_dict:
+                bargain_item_id = next(iter(item_dict))  # 첫 번째 아이템의 ID를 가져옴
+                bargain_item = item_dict[bargain_item_id]
+                base_price = bargain_item["base_price"]
+
+                # dice_result.roll_result (2~12)에 따라 할인율 차등 적용 (5% ~ 25%)
+                # 2 -> 5%, 12 -> 25%
+                discount_percentage = 5 + (dice_result.roll_result - 2) * 2
+
+                discount_amount = base_price * (discount_percentage / 100.0)
+                player_payment = base_price - int(discount_amount)  # 소수점 이하 버림
+
+                bargain_gold_change = -player_payment  # 플레이어가 지불하므로 음수
+                print(
+                    f"흥정 성공! 아이템 '{bargain_item['name']}'을(를) {discount_percentage}% 할인된 가격 {player_payment}골드에 구매합니다."
+                )
+            else:
+                print("흥정 성공! 하지만 거래할 아이템이 없습니다.")
+        else:
+            # 흥정 실패 시 페널티 (예: 정가 지불 혹은 거래 불가)
+            # 여기서는 흥정 실패 시 거래가 성사되지 않는 것으로 가정하고 골드 변화 없음
+            print("흥정 실패! 거래가 성사되지 않았습니다.")
+
+        # 플레이어 골드 변동치 적용
+        if bargain_gold_change != 0:
+            diffs.append(
+                EntityDiff(
+                    state_entity_id=player_id,
+                    diff={"gold": bargain_gold_change},
+                )
             )
+
+        return HandlerUpdatePhase(
+            update=PhaseUpdate(diffs=diffs, relations=relations),
+            is_success=dice_result.is_success,
         )
 
-        return PhaseUpdate(diffs=diffs, relations=relations)
+
+class DialogueHandler(PhaseHandler):
+    async def handle(
+        self,
+        request: PlaySceneRequest,
+        analysis: SceneAnalysis,
+        item_service: ItemService,
+        enemy_service: EnemyService,
+        gm_service: GmService,
+    ) -> HandlerUpdatePhase:
+        diffs: List[EntityDiff] = []
+        relations: List[UpdateRelation] = []
+
+        social_ability = 3  # 플레이어의 사교 능력치 (임시값)
+
+        (
+            player_id,
+            player_state,
+            npcs,
+            enemies,
+            items,
+            objs,
+        ) = await self._categorize_entities(request.entities)
+
+        target_npc_state_id = None
+        initial_affinity_score = 0
+
+        # 1. request.relations 목록에서 npc를 찾아 affinity_score 추출하기
+        for npc_entity in npcs:
+            for rel in request.relations:
+                if (
+                    rel.cause_entity_id == player_id
+                    and rel.effect_entity_id == npc_entity.state_entity_id
+                ) or (
+                    rel.effect_entity_id == player_id
+                    and rel.cause_entity_id == npc_entity.state_entity_id
+                ):
+                    target_npc_state_id = npc_entity.state_entity_id
+                    if rel.affinity_score is not None:
+                        initial_affinity_score = rel.affinity_score
+                    break
+            if target_npc_state_id:
+                break
+
+        # 2. affinity_score를 주사위 난이도로 설정하기
+        # NPC를 찾을 수 없으면, 기본값 사용
+        if not target_npc_state_id:
+            affinity_difficulty = -5  # 관계가 없다면 -5로 가정
+            print("상호작용중인 NPC가 없습니다. 기본 우호도로 주사위를 굴립니다.")
+        else:
+            # affinity_score를 주사위 난이도로 설정 (높은 우호도가 낮은 난이도)
+            affinity_difficulty = -initial_affinity_score
+            print(
+                f"NPC {target_npc_state_id}의 초기 우호도: {initial_affinity_score}, 설정 난이도: {affinity_difficulty}"
+            )
+
+        dice_result = await gm_service.rolling_dice(social_ability, affinity_difficulty)
+
+        print(
+            f"대화 주사위 판정 결과: {dice_result.message} (굴림값: {dice_result.roll_result}, 총합: {dice_result.total}, 성공여부: {dice_result.is_success})"
+        )
+
+        # 3. 주사위 차이만큼 우호도 계산해 NPC의 우호도 변경량을 diffs에 반영하기
+        if target_npc_state_id:
+            affinity_change_amount = 0
+            roll_difference = dice_result.total - affinity_difficulty
+
+            if dice_result.is_success:
+                affinity_change_amount = max(1, roll_difference)
+                print(
+                    f"대화 성공! NPC 우호도가 {affinity_change_amount}만큼 증가합니다."
+                )
+            else:
+                affinity_change_amount = min(-1, roll_difference)
+                print(
+                    f"대화 실패! NPC 우호도가 {abs(affinity_change_amount)}만큼 감소합니다."
+                )
+
+            # 우호도 등급 변경 확인
+            total_affinity = initial_affinity_score + affinity_change_amount
+
+            relation_grade: RelationType
+
+            if -100 <= total_affinity <= -61:
+                relation_grade = RelationType.HOSTILE
+            elif -60 <= total_affinity <= -21:
+                relation_grade = RelationType.LITTLE_HOSTILE
+            elif -20 <= total_affinity <= 20:
+                relation_grade = RelationType.NEUTRAL
+            elif 21 <= total_affinity <= 60:
+                relation_grade = RelationType.LITTLE_FRIENDLY
+            elif 61 <= total_affinity <= 100:
+                relation_grade = RelationType.FRIENDLY
+            else:
+                if total_affinity < -100:
+                    relation_grade = RelationType.HOSTILE
+                elif total_affinity > 100:
+                    relation_grade = RelationType.FRIENDLY
+                else:
+                    relation_grade = RelationType.NEUTRAL
+
+            diffs.append(
+                EntityDiff(
+                    state_entity_id=target_npc_state_id,
+                    diff={"affinity_score": affinity_change_amount},
+                )
+            )
+
+            relations.append(
+                UpdateRelation(
+                    cause_entity_id=player_id,
+                    effect_entity_id=target_npc_state_id,
+                    type=relation_grade,
+                    affinity_score=total_affinity,
+                )
+            )
+        else:
+            print("대화할 NPC를 찾을 수 없어 우호도 변경을 적용하지 않습니다.")
+
+        return HandlerUpdatePhase(
+            update=PhaseUpdate(diffs=diffs, relations=relations),
+            is_success=dice_result.is_success,
+        )
 
 
 class ExplorationHandler(PhaseHandler):
@@ -303,8 +486,7 @@ class ExplorationHandler(PhaseHandler):
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
-        # Todo: 주사위 판정결과를 로직에 녹여넣기
-        print("주사위 판정결과를 로직에 녹여넣기")
+        print("주사위 판정 시작")
         print(f"player → {player_state.player}")
 
         # mock

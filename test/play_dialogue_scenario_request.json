@@ -4,35 +4,26 @@
   "locale_id": 7,
   "entities": [
     {
-      "entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "state_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
       "phase_id": 1,
       "entity_name": "아리",
       "entity_type": "player"
     },
     {
-      "entity_id": "npc_merchant_42",
+      "state_entity_id": "npc_merchant_42",
+      "entity_id": 33,
       "phase_id": 2,
-      "entity_name": "수상한 상인",
+      "entity_name": "공허의 상인",
       "entity_type": "npc"
-    },
-    {
-      "entity_id": "item_rare_artifact_7",
-      "phase_id": 3,
-      "entity_name": "희귀 유물",
-      "entity_type": "item"
     }
   ],
   "relations": [
     {
-      "cause_entity_id": 1,
-      "effect_entity_id": 2,
-      "type": "중립적"
-    },
-    {
-      "cause_entity_id": 2,
-      "effect_entity_id": 3,
-      "type": "소유"
+      "cause_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "effect_entity_id": "npc_merchant_42",
+      "type": "중립적",
+      "affinity_score": 10
     }
   ],
-  "story": "낡은 가판대 앞에 선 아리는 수상한 상인에게 희귀 유물에 대해 물었다. 상인은 낄낄대며 평범한 돌멩이라고 주장했고, 아리는 그의 터무니없는 가격에 흥정을 시도했다."
+  "story": "공허의 상인에게 소정의 뇌물을 건냅니다."
 }

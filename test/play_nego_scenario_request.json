@@ -1,0 +1,41 @@
+{
+  "session_id": 12345,
+  "scenario_id": 2,
+  "locale_id": 7,
+  "entities": [
+    {
+      "state_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "phase_id": 1,
+      "entity_name": "아리",
+      "entity_type": "player"
+    },
+    {
+      "state_entity_id": "npc_merchant_42",
+      "entity_id": 33,
+      "phase_id": 2,
+      "entity_name": "공허의 상인",
+      "entity_type": "npc"
+    },
+    {
+      "state_entity_id": "item_common_18",
+      "entity_id": 18,
+      "phase_id": 3,
+      "entity_name": "마비 포자 주머니",
+      "entity_type": "item"
+    }
+  ],
+  "relations": [
+    {
+      "cause_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "effect_entity_id": "npc_merchant_42",
+      "type": "중립적",
+      "affinity_score": -20
+    },
+    {
+      "cause_entity_id": "npc_merchant_42",
+      "effect_entity_id": "item_common_18",
+      "type": "소유"
+    }
+  ],
+  "story": "낡은 가판대 앞에 선 아리는 공허의 상인에게 마비 포자 주머니를 팔고 있는지 물었다. 상인은 낄낄대며 평범한 돌멩이라고 주장했고, 아리는 그의 터무니없는 가격에 흥정을 시도했다."
+}
