@@ -70,7 +70,10 @@ class EntityUnit(BaseModel):
 
 class EntityDiff(BaseModel):
     state_entity_id: str
-    diff: Any  # { "entity_id": "player", "hp": -10 }, - 플레이어 변동치 - 가변적
+    diff: Any  # - 플레이어 변동치, 보유 아이템 변동치 - 가변적
+    # Todo
+    #   { "state_entity_id": "player_id", "hp": -10 },
+    #   { "state_entity_id": "item_entity_id", "quantity": -1 },
 
 
 class UpdateRelation(BaseModel):

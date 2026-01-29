@@ -1,0 +1,21 @@
+{
+  "session_id": 12345,
+  "scenario_id": 4,
+  "locale_id": 3,
+  "entities": [
+    {
+      "state_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "phase_id": 1,
+      "entity_name": "아리",
+      "entity_type": "player"
+    }
+  ],
+  "relations": [
+    {
+      "cause_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "effect_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "type": "본인"
+    }
+  ],
+  "story": "긴 하루의 여정 끝에, 아리는 안전한 동굴을 찾아 모닥불을 피우고 잠시 눈을 붙였다. 피로가 서서히 가시는 것을 느끼며 HP를 회복했다."
+}
