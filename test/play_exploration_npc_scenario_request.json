@@ -1,0 +1,29 @@
+{
+  "session_id": 12345,
+  "scenario_id": 10,
+  "locale_id": 1,
+  "entities": [
+    {
+      "state_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "phase_id": 1,
+      "entity_name": "아리",
+      "entity_type": "player"
+    },
+    {
+      "state_entity_id": "npc_rick_001",
+      "entity_id": 14,
+      "phase_id": 2,
+      "entity_name": "이중첩자 릭",
+      "entity_type": "npc"
+    },
+    {
+      "state_entity_id": "npc_jack_001",
+      "entity_id": 18,
+      "phase_id": 2,
+      "entity_name": "탈영병 잭",
+      "entity_type": "npc"
+    }
+  ],
+  "relations": [],
+  "story": "맨홀 구멍에 빠져 허둥대다 같은 공간에 누군가 있음을 확인합니다."
+}

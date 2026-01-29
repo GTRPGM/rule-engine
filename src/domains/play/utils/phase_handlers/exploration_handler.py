@@ -10,7 +10,7 @@ from domains.play.dtos.play_dtos import (
     PlaySceneRequest,
     RelationType,
     SceneAnalysis,
-    UpdateRelation,
+    UpdateRelation, HandlerUpdatePhase, EntityType,
 )
 from src.domains.play.utils.phase_handlers.phase_handler_base import PhaseHandler
 
@@ -24,7 +24,7 @@ class ExplorationHandler(PhaseHandler):
         enemy_service: EnemyService,
         gm_service: GmService,
         llm: LLMManager
-    ) -> PhaseUpdate:
+    ) -> HandlerUpdatePhase:
         (
             player_id,
             player_state,
@@ -37,24 +37,48 @@ class ExplorationHandler(PhaseHandler):
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
+        player_point = 2 # 플레이어 능력 - 보정치 (미정) - 임의값
+
+        new_items = [some for some in request.entities if some.entity_type == EntityType.ITEM]
+        new_npcs = [some for some in request.entities if some.entity_type == EntityType.NPC]
+        new_objects = [some for some in request.entities if some.entity_type == EntityType.OBJECT]
+
         print("주사위 판정 시작")
-        print(f"player → {player_state.player}")
+        dice_result = await gm_service.rolling_dice(player_point, 6)
+        print(f"[주사위 결과] 성공: {dice_result.is_success} | 크리티컬: {dice_result.is_critical_success}")
 
-        # mock
-        relations.append(
-            UpdateRelation(
-                cause_entity_id=1,
-                effect_entity_id=4,
-                type=RelationType.LITTLE_FRIENDLY,
-            ),
+        if dice_result.is_success:
+            print("[주사위 결과] 성공")
+            if len(new_items) > 0:
+                for new_item in new_items:
+                    relations.append(UpdateRelation(
+                        cause_entity_id=player_id,
+                        effect_entity_id=new_item.state_entity_id,
+                        type=RelationType.OWNERSHIP
+                    ))
+                print(f"{len(new_items)}개 아이템을 습득했니다.")
+
+            if len(new_npcs) > 0:
+                for new_npc in new_npcs:
+                    relations.append(UpdateRelation(
+                        cause_entity_id=player_id,
+                        effect_entity_id=new_npc.state_entity_id,
+                        type=RelationType.LITTLE_FRIENDLY if dice_result.is_critical_success else RelationType.NEUTRAL
+                    ))
+                print(f"{len(new_npcs)}명의 NPC와 {RelationType.LITTLE_FRIENDLY if dice_result.is_critical_success else RelationType.NEUTRAL} 관계를 맺었습니다.")
+
+        else:
+            if len(new_npcs) > 0:
+                for new_npc in new_npcs:
+                    relations.append(UpdateRelation(
+                        cause_entity_id=player_id,
+                        effect_entity_id=new_npc.state_entity_id,
+                        type=RelationType.LITTLE_HOSTILE
+                    ))
+                print(
+                    f"{len(new_npcs)}명의 NPC와 {RelationType.LITTLE_HOSTILE} 관계를 맺었습니다.")
+
+        return HandlerUpdatePhase(
+            update=PhaseUpdate(diffs=diffs, relations=relations),
+            is_success=dice_result.is_success
         )
-
-        relations.append(
-            UpdateRelation(
-                cause_entity_id=1,
-                effect_entity_id=5,
-                type=RelationType.LITTLE_FRIENDLY,
-            ),
-        )
-
-        return PhaseUpdate(diffs=diffs, relations=relations)

@@ -50,15 +50,12 @@ class ConsumePotionHandler(PhaseHandler):
         # 1. 플레이어 인벤토리에서 포션 찾기
         item_ids = [int(item.item_id) for item in player_state.player.items]
         items, _ = await item_service.get_items(item_ids=item_ids, skip=0, limit=100)
-        print(f"보유 아이템 목록: {items}")
 
         heal_items = [
             item
             for item in items
             if "소모품" == item["type"] and "포션" in item["name"]
         ]
-
-        print(f"포션 목록: {heal_items}")
 
         consumed_potion = None
         effect_value: int = 0

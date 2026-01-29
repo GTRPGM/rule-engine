@@ -1,0 +1,29 @@
+{
+  "session_id": 12345,
+  "scenario_id": 10,
+  "locale_id": 1,
+  "entities": [
+    {
+      "state_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "phase_id": 1,
+      "entity_name": "아리",
+      "entity_type": "player"
+    },
+    {
+      "state_entity_id": "item_round_shild_001",
+      "entity_id": 34,
+      "phase_id": 2,
+      "entity_name": "경비대의 둥근 방패",
+      "entity_type": "item"
+    },
+    {
+      "state_entity_id": "item_battle_axe_001",
+      "entity_id": 39,
+      "phase_id": 2,
+      "entity_name": "개척 연합의 전투 도끼",
+      "entity_type": "item"
+    }
+  ],
+  "relations": [],
+  "story": "이끼 낀 철제 상자 안에서 누군가 감춰 둔 것으로 보이는 모험가 장비를 발견했습니다."
+}

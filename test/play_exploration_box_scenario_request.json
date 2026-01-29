@@ -4,35 +4,18 @@
   "locale_id": 1,
   "entities": [
     {
-      "entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "state_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
       "phase_id": 1,
       "entity_name": "아리",
       "entity_type": "player"
     },
     {
-      "entity_id": "obj_iron_chest_001",
+      "state_entity_id": "obj_iron_chest_001",
       "phase_id": 2,
       "entity_name": "낡은 철제 상자",
       "entity_type": "object"
-    },
-    {
-      "entity_id": "item_lockpick_set",
-      "phase_id": 3,
-      "entity_name": "도둑질 도구",
-      "entity_type": "item"
     }
   ],
-  "relations": [
-    {
-      "cause_entity_id": 1,
-      "effect_entity_id": 2,
-      "type": "적대적"
-    },
-    {
-      "cause_entity_id": 1,
-      "effect_entity_id": 3,
-      "type": "소유"
-    }
-  ],
+  "relations": [],
   "story": "이끼 낀 동굴 구석에서 굳게 닫힌 철제 상자를 발견했습니다. 아리는 조심스럽게 도둑질 도구를 꺼내 자물쇠의 내부 구조를 더듬기 시작합니다."
 }
