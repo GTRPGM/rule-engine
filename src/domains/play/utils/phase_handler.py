@@ -548,21 +548,11 @@ class UnknownHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
-    ) -> PhaseUpdate:
-        (
-            player_id,
-            player_state,
-            npcs,
-            enemies,
-            items,
-            objs,
-        ) = await self._categorize_entities(request.entities)
-        # 플레이어의 알 수 없는 행동에 따른 관계 변화 로직 구현
+    ) -> HandlerUpdatePhase:
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
-        # Todo: 주사위 판정결과를 로직에 녹여넣기
-        print("주사위 판정결과를 로직에 녹여넣기")
-        print(f"player → {player_state.player}")
-
-        return PhaseUpdate(diffs=diffs, relations=relations)
+        return HandlerUpdatePhase(
+            update=PhaseUpdate(diffs=diffs, relations=relations),
+            is_success=False,
+        )
