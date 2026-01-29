@@ -71,6 +71,7 @@ class PlayService:
             self.item_service,
             self.enemy_service,
             self.gm_service,
+            self.llm
         )
 
         return PlaySceneResponse(

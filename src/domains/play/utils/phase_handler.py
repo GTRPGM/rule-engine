@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, List
 
 from common.dtos.proxy_service_dto import ProxyService
+from configs.llm_manager import LLMManager
 from domains.gm.gm_service import GmService
 from domains.info.enemy_service import EnemyService
 from domains.info.item_service import ItemService
@@ -18,9 +19,8 @@ from domains.play.dtos.play_dtos import (
 )
 from domains.play.dtos.player_dtos import (
     FullPlayerState,
-    NPCRelation,
-    PlayerStateResponse,
 )
+from src.domains.play.utils.dummy_player import dummy_player
 from utils.proxy_request import proxy_request
 
 
@@ -33,6 +33,7 @@ class PhaseHandler(ABC):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
+        llm: LLMManager
     ) -> PhaseUpdate:
         """각 페이즈에 맞는 로직을 수행하고 변화량(diffs, relations)을 반환합니다."""
         pass
@@ -42,25 +43,7 @@ class PhaseHandler(ABC):
         플레이어 상태를 GDB로 관리하는 외부 마이크로서비스를 호출해서 정보를 조회합니다.
         """
 
-        return FullPlayerState(
-            # Fixme: PlayerStateResponse.items: List[int] → List[ItemBase]
-            player=PlayerStateResponse(hp=150, gold=800, items=[28, 29, 78, 79, 80]),
-            player_npc_relations=[
-                NPCRelation(
-                    npc_id="2", affinity_score=-40, npc_name="그림자 눈 카이엔"
-                ),
-                NPCRelation(npc_id="5", affinity_score=-30, npc_name="광기 어린 릭스"),
-                NPCRelation(npc_id="8", affinity_score=50, npc_name="대장장이 한스"),
-                NPCRelation(npc_id="9", affinity_score=50, npc_name="주모 엘리"),
-                NPCRelation(npc_id="33", affinity_score=-20, npc_name="공허의 상인"),
-                NPCRelation(
-                    npc_id="10", affinity_score=50, npc_name="은퇴한 용병 케인"
-                ),
-                NPCRelation(
-                    npc_id="11", affinity_score=50, npc_name="떠돌이 약사 미아"
-                ),
-            ],
-        )
+        return dummy_player
 
         # 준비되는 대로 교체
         return await proxy_request(
@@ -148,7 +131,7 @@ class CombatHandler(PhaseHandler):
         dice = await gm_service.rolling_dice(2, 6)
 
         # 2. 아이템 효과 계산
-        item_ids = player_state.player.items
+        item_ids = [int(item.item_id) for item in player_state.player.items]
         items, _ = await item_service.get_items(item_ids=item_ids, skip=0, limit=100)
 
         combat_items_effect = sum(
@@ -174,6 +157,7 @@ class CombatHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
+        llm: LLMManager
     ) -> HandlerUpdatePhase:
         # 1. 엔티티 분류 및 플레이어 상태 조회
         player_id, player_state, _, enemies, _, _ = await self._categorize_entities(
@@ -250,6 +234,7 @@ class NegoHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
+        llm: LLMManager
     ) -> HandlerUpdatePhase:
         (
             player_id,
@@ -350,6 +335,7 @@ class DialogueHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
+        llm: LLMManager
     ) -> HandlerUpdatePhase:
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
@@ -474,6 +460,7 @@ class ExplorationHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
+        llm: LLMManager
     ) -> PhaseUpdate:
         (
             player_id,
@@ -518,6 +505,7 @@ class ConsumePotionHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
+        llm: LLMManager
     ) -> HandlerUpdatePhase:
         (
             player_id,
@@ -536,7 +524,7 @@ class ConsumePotionHandler(PhaseHandler):
         # 플레이어 정보
         print(f"player → {player_state.player}")
 
-        all_player_item_ids = player_state.player.items
+        all_player_item_ids = [int(item.item_id) for item in player_state.player.items]
         all_player_items_data, _ = await item_service.get_items(
             item_ids=all_player_item_ids, skip=0, limit=100
         )
@@ -566,6 +554,7 @@ class RestHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
+        llm: LLMManager
     ) -> HandlerUpdatePhase:
         (
             player_id,
@@ -624,6 +613,7 @@ class UnknownHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
+        llm: LLMManager
     ) -> HandlerUpdatePhase:
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
