@@ -51,24 +51,27 @@ class EntityType(Enum):
     NPC = "npc"
     ENEMY = "enemy"
     ITEM = "item"
-    OBJECT = "object" # 상자 등 상호작용 가능한 대상 물체
+    OBJECT = "object"  # 상자 등 상호작용 가능한 대상 물체
 
 
 class EntityUnit(BaseModel):
-    entity_id: str
+    state_entity_id: str  # 객체 식별 번호
+    entity_id: Optional[int] = (
+        None  # RDB 객체 식별 번호 - 플레이어나 사물 타입은 존재 안 함
+    )
     phase_id: int
     entity_name: str
     entity_type: EntityType
 
 
 class EntityDiff(BaseModel):
-    entity_id: int
+    state_entity_id: str
     diff: Any  # { "entity_id": "player", "hp": -10 }, - 플레이어 변동치 - 가변적
 
 
 class UpdateRelation(BaseModel):
-    cause_entity_id: int = Field(default_factory=list, description="원인")
-    effect_entity_id: int = Field(default_factory=list, description="결과")
+    cause_entity_id: str = Field(default_factory=list, description="원인")
+    effect_entity_id: str = Field(default_factory=list, description="결과")
     type: RelationType
 
 
@@ -100,3 +103,8 @@ class PlaySceneResponse(BaseModel):
     value_range: Optional[int] = (
         None  # 룰 엔진 주사위 판정 기준(2d6 or 1d6) → 최대 / 최소
     )
+
+
+class HandlerUpdatePhase(BaseModel):
+    update: PhaseUpdate
+    is_success: bool

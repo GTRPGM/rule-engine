@@ -24,13 +24,13 @@
   ],
   "relations": [
     {
-      "cause_entity_id": 1,
-      "effect_entity_id": 2,
+      "cause_entity_id": 2,
+      "effect_entity_id": 1,
       "type": "적대적"
     },
     {
-      "cause_entity_id": 1,
-      "effect_entity_id": 3,
+      "cause_entity_id": 2,
+      "effect_entity_id": 1,
       "type": "소유"
     }
   ],

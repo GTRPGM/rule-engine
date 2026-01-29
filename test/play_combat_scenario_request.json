@@ -4,35 +4,25 @@
   "locale_id": 1,
   "entities": [
     {
-      "entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "state_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
       "phase_id": 1,
       "entity_name": "아리",
       "entity_type": "player"
     },
     {
-      "entity_id": "enemy_goblin_101",
+      "state_entity_id": "enemy_wild_dog_101",
+      "entity_id": 15,
       "phase_id": 2,
-      "entity_name": "고블린",
+      "entity_name": "그림자 들개",
       "entity_type": "enemy"
-    },
-    {
-      "entity_id": "item_sword_3",
-      "phase_id": 3,
-      "entity_name": "녹슨 검",
-      "entity_type": "item"
     }
   ],
   "relations": [
     {
-      "cause_entity_id": 1,
-      "effect_entity_id": 2,
+      "cause_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "effect_entity_id": "enemy_wild_dog_101",
       "type": "적대적"
-    },
-    {
-      "cause_entity_id": 1,
-      "effect_entity_id": 3,
-      "type": "소유"
     }
   ],
-  "story": "아리는 어두운 숲에서 마주친 고블린을 향해 녹슨 검을 휘둘렀다. 고블린은 비명을 지르며 쓰러졌다."
+  "story": "아리는 어두운 숲에서 마주친 그림자 들개를 향해 녹슨 검을 휘두르자 그림자 들개 떼는 본능적으로 컹컹 짖어대며 달려들었다."
 }
