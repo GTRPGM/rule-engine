@@ -1,5 +1,5 @@
 from domains.play.dtos.play_dtos import PhaseType
-from domains.play.utils.phase_handler import (
+from domains.play.utils.phase_handlers import (
     CombatHandler,
     ConsumePotionHandler,
     DialogueHandler,
