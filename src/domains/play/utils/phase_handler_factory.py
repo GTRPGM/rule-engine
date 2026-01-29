@@ -1,6 +1,7 @@
 from domains.play.dtos.play_dtos import PhaseType
 from domains.play.utils.phase_handler import (
     CombatHandler,
+    ConsumePotionHandler,
     DialogueHandler,
     ExplorationHandler,
     NegoHandler,
@@ -15,6 +16,7 @@ class PhaseHandlerFactory:
         PhaseType.EXPLORATION: ExplorationHandler(),
         PhaseType.DIALOGUE: DialogueHandler(),
         PhaseType.NEGO: NegoHandler(),
+        PhaseType.RECOVERY: ConsumePotionHandler(),
         PhaseType.REST: RestHandler(),
         PhaseType.UNKNOWN: UnknownHandler(),
     }

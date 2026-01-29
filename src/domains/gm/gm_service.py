@@ -1,5 +1,4 @@
 from domains.gm.dtos.dice_check_result import DiceCheckResult
-from domains.play.dtos.player_dtos import FullPlayerState
 from utils.dice_util import DiceUtil
 
 
@@ -15,7 +14,6 @@ class GmService:
         """주사위 판정을 실행합니다."""
         result = DiceUtil.check_success(ability_val, diff)
 
-
         if result["is_critical_success"]:
             msg = "🎯 대성공! 완벽한 운이 따랐습니다."
         elif result["is_critical_fail"]:
@@ -30,4 +28,5 @@ class GmService:
             roll_result=result["roll_result"],
             total=result["total"],
             is_success=result["is_success"],
+            is_critical_success=result["is_critical_success"],
         )

@@ -6,3 +6,4 @@ class DiceCheckResult(BaseModel):
     roll_result: int = Field(..., description="주사위 2개의 합 (2~12)")
     total: int = Field(..., description="주사위 합 + 능력치")
     is_success: bool = Field(..., description="최종 성공 여부")
+    is_critical_success: bool = Field(..., description="크리티컬 성공 여부")

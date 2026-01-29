@@ -509,6 +509,48 @@ class ExplorationHandler(PhaseHandler):
         return PhaseUpdate(diffs=diffs, relations=relations)
 
 
+# class ConsumePotionHandler(PhaseHandler):
+#     async def handle(
+#         self,
+#         request: PlaySceneRequest,
+#         analysis: SceneAnalysis,
+#         item_service: ItemService,
+#         enemy_service: EnemyService,
+#         gm_service: GmService,
+#     ) -> HandlerUpdatePhase:
+#         (
+#             player_id,
+#             player_state,
+#             _,
+#             _,
+#             _,
+#             _,
+#         ) = await self._categorize_entities(request.entities)
+#         # 플레이어의 휴식 활동에 따른 관계 변화 로직 구현
+#         diffs: List[EntityDiff] = []
+#         relations: List[UpdateRelation] = []
+#
+#         heal_point = 2  # 기본 턴 당 회복량 - 임의값
+#
+#         # 플레이어 정보
+#         print(f"player → {player_state.player}")
+#
+#         all_player_item_ids = player_state.player.items
+#         all_player_items_data, _ = await item_service.get_items(
+#             item_ids=all_player_item_ids, skip=0, limit=100
+#         )
+#
+#         heal_items = [
+#             item
+#             for item in all_player_items_data
+#             if item["type"] == "소모품" and "포션" in item["name"]
+#         ]
+#
+#         # Todo - heal_items가 하나라도 있다면 해당 아이템을 소모한 결과를 업데이트해 반환해야 합니다.
+#
+#         return HandlerUpdatePhase()
+
+
 class RestHandler(PhaseHandler):
     async def handle(
         self,
@@ -517,27 +559,54 @@ class RestHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
-    ) -> PhaseUpdate:
+    ) -> HandlerUpdatePhase:
         (
             player_id,
             player_state,
-            npcs,
-            enemies,
-            items,
-            objs,
+            _,
+            _,
+            _,
+            _,
         ) = await self._categorize_entities(request.entities)
-        # 플레이어의 휴식 활동에 따른 관계 변화 로직 구현
+
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
-        # Todo: 주사위 판정결과를 로직에 녹여넣기
-        print("주사위 판정결과를 로직에 녹여넣기")
-        print(f"player → {player_state.player}")
+        heal_point = 2  # 기본 턴 당 회복량 - 임의값
 
-        # mock
-        diffs.append(EntityDiff(entity_id=1, diff={"hp": 18}))
+        # 주사위를 굴려 heal_point 외 추가 회복량을 정합니다.
+        dice_result = await gm_service.rolling_dice(heal_point, 6)
+        print(
+            f"휴식 주사위 판정 결과: {dice_result.message} (굴림값: {dice_result.roll_result}, 총합: {dice_result.total}, 성공여부: {dice_result.is_success})"
+        )
 
-        return PhaseUpdate(diffs=diffs, relations=relations)
+        additional_healing: int = 0
+        # 주사위 판정이 성공이고 크리티컬이면 주사위 total만큼 회복합니다.
+        if dice_result.is_critical_success:
+            additional_healing = dice_result.total
+        # 주사위 판정이 성공이지만 크리티컬이 아니면 주사위 total의 절반(소수점 버림)만큼 회복합니다.
+        elif dice_result.is_success:
+            additional_healing = dice_result.total // 2
+        # 주사위 판정이 실패이면 추가 회복량은 0입니다.
+        else:
+            additional_healing = 0
+
+        total_healing = heal_point + additional_healing
+        if dice_result.is_success:
+            print(
+                f"""회복 성공: {dice_result.is_success} | 총 회복량(주사위 합 {dice_result.total} {"" if dice_result.is_critical_success else "/ 2"} + 기본 회복량 {heal_point}): {total_healing}"""
+            )
+        else:
+            print(
+                f"""회복 성공: {dice_result.is_success} | 총 회복량 = 기본 회복량 {heal_point}): {total_healing}"""
+            )
+
+        diffs.append(EntityDiff(state_entity_id=player_id, diff={"hp": total_healing}))
+
+        return HandlerUpdatePhase(
+            update=PhaseUpdate(diffs=diffs, relations=relations),
+            is_success=dice_result.is_success,
+        )
 
 
 class UnknownHandler(PhaseHandler):

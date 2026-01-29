@@ -10,6 +10,7 @@ class PhaseType(str, Enum):
     DIALOGUE = "대화"
     NEGO = "흥정"
     REST = "휴식"
+    RECOVERY = "회복"
     UNKNOWN = "알 수 없음"
 
 
@@ -20,6 +21,8 @@ class RelationType(str, Enum):
     LITTLE_FRIENDLY = "약간 우호적"
     FRIENDLY = "우호적"
     OWNERSHIP = "소유"
+    CONSUME = "소비"
+    SELF = "본인"
 
 
 # 아직 구체화되지 않음 - 상상 자료형
@@ -102,6 +105,7 @@ class PlaySceneResponse(BaseModel):
     reason: str  # 페이즈 유형 판정 이유
     success: bool  # 룰 엔진 주사위 행동 판정 결과 → 시나리오 참고용(무시당할 수 있음)
     suggested: PhaseUpdate = Field(default_factory=list, description="제안된 판정 결과")
+    # Todo: 보정 들어간 주사위 판정 최대 / 최소치 산정해 반환하기
     value_range: Optional[int] = (
         None  # 룰 엔진 주사위 판정 기준(2d6 or 1d6) → 최대 / 최소
     )
