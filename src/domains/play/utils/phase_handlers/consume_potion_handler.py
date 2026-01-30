@@ -84,10 +84,10 @@ class ConsumePotionHandler(PhaseHandler):
                         consumed_potion = heal_items[0]
 
                     print(
-                        f"[소모 아이템 정보] {consumed_potion.name} | 치유량: {consumed_potion.effect_value}"
+                        f"[소모 아이템 정보] {consumed_potion['name']} | 치유량: {consumed_potion['effect_value']}"
                     )
                     logs.append(
-                        f"[소모 아이템 정보] {consumed_potion.name} | 치유량: {consumed_potion.effect_value}"
+                        f"[소모 아이템 정보] {consumed_potion['name']} | 치유량: {consumed_potion['effect_value']}"
                     )
                 except Exception:
                     consumed_potion = heal_items[0]
