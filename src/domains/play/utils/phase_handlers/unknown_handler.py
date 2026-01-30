@@ -29,7 +29,8 @@ class UnknownHandler(PhaseHandler):
         relations: List[UpdateRelation] = []
 
         dice = await gm_service.rolling_dice(2, 6)
-        dice_result_log = f"주사위 성공 여부: {dice.is_success} | 크리티컬 여부: {dice.is_critical_success}"
+        dice_result_log = f"이해할 수 없는 행동... {dice.message}{' | 잭팟!!' if dice.is_critical_success else ''} | 굴림값 {dice.roll_result} + 능력보정치 {dice.ability_score} = 총합 {dice.total}"
+        print(dice_result_log)
 
         return HandlerUpdatePhase(
             update=PhaseUpdate(diffs=diffs, relations=relations),

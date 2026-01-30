@@ -76,7 +76,7 @@ class NegoHandler(PhaseHandler):
         logs.append(f"할인 난이도: {bargain_difficulty}")
 
         dice_result = await gm_service.rolling_dice(bargain_ability, bargain_difficulty)
-        dice_result_log = f"흥정 주사위 판정 결과: {dice_result.message} (굴림값: {dice_result.total}, 성공여부: {dice_result.is_success})"
+        dice_result_log = f"흥정 시도... {dice_result.message}{' | 잭팟!!' if dice_result.is_critical_success else ''} | 굴림값 {dice_result.roll_result} + 능력보정치 {dice_result.ability_score} = 총합 {dice_result.total}"
         print(dice_result_log)
         logs.append(dice_result_log)
 

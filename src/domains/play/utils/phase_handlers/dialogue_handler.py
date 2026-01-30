@@ -75,7 +75,7 @@ class DialogueHandler(PhaseHandler):
             logs.append(affinity_score_log)
 
         dice_result = await gm_service.rolling_dice(social_ability, affinity_difficulty)
-        dice_result_log = f"대화 주사위 판정 결과: {dice_result.message} (굴림값: {dice_result.roll_result}, 총합: {dice_result.total}, 성공여부: {dice_result.is_success})"
+        dice_result_log = f"대화 시도... {dice_result.message}{' | 잭팟!!' if dice_result.is_critical_success else ''} | 굴림값 {dice_result.roll_result} + 능력보정치 {dice_result.ability_score} = 총합 {dice_result.total}"
 
         print(dice_result_log)
         logs.append(dice_result_log)

@@ -71,7 +71,9 @@ class PlayService:
         locale = next(
             (loc for loc in locales if loc["locale_id"] == request.locale_id), None
         )
-        print(f"locale: {locale}")
+        print(
+            f"장소: {locale['name']} | 식별번호: {locale['locale_id']} | {locale['description']}"
+        )
 
         result = await handler.handle(
             request,

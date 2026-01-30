@@ -25,6 +25,7 @@ class GmService:
 
         return DiceCheckResult(
             message=msg,
+            ability_score=result["ability_score"],
             roll_result=result["roll_result"],
             total=result["total"],
             is_success=result["is_success"],
