@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 from configs.llm_manager import LLMManager
@@ -16,6 +17,8 @@ from domains.play.dtos.play_dtos import (
 )
 from domains.play.dtos.player_dtos import FullPlayerState
 from src.domains.play.utils.phase_handlers.phase_handler_base import PhaseHandler
+
+logger = logging.getLogger("uvicorn")
 
 
 class CombatHandler(PhaseHandler):
@@ -76,7 +79,7 @@ class CombatHandler(PhaseHandler):
         # 1. 주사위 굴리기 (2d6)
         dice = await gm_service.rolling_dice(2, 6)
         dice_result_log = f"전투 시도... {dice.message}{' | 잭팟!!' if dice.is_critical_success else ''} | 굴림값 {dice.roll_result} + 능력보정치 {dice.ability_score} = 총합 {dice.total}"
-        print(dice_result_log)
+        logger.info(dice_result_log)
         logs.append(dice_result_log)
 
         # 2. 아이템 효과 계산
@@ -93,8 +96,8 @@ class CombatHandler(PhaseHandler):
         total_power = combat_items_effect + ability_score + dice.total
         combat_judge_log = f"[전투 판정] 주사위: {dice.total}, 아이템: {combat_items_effect}, 능력치: {ability_score}"
         total_player_power_log = f"-> 최종 플레이어 전투력: {total_power}"
-        print(combat_judge_log)
-        print(total_player_power_log)
+        logger.info(combat_judge_log)
+        logger.info(total_player_power_log)
         logs.append(combat_judge_log)
         logs.append(total_player_power_log)
 
@@ -168,7 +171,7 @@ class CombatHandler(PhaseHandler):
                     )
                 )
 
-            print(f"전투력 차이: {damage_difference}")
+            logger.info(f"전투력 차이: {damage_difference}")
             logs.append(f"전투력 차이: {damage_difference}")
 
         if player_hp_change != 0:

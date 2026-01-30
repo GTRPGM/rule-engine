@@ -14,6 +14,7 @@ from domains.play.dtos.play_dtos import (
     UpdateRelation,
 )
 from src.domains.play.utils.phase_handlers.phase_handler_base import PhaseHandler
+from utils import logger
 
 
 class ExplorationHandler(PhaseHandler):
@@ -42,14 +43,14 @@ class ExplorationHandler(PhaseHandler):
 
         player_point = 2  # 플레이어 능력 - 보정치 (미정) - 임의값
 
-        print("주사위 판정 시작")
+        logger.info("주사위 판정 시작")
         dice_result = await gm_service.rolling_dice(player_point, 6)
         dice_result_log = f"탐험 시도... {dice_result.message}{' | 잭팟!!' if dice_result.is_critical_success else ''} | 굴림값 {dice_result.roll_result} + 능력보정치 {dice_result.ability_score} = 총합 {dice_result.total}"
-        print(dice_result_log)
+        logger.info(dice_result_log)
         logs.append(dice_result_log)
 
         if dice_result.is_success:
-            print("[주사위 결과] 성공")
+            logger.info("[주사위 결과] 성공")
             logs.append("[주사위 결과] 성공")
             if len(items) > 0:
                 for new_item in items:
@@ -74,7 +75,7 @@ class ExplorationHandler(PhaseHandler):
                             type=RelationType.OWNERSHIP,
                         )
                     )
-                print(f"{len(items)}개 아이템을 습득했니다.")
+                logger.info(f"{len(items)}개 아이템을 습득했니다.")
                 logs.append(f"{len(items)}개 아이템을 습득했니다.")
 
             if len(npcs) > 0:
@@ -103,7 +104,7 @@ class ExplorationHandler(PhaseHandler):
                         )
                     )
                 new_npc_log = f"{len(npcs)}명의 NPC와 {RelationType.LITTLE_FRIENDLY if dice_result.is_critical_success else RelationType.NEUTRAL} 관계를 맺었습니다."
-                print(new_npc_log)
+                logger.info(new_npc_log)
                 logs.append(new_npc_log)
         else:
             if len(npcs) > 0:
@@ -125,7 +126,7 @@ class ExplorationHandler(PhaseHandler):
                         )
                     )
                 new_npc_log = f"{len(npcs)}명의 NPC와 {RelationType.LITTLE_HOSTILE} 관계를 맺었습니다."
-                print(new_npc_log)
+                logger.info(new_npc_log)
                 logs.append(new_npc_log)
 
         return HandlerUpdatePhase(

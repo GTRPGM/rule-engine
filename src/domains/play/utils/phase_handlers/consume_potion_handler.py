@@ -16,6 +16,7 @@ from src.domains.play.prompts.potion_selection_prompt import (
     create_potion_selection_prompt,
 )
 from src.domains.play.utils.phase_handlers.phase_handler_base import PhaseHandler
+from utils import logger
 
 
 class ConsumePotionHandler(PhaseHandler):
@@ -83,7 +84,7 @@ class ConsumePotionHandler(PhaseHandler):
                     else:
                         consumed_potion = heal_items[0]
 
-                    print(
+                    logger.info(
                         f"[소모 아이템 정보] {consumed_potion['name']} | 치유량: {consumed_potion['effect_value']}"
                     )
                     logs.append(
@@ -104,21 +105,21 @@ class ConsumePotionHandler(PhaseHandler):
             dice_result = await gm_service.rolling_dice(heal_point, effect_value)
             dice_result_log = f"추가 치유 시도... {dice_result.message}{' | 잭팟!!' if dice_result.is_critical_success else ''} | 굴림값 {dice_result.roll_result} + 능력보정치 {dice_result.ability_score} = 총합 {dice_result.total}"
             logs.append(dice_result_log)
-            print(dice_result_log)
+            logger.info(dice_result_log)
 
             if dice_result.is_critical_success:
                 additional_heal_point = heal_point * 2
                 additional_heal_log = (
                     f"두 배 추가 치유 포인트가 적용됩니다. +{additional_heal_point} "
                 )
-                print(additional_heal_log)
+                logger.info(additional_heal_log)
                 logs.append(additional_heal_log)
             elif dice_result.is_success:
                 additional_heal_point = heal_point
                 additional_heal_log = (
                     f"추가 치유 포인트가 적용됩니다. +{additional_heal_point}"
                 )
-                print(additional_heal_log)
+                logger.info(additional_heal_log)
                 logs.append(additional_heal_log)
 
         # 3. diffs 생성
@@ -139,12 +140,12 @@ class ConsumePotionHandler(PhaseHandler):
                     ),
                 )
 
-            print(f"[치유 계산] 포션 기본 회복량: {effect_value}")
+            logger.info(f"[치유 계산] 포션 기본 회복량: {effect_value}")
             logs.append(f"[치유 계산] 포션 기본 회복량: {effect_value}")
             if additional_heal_point > 0:
-                print(f"[치유 계산] 주사위 추가 회복량: {additional_heal_point}")
+                logger.info(f"[치유 계산] 주사위 추가 회복량: {additional_heal_point}")
                 logs.append(f"[치유 계산] 주사위 추가 회복량: {additional_heal_point}")
-            print(f"[치유 계산] 총 치유량: {total_healing}")
+            logger.info(f"[치유 계산] 총 치유량: {total_healing}")
             logs.append(f"[치유 계산] 총 치유량: {total_healing}")
 
         return HandlerUpdatePhase(

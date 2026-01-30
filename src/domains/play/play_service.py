@@ -18,6 +18,7 @@ from domains.play.dtos.play_dtos import (
     SceneAnalysis,
 )
 from domains.play.utils.phase_handler_factory import PhaseHandlerFactory
+from utils import logger
 
 
 class PlayService:
@@ -53,9 +54,9 @@ class PlayService:
         logs: List[str] = []
         analysis = await self.analyze_scene(request.story)
 
-        print(f"분석된 플레이 유형: {analysis.phase_type}")
-        print(f"분석 근거: {analysis.reason}")
-        print(f"분석 확신도: {analysis.confidence}")
+        logger.info(f"분석된 플레이 유형: {analysis.phase_type}")
+        logger.info(f"분석 근거: {analysis.reason}")
+        logger.info(f"분석 확신도: {analysis.confidence}")
         logs.append(f"분석된 플레이 유형: {analysis.phase_type}")
         logs.append(f"사유: {analysis.reason}")
         logs.append(f"분석 확신도: {analysis.confidence}")
@@ -71,7 +72,7 @@ class PlayService:
         locale = next(
             (loc for loc in locales if loc["locale_id"] == request.locale_id), None
         )
-        print(
+        logger.info(
             f"장소: {locale['name']} | 식별번호: {locale['locale_id']} | {locale['description']}"
         )
 

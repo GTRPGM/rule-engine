@@ -13,6 +13,7 @@ from domains.play.dtos.play_dtos import (
     UpdateRelation,
 )
 from src.domains.play.utils.phase_handlers.phase_handler_base import PhaseHandler
+from utils import logger
 
 
 class RestHandler(PhaseHandler):
@@ -43,7 +44,7 @@ class RestHandler(PhaseHandler):
         # 주사위를 굴려 heal_point 외 추가 회복량을 정합니다.
         dice_result = await gm_service.rolling_dice(heal_point, 6)
         dice_result_log = f"휴식 시도... {dice_result.message}{' | 잭팟!!' if dice_result.is_critical_success else ''} | 굴림값 {dice_result.roll_result} + 능력보정치 {dice_result.ability_score} = 총합 {dice_result.total}"
-        print(dice_result_log)
+        logger.info(dice_result_log)
         logs.append(dice_result_log)
 
         additional_healing: int = 0
@@ -60,11 +61,11 @@ class RestHandler(PhaseHandler):
         total_healing = heal_point + additional_healing
         if dice_result.is_success:
             success_log = f"""회복 성공: {dice_result.is_success} | 총 회복량(주사위 합 {dice_result.total} {"" if dice_result.is_critical_success else "/ 2"} + 기본 회복량 {heal_point}): {total_healing}"""
-            print(success_log)
+            logger.info(success_log)
             logs.append(success_log)
         else:
             fail_log = f"""회복 성공: {dice_result.is_success} | 총 회복량 = 기본 회복량 {heal_point}): {total_healing}"""
-            print(fail_log)
+            logger.info(fail_log)
             logs.append(fail_log)
 
         diffs.append(EntityDiff(state_entity_id=player_id, diff={"hp": total_healing}))

@@ -1,4 +1,3 @@
-
 from abc import ABC, abstractmethod
 from typing import Any, List
 
@@ -27,7 +26,7 @@ class PhaseHandler(ABC):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
-        llm: LLMManager
+        llm: LLMManager,
     ) -> PhaseUpdate:
         """각 페이즈에 맞는 로직을 수행하고 변화량(diffs, relations)을 반환합니다."""
         pass

@@ -14,6 +14,7 @@ from domains.play.dtos.play_dtos import (
     UpdateRelation,
 )
 from src.domains.play.utils.phase_handlers.phase_handler_base import PhaseHandler
+from utils import logger
 
 
 class NegoHandler(PhaseHandler):
@@ -68,16 +69,16 @@ class NegoHandler(PhaseHandler):
                 break
 
         bargain_difficulty = -target_npc_affinity_score
-        print(f"NPC 우호도: {target_npc_affinity_score}")
-        print(f"할인 능력치: {bargain_ability}")
-        print(f"할인 난이도: {bargain_difficulty}")
+        logger.info(f"NPC 우호도: {target_npc_affinity_score}")
+        logger.info(f"할인 능력치: {bargain_ability}")
+        logger.info(f"할인 난이도: {bargain_difficulty}")
         logs.append(f"NPC 우호도: {target_npc_affinity_score}")
         logs.append(f"할인 능력치: {bargain_ability}")
         logs.append(f"할인 난이도: {bargain_difficulty}")
 
         dice_result = await gm_service.rolling_dice(bargain_ability, bargain_difficulty)
         dice_result_log = f"흥정 시도... {dice_result.message}{' | 잭팟!!' if dice_result.is_critical_success else ''} | 굴림값 {dice_result.roll_result} + 능력보정치 {dice_result.ability_score} = 총합 {dice_result.total}"
-        print(dice_result_log)
+        logger.info(dice_result_log)
         logs.append(dice_result_log)
 
         # 3. 흥정 결과에 따른 골드 변동치 적용
@@ -99,7 +100,7 @@ class NegoHandler(PhaseHandler):
                 bargain_gold_change = -player_payment  # 플레이어가 지불하므로 음수
                 success_log = f"흥정 성공! 아이템 '{bargain_item['name']}'을(를) {discount_percentage}% 할인된 가격 {player_payment}골드에 구매합니다."
 
-                print(success_log)
+                logger.info(success_log)
                 logs.append(success_log)
 
                 relations.append(
@@ -110,12 +111,12 @@ class NegoHandler(PhaseHandler):
                     )
                 )
             else:
-                print("흥정 성공! 하지만 거래할 아이템이 없습니다.")
+                logger.info("흥정 성공! 하지만 거래할 아이템이 없습니다.")
                 logs.append("흥정 성공! 하지만 거래할 아이템이 없습니다.")
         else:
             # 흥정 실패 시 페널티 (예: 정가 지불 혹은 거래 불가)
             # 여기서는 흥정 실패 시 거래가 성사되지 않는 것으로 가정하고 골드 변화 없음
-            print("흥정 실패! 거래가 성사되지 않았습니다.")
+            logger.info("흥정 실패! 거래가 성사되지 않았습니다.")
             logs.append("흥정 실패! 거래가 성사되지 않았습니다.")
 
         # 플레이어 골드 변동치 적용
