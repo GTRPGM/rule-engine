@@ -63,6 +63,7 @@ class EntityUnit(BaseModel):
     entity_id: Optional[int] = (
         None  # RDB 객체 식별 번호 - 플레이어나 사물 타입은 존재 안 함
     )
+    quantity: Optional[int] = Field(description="아이템 수량")
     phase_id: int
     entity_name: str
     entity_type: EntityType
@@ -71,7 +72,6 @@ class EntityUnit(BaseModel):
 class EntityDiff(BaseModel):
     state_entity_id: str
     diff: Any  # - 플레이어 변동치, 보유 아이템 변동치 - 가변적
-    # Todo
     #   { "state_entity_id": "player_id", "hp": -10 },
     #   { "state_entity_id": "item_entity_id", "quantity": -1 },
 
