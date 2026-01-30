@@ -34,7 +34,9 @@ class ExplorationHandler(PhaseHandler):
             items,
             objs,
         ) = await self._categorize_entities(request.entities)
+
         # 탐험 활동에 따른 관계 변화 로직 구현
+        logs: List[str] = []
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
@@ -42,12 +44,13 @@ class ExplorationHandler(PhaseHandler):
 
         print("주사위 판정 시작")
         dice_result = await gm_service.rolling_dice(player_point, 6)
-        print(
-            f"[주사위 결과] 성공: {dice_result.is_success} | 크리티컬: {dice_result.is_critical_success}"
-        )
+        dice_result_log = f"[주사위 결과] 성공: {dice_result.is_success} | 크리티컬: {dice_result.is_critical_success}"
+        print(dice_result_log)
+        logs.append(dice_result_log)
 
         if dice_result.is_success:
             print("[주사위 결과] 성공")
+            logs.append("[주사위 결과] 성공")
             if len(items) > 0:
                 for new_item in items:
                     diffs.append(
@@ -72,6 +75,7 @@ class ExplorationHandler(PhaseHandler):
                         )
                     )
                 print(f"{len(items)}개 아이템을 습득했니다.")
+                logs.append(f"{len(items)}개 아이템을 습득했니다.")
 
             if len(npcs) > 0:
                 for new_npc in npcs:
@@ -98,10 +102,9 @@ class ExplorationHandler(PhaseHandler):
                             ),
                         )
                     )
-                print(
-                    f"{len(npcs)}명의 NPC와 {RelationType.LITTLE_FRIENDLY if dice_result.is_critical_success else RelationType.NEUTRAL} 관계를 맺었습니다."
-                )
-
+                new_npc_log = f"{len(npcs)}명의 NPC와 {RelationType.LITTLE_FRIENDLY if dice_result.is_critical_success else RelationType.NEUTRAL} 관계를 맺었습니다."
+                print(new_npc_log)
+                logs.append(new_npc_log)
         else:
             if len(npcs) > 0:
                 for new_npc in npcs:
@@ -121,11 +124,12 @@ class ExplorationHandler(PhaseHandler):
                             type=RelationType.LITTLE_HOSTILE,
                         )
                     )
-                print(
-                    f"{len(npcs)}명의 NPC와 {RelationType.LITTLE_HOSTILE} 관계를 맺었습니다."
-                )
+                new_npc_log = f"{len(npcs)}명의 NPC와 {RelationType.LITTLE_HOSTILE} 관계를 맺었습니다."
+                print(new_npc_log)
+                logs.append(new_npc_log)
 
         return HandlerUpdatePhase(
             update=PhaseUpdate(diffs=diffs, relations=relations),
             is_success=dice_result.is_success,
+            logs=logs,
         )

@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 import aiofiles
 from langchain_core.prompts import ChatPromptTemplate
@@ -49,8 +50,15 @@ class PlayService:
         return await chain.ainvoke({"story": story}, config)
 
     async def play_scene(self, request: PlaySceneRequest) -> PlaySceneResponse:
+        logs: List[str] = []
         analysis = await self.analyze_scene(request.story)
-        print(f"분석된 플레이 유형: {analysis}")
+
+        print(f"분석된 플레이 유형: {analysis.phase_type}")
+        print(f"분석 근거: {analysis.reason}")
+        print(f"분석 확신도: {analysis.confidence}")
+        logs.append(f"분석된 플레이 유형: {analysis.phase_type}")
+        logs.append(f"사유: {analysis.reason}")
+        logs.append(f"분석 확신도: {analysis.confidence}")
 
         # 분석된 플레이 유형 → 팩토리를 통해 적절한 핸들러 획득
         handler = PhaseHandlerFactory.get_handler(analysis.phase_type)
@@ -71,8 +79,11 @@ class PlayService:
             self.item_service,
             self.enemy_service,
             self.gm_service,
-            self.llm
+            self.llm,
         )
+
+        if result.logs is not None:
+            logs.extend(result.logs)
 
         return PlaySceneResponse(
             session_id=request.session_id,
@@ -80,6 +91,7 @@ class PlayService:
             phase_type=analysis.phase_type,
             reason=analysis.reason,
             success=result.is_success,
-            suggested=result.update,
+            suggested=result.update.model_dump(),
             value_range=12,
+            logs=logs,
         )

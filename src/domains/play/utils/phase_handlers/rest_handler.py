@@ -23,7 +23,7 @@ class RestHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
-        llm: LLMManager
+        llm: LLMManager,
     ) -> HandlerUpdatePhase:
         (
             player_id,
@@ -34,6 +34,7 @@ class RestHandler(PhaseHandler):
             _,
         ) = await self._categorize_entities(request.entities)
 
+        logs: List[str] = []
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
@@ -41,9 +42,9 @@ class RestHandler(PhaseHandler):
 
         # 주사위를 굴려 heal_point 외 추가 회복량을 정합니다.
         dice_result = await gm_service.rolling_dice(heal_point, 6)
-        print(
-            f"휴식 주사위 판정 결과: {dice_result.message} (굴림값: {dice_result.roll_result}, 총합: {dice_result.total}, 성공여부: {dice_result.is_success})"
-        )
+        dice_result_log = f"휴식 주사위 판정 결과: {dice_result.message} (굴림값: {dice_result.roll_result}, 총합: {dice_result.total}, 성공여부: {dice_result.is_success})"
+        print(dice_result_log)
+        logs.append(dice_result_log)
 
         additional_healing: int = 0
         # 주사위 판정이 성공이고 크리티컬이면 주사위 total만큼 회복합니다.
@@ -58,17 +59,18 @@ class RestHandler(PhaseHandler):
 
         total_healing = heal_point + additional_healing
         if dice_result.is_success:
-            print(
-                f"""회복 성공: {dice_result.is_success} | 총 회복량(주사위 합 {dice_result.total} {"" if dice_result.is_critical_success else "/ 2"} + 기본 회복량 {heal_point}): {total_healing}"""
-            )
+            success_log = f"""회복 성공: {dice_result.is_success} | 총 회복량(주사위 합 {dice_result.total} {"" if dice_result.is_critical_success else "/ 2"} + 기본 회복량 {heal_point}): {total_healing}"""
+            print(success_log)
+            logs.append(success_log)
         else:
-            print(
-                f"""회복 성공: {dice_result.is_success} | 총 회복량 = 기본 회복량 {heal_point}): {total_healing}"""
-            )
+            fail_log = f"""회복 성공: {dice_result.is_success} | 총 회복량 = 기본 회복량 {heal_point}): {total_healing}"""
+            print(fail_log)
+            logs.append(fail_log)
 
         diffs.append(EntityDiff(state_entity_id=player_id, diff={"hp": total_healing}))
 
         return HandlerUpdatePhase(
             update=PhaseUpdate(diffs=diffs, relations=relations),
             is_success=dice_result.is_success,
+            logs=logs,
         )

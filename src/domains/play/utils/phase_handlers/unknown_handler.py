@@ -23,14 +23,16 @@ class UnknownHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
-        llm: LLMManager
+        llm: LLMManager,
     ) -> HandlerUpdatePhase:
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
         dice = await gm_service.rolling_dice(2, 6)
+        dice_result_log = f"주사위 성공 여부: {dice.is_success} | 크리티컬 여부: {dice.is_critical_success}"
 
         return HandlerUpdatePhase(
             update=PhaseUpdate(diffs=diffs, relations=relations),
             is_success=dice.is_success,
+            logs=[dice_result_log],
         )

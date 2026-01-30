@@ -37,6 +37,7 @@ class ConsumePotionHandler(PhaseHandler):
             _,
         ) = await self._categorize_entities(request.entities)
 
+        logs: List[str] = []
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
         is_success = False
@@ -97,9 +98,11 @@ class ConsumePotionHandler(PhaseHandler):
             if dice_result.is_critical_success:
                 additional_heal_point = heal_point * 2
                 print("[주사위 결과] 크리티컬")
+                logs.append("[주사위 결과] 크리티컬")
             elif dice_result.is_success:
                 additional_heal_point = heal_point
                 print("[주사위 결과] 성공")
+                logs.append("[주사위 결과] 성공")
 
         # 3. diffs 생성
         if consumed_potion and effect_value > 0:
@@ -120,11 +123,15 @@ class ConsumePotionHandler(PhaseHandler):
                 )
 
             print(f"[치유 계산] 포션 기본 회복량: {effect_value}")
+            logs.append(f"[치유 계산] 포션 기본 회복량: {effect_value}")
             if additional_heal_point > 0:
                 print(f"[치유 계산] 주사위 추가 회복량: {additional_heal_point}")
+                logs.append(f"[치유 계산] 주사위 추가 회복량: {additional_heal_point}")
             print(f"[치유 계산] 총 치유량: {total_healing}")
+            logs.append(f"[치유 계산] 총 치유량: {total_healing}")
 
         return HandlerUpdatePhase(
             update=PhaseUpdate(diffs=diffs, relations=relations),
             is_success=is_success,
+            logs=logs,
         )

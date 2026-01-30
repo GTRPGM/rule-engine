@@ -24,8 +24,9 @@ class DialogueHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
-        llm: LLMManager
+        llm: LLMManager,
     ) -> HandlerUpdatePhase:
+        logs: List[str] = []
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
@@ -65,18 +66,19 @@ class DialogueHandler(PhaseHandler):
         if not target_npc_state_id:
             affinity_difficulty = -5  # 관계가 없다면 -5로 가정
             print("상호작용중인 NPC가 없습니다. 기본 우호도로 주사위를 굴립니다.")
+            logs.append("상호작용중인 NPC가 없습니다. 기본 우호도로 주사위를 굴립니다.")
         else:
             # affinity_score를 주사위 난이도로 설정 (높은 우호도가 낮은 난이도)
             affinity_difficulty = -initial_affinity_score
-            print(
-                f"NPC {target_npc_state_id}의 초기 우호도: {initial_affinity_score}, 설정 난이도: {affinity_difficulty}"
-            )
+            affinity_score_log = f"NPC {target_npc_state_id}의 초기 우호도: {initial_affinity_score}, 설정 난이도: {affinity_difficulty}"
+            print(affinity_score_log)
+            logs.append(affinity_score_log)
 
         dice_result = await gm_service.rolling_dice(social_ability, affinity_difficulty)
+        dice_result_log = f"대화 주사위 판정 결과: {dice_result.message} (굴림값: {dice_result.roll_result}, 총합: {dice_result.total}, 성공여부: {dice_result.is_success})"
 
-        print(
-            f"대화 주사위 판정 결과: {dice_result.message} (굴림값: {dice_result.roll_result}, 총합: {dice_result.total}, 성공여부: {dice_result.is_success})"
-        )
+        print(dice_result_log)
+        logs.append(dice_result_log)
 
         # 3. 주사위 차이만큼 우호도 계산해 NPC의 우호도 변경량을 diffs에 반영하기
         if target_npc_state_id:
@@ -85,14 +87,16 @@ class DialogueHandler(PhaseHandler):
 
             if dice_result.is_success:
                 affinity_change_amount = max(1, roll_difference)
-                print(
+                success_log = (
                     f"대화 성공! NPC 우호도가 {affinity_change_amount}만큼 증가합니다."
                 )
+                print(success_log)
+                logs.append(success_log)
             else:
                 affinity_change_amount = min(-1, roll_difference)
-                print(
-                    f"대화 실패! NPC 우호도가 {abs(affinity_change_amount)}만큼 감소합니다."
-                )
+                fail_log = f"대화 실패! NPC 우호도가 {abs(affinity_change_amount)}만큼 감소합니다."
+                print(fail_log)
+                logs.append(fail_log)
 
             # 우호도 등급 변경 확인
             total_affinity = initial_affinity_score + affinity_change_amount
@@ -116,7 +120,7 @@ class DialogueHandler(PhaseHandler):
                     relation_grade = RelationType.FRIENDLY
                 else:
                     relation_grade = RelationType.NEUTRAL
-                    
+
             diffs.append(
                 EntityDiff(
                     state_entity_id=target_npc_state_id,
@@ -134,8 +138,10 @@ class DialogueHandler(PhaseHandler):
             )
         else:
             print("대화할 NPC를 찾을 수 없어 우호도 변경을 적용하지 않습니다.")
+            logs.append("대화할 NPC를 찾을 수 없어 우호도 변경을 적용하지 않습니다.")
 
         return HandlerUpdatePhase(
             update=PhaseUpdate(diffs=diffs, relations=relations),
             is_success=dice_result.is_success,
+            logs=logs,
         )

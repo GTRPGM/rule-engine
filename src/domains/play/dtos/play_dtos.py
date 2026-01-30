@@ -63,7 +63,7 @@ class EntityUnit(BaseModel):
     entity_id: Optional[int] = (
         None  # RDB 객체 식별 번호 - 플레이어나 사물 타입은 존재 안 함
     )
-    quantity: Optional[int] = Field(description="아이템 수량")
+    quantity: Optional[int] = Field(description="아이템 수량", default=None)
     phase_id: int
     entity_name: str
     entity_type: EntityType
@@ -107,13 +107,15 @@ class PlaySceneResponse(BaseModel):
     phase_type: PhaseType  # 룰 엔진이 추론한 페이즈 유형
     reason: str  # 페이즈 유형 판정 이유
     success: bool  # 룰 엔진 주사위 행동 판정 결과 → 시나리오 참고용(무시당할 수 있음)
-    suggested: PhaseUpdate = Field(default_factory=list, description="제안된 판정 결과")
+    suggested: PhaseUpdate = Field(default_factory=dict, description="제안된 판정 결과")
     # Todo: 보정 들어간 주사위 판정 최대 / 최소치 산정해 반환하기
     value_range: Optional[int] = (
         None  # 룰 엔진 주사위 판정 기준(2d6 or 1d6) → 최대 / 최소
     )
+    logs: Optional[List[str]] = None
 
 
 class HandlerUpdatePhase(BaseModel):
     update: PhaseUpdate
     is_success: bool
+    logs: Optional[List[str]] = None

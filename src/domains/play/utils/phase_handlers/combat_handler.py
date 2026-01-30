@@ -1,4 +1,3 @@
-from abc import ABCMeta
 from typing import List
 
 from configs.llm_manager import LLMManager
@@ -64,14 +63,16 @@ class CombatHandler(PhaseHandler):
                         }
                     )
         return combat_enemies_info
-    
+
     async def calculate_player_combat_power(
         self,
         player_state: FullPlayerState,
         item_service: ItemService,
         gm_service: GmService,
-    ) -> int:
+    ) -> tuple[int, List[str]]:
         """주사위, 아이템, 능력치를 합산하여 플레이어의 최종 전투력을 계산합니다."""
+        logs: List[str] = []
+
         # 1. 주사위 굴리기 (2d6)
         dice = await gm_service.rolling_dice(2, 6)
 
@@ -87,13 +88,14 @@ class CombatHandler(PhaseHandler):
         ability_score = 2
 
         total_power = combat_items_effect + ability_score + dice.total
+        combat_judge_log = f"[전투 판정] 주사위: {dice.total}, 아이템: {combat_items_effect}, 능력치: {ability_score}"
+        total_player_power_log = f"-> 최종 플레이어 전투력: {total_power}"
+        print(combat_judge_log)
+        print(total_player_power_log)
+        logs.append(combat_judge_log)
+        logs.append(total_player_power_log)
 
-        print(
-            f"[전투 판정] 주사위: {dice.total}, 아이템: {combat_items_effect}, 능력치: {ability_score}"
-        )
-        print(f"-> 최종 플레이어 전투력: {total_power}")
-
-        return total_power
+        return total_power, logs
 
     async def handle(
         self,
@@ -102,8 +104,9 @@ class CombatHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
-        llm: LLMManager
+        llm: LLMManager,
     ) -> HandlerUpdatePhase:
+        logs: List[str] = []
         # 1. 엔티티 분류 및 플레이어 상태 조회
         player_id, player_state, _, enemies, _, _ = await self._categorize_entities(
             request.entities
@@ -111,14 +114,18 @@ class CombatHandler(PhaseHandler):
 
         if not player_id or not player_state:
             return HandlerUpdatePhase(
-                update=PhaseUpdate(diffs=[], relations=request.relations),
+                update=PhaseUpdate(
+                    diffs=[], relations=[r.model_dump() for r in request.relations]
+                ),
                 is_success=False,
             )
 
         # 2. 플레이어 전투력 계산 (중복 로직 통합)
-        player_combat_power = await self.calculate_player_combat_power(
+        player_combat_power, combat_logs = await self.calculate_player_combat_power(
             player_state, item_service, gm_service
         )
+
+        logs.extend(combat_logs)
 
         # 3. 적 정보 조회
         enemy_ids = list(set([e.entity_id for e in enemies if e.entity_id is not None]))
@@ -159,6 +166,7 @@ class CombatHandler(PhaseHandler):
                 )
 
             print(f"전투력 차이: {damage_difference}")
+            logs.append(f"전투력 차이: {damage_difference}")
 
         if player_hp_change != 0:
             diffs.append(
@@ -166,6 +174,9 @@ class CombatHandler(PhaseHandler):
             )
 
         return HandlerUpdatePhase(
-            update=PhaseUpdate(diffs=diffs, relations=request.relations),
+            update=PhaseUpdate(
+                diffs=diffs, relations=[r.model_dump() for r in request.relations]
+            ),
             is_success=is_success,
+            logs=logs,
         )
