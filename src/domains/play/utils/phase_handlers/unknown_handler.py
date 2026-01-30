@@ -28,7 +28,9 @@ class UnknownHandler(PhaseHandler):
         diffs: List[EntityDiff] = []
         relations: List[UpdateRelation] = []
 
+        dice = await gm_service.rolling_dice(2, 6)
+
         return HandlerUpdatePhase(
             update=PhaseUpdate(diffs=diffs, relations=relations),
-            is_success=False,
+            is_success=dice.is_success,
         )
