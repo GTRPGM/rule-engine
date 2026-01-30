@@ -83,9 +83,14 @@ class PlayRouter:
         사용자가 입력한 정답을 확인합니다.
         3회 실패 시 힌트를 포함하며, 남은 시간(TTL)을 반환합니다.
         """
-        feedback = await service.check_user_answer(user_id, request.user_guess)
+        try:
+            feedback = await service.check_user_answer(user_id, request.user_guess)
 
-        if feedback.result == "error":
-            raise HTTPException(status_code=404, detail=feedback.message)
+            if feedback.result == "error":
+                raise HTTPException(status_code=404, detail=feedback.message)
 
-        return WrappedResponse[AnswerResponse](data=feedback)
+            return WrappedResponse[AnswerResponse](data=feedback)
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail=f"수수께끼 답안 제출 실패: {str(e)}"
+            )

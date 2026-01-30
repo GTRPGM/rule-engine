@@ -42,7 +42,7 @@ class RestHandler(PhaseHandler):
 
         # 주사위를 굴려 heal_point 외 추가 회복량을 정합니다.
         dice_result = await gm_service.rolling_dice(heal_point, 6)
-        dice_result_log = f"휴식 주사위 판정 결과: {dice_result.message} (굴림값: {dice_result.roll_result}, 총합: {dice_result.total}, 성공여부: {dice_result.is_success})"
+        dice_result_log = f"휴식 시도... {dice_result.message}{' | 잭팟!!' if dice_result.is_critical_success else ''} | 굴림값 {dice_result.roll_result} + 능력보정치 {dice_result.ability_score} = 총합 {dice_result.total}"
         print(dice_result_log)
         logs.append(dice_result_log)
 

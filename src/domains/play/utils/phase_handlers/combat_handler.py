@@ -75,6 +75,9 @@ class CombatHandler(PhaseHandler):
 
         # 1. 주사위 굴리기 (2d6)
         dice = await gm_service.rolling_dice(2, 6)
+        dice_result_log = f"전투 시도... {dice.message}{' | 잭팟!!' if dice.is_critical_success else ''} | 굴림값 {dice.roll_result} + 능력보정치 {dice.ability_score} = 총합 {dice.total}"
+        print(dice_result_log)
+        logs.append(dice_result_log)
 
         # 2. 아이템 효과 계산
         item_ids = [int(item.item_id) for item in player_state.player.items]

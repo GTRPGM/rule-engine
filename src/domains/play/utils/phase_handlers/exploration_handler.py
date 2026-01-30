@@ -44,7 +44,7 @@ class ExplorationHandler(PhaseHandler):
 
         print("주사위 판정 시작")
         dice_result = await gm_service.rolling_dice(player_point, 6)
-        dice_result_log = f"[주사위 결과] 성공: {dice_result.is_success} | 크리티컬: {dice_result.is_critical_success}"
+        dice_result_log = f"탐험 시도... {dice_result.message}{' | 잭팟!!' if dice_result.is_critical_success else ''} | 굴림값 {dice_result.roll_result} + 능력보정치 {dice_result.ability_score} = 총합 {dice_result.total}"
         print(dice_result_log)
         logs.append(dice_result_log)
 

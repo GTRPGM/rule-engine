@@ -77,7 +77,6 @@ class NpcInventoryCreateRequest(BaseModel):
             "example": {
                 "npc_id": 1,
                 "item_id": 10,
-                "base_price": 500,
                 "is_infinite_stock": True,
             }
         }

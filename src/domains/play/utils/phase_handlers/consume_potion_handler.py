@@ -102,14 +102,24 @@ class ConsumePotionHandler(PhaseHandler):
         heal_point = 2
         if effect_value > 0:
             dice_result = await gm_service.rolling_dice(heal_point, effect_value)
+            dice_result_log = f"추가 치유 시도... {dice_result.message}{' | 잭팟!!' if dice_result.is_critical_success else ''} | 굴림값 {dice_result.roll_result} + 능력보정치 {dice_result.ability_score} = 총합 {dice_result.total}"
+            logs.append(dice_result_log)
+            print(dice_result_log)
+
             if dice_result.is_critical_success:
                 additional_heal_point = heal_point * 2
-                print("[주사위 결과] 크리티컬")
-                logs.append("[주사위 결과] 크리티컬")
+                additional_heal_log = (
+                    f"두 배 추가 치유 포인트가 적용됩니다. +{additional_heal_point} "
+                )
+                print(additional_heal_log)
+                logs.append(additional_heal_log)
             elif dice_result.is_success:
                 additional_heal_point = heal_point
-                print("[주사위 결과] 성공")
-                logs.append("[주사위 결과] 성공")
+                additional_heal_log = (
+                    f"추가 치유 포인트가 적용됩니다. +{additional_heal_point}"
+                )
+                print(additional_heal_log)
+                logs.append(additional_heal_log)
 
         # 3. diffs 생성
         if consumed_potion and effect_value > 0:

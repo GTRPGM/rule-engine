@@ -1,17 +1,26 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi_utils.cbv import cbv
 
 from common.dtos.wrapped_response import WrappedResponse
 from common.utils.get_services import (
     get_enemy_service,
     get_item_service,
+    get_npc_service,
     get_personality_service,
-    get_world_service, get_npc_service,
+    get_world_service,
 )
-from domains.info.dtos.enemy_dtos import EnemyRequest, PaginatedEnemyResponse, EnemyDetailResponse
-from domains.info.dtos.npc_dtos import PaginatedNpcResponse, NpcRequest, NpcDetailResponse
+from domains.info.dtos.enemy_dtos import (
+    EnemyDetailResponse,
+    EnemyRequest,
+    PaginatedEnemyResponse,
+)
+from domains.info.dtos.npc_dtos import (
+    NpcDetailResponse,
+    NpcRequest,
+    PaginatedNpcResponse,
+)
 from domains.info.dtos.personality_dtos import (
     PaginatedPersonalityResponse,
     PersonalityRequest,
@@ -40,11 +49,17 @@ class InfoHandler:
         item_service: ItemService = Depends(get_item_service),
     ):
         # 서비스 계층 호출 (실제 구현 시 의존성 주입된 인스턴스 사용)
-        items, meta = await item_service.get_items(
-            request_data.item_ids, request_data.skip, request_data.limit
-        )
+        try:
+            items, meta = await item_service.get_items(
+                request_data.item_ids, request_data.skip, request_data.limit
+            )
 
-        return {"data": {"items": items, "meta": meta}}
+            return {"data": {"items": items, "meta": meta}}
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"아이템 정보 조회 실패: {str(e)}",
+            )
 
     @info_router.post(
         "/enemies",
@@ -56,27 +71,38 @@ class InfoHandler:
         request_data: EnemyRequest,
         enemy_service: EnemyService = Depends(get_enemy_service),
     ):
-        enemies, meta = await enemy_service.get_enemies(
-            request_data.enemy_ids, request_data.skip, request_data.limit
-        )
+        try:
+            enemies, meta = await enemy_service.get_enemies(
+                request_data.enemy_ids, request_data.skip, request_data.limit
+            )
 
-        return {"data": {"enemies": enemies, "meta": meta}}
+            return {"data": {"enemies": enemies, "meta": meta}}
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"적 정보 조회 실패: {str(e)}",
+            )
 
     @info_router.get(
         "/enemies/{enemy_id}",
         summary="적 정보 상세 조회 - 드롭 아이템 포함",
-        response_model=WrappedResponse[EnemyDetailResponse]
+        response_model=WrappedResponse[EnemyDetailResponse],
     )
     async def read_enemy_detail(
-            self,
-            enemy_id: int,
-            enemy_service: EnemyService = Depends(get_enemy_service)
+        self, enemy_id: int, enemy_service: EnemyService = Depends(get_enemy_service)
     ):
-        enemy = await enemy_service.get_enemy_detail(enemy_id)
-        if not enemy:
-            raise HTTPException(status_code=404, detail="해당 적을 찾을 수 없습니다.")
-        return {"data": enemy}
-
+        try:
+            enemy = await enemy_service.get_enemy_detail(enemy_id)
+            if not enemy:
+                raise HTTPException(
+                    status_code=404, detail="해당 적을 찾을 수 없습니다."
+                )
+            return {"data": enemy}
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"적 정보 상세 조회 실패: {str(e)}",
+            )
 
     @info_router.post(
         "/npcs",
@@ -84,31 +110,41 @@ class InfoHandler:
         response_model=WrappedResponse[PaginatedNpcResponse],
     )
     async def read_npcs(
-            self,
-            request_data: NpcRequest,
-            npc_service: NpcService = Depends(get_npc_service),
+        self,
+        request_data: NpcRequest,
+        npc_service: NpcService = Depends(get_npc_service),
     ):
-        npcs, meta = await npc_service.get_npcs(
-            request_data.npc_ids, request_data.skip, request_data.limit
-        )
+        try:
+            npcs, meta = await npc_service.get_npcs(
+                request_data.npc_ids, request_data.skip, request_data.limit
+            )
 
-        return {"data": {"npcs": npcs, "meta": meta}}
+            return {"data": {"npcs": npcs, "meta": meta}}
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"NPC 정보 조회 실패: {str(e)}",
+            )
 
     @info_router.get(
         "/npc/{npc_id}",
         summary="NPC 상세 조회",
-        response_model=WrappedResponse[NpcDetailResponse])
+        response_model=WrappedResponse[NpcDetailResponse],
+    )
     async def get_npc_detail(
-            self,
-            npc_id: int,
-            npc_service: NpcService = Depends(get_npc_service)
+        self, npc_id: int, npc_service: NpcService = Depends(get_npc_service)
     ):
         """
         특정 NPC의 상세 정보와 판매 아이템 목록을 조회합니다.
         """
-        npc = await npc_service.get_npc_by_id(npc_id)
-        return {"data": npc}
-
+        try:
+            npc = await npc_service.get_npc_by_id(npc_id)
+            return {"data": npc}
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"NPC 상세 조회 실패: {str(e)}",
+            )
 
     @info_router.post(
         "/personalities",
@@ -120,11 +156,17 @@ class InfoHandler:
         request_data: PersonalityRequest,
         personality_service: PersonalityService = Depends(get_personality_service),
     ):
-        personalities, meta = await personality_service.get_personalities(
-            request_data.personality_ids, request_data.skip, request_data.limit
-        )
+        try:
+            personalities, meta = await personality_service.get_personalities(
+                request_data.personality_ids, request_data.skip, request_data.limit
+            )
 
-        return {"data": {"personalities": personalities, "meta": meta}}
+            return {"data": {"personalities": personalities, "meta": meta}}
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"NPC 성격 정보 조회 실패: {str(e)}",
+            )
 
     @info_router.get(
         "/world",
@@ -143,5 +185,11 @@ class InfoHandler:
         ),
         world_service: WorldService = Depends(get_world_service),
     ):
-        world_data = await world_service.get_world(include_keys)
-        return {"data": world_data}
+        try:
+            world_data = await world_service.get_world(include_keys)
+            return {"data": world_data}
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"세계관 정보 조회 실패: {str(e)}",
+            )

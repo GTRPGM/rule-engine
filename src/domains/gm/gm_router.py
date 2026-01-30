@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from common.dtos.wrapped_response import WrappedResponse
 from common.utils.get_services import get_gm_service
@@ -35,6 +35,12 @@ async def perform_action(
     gm_service: GmService = Depends(get_gm_service),
 ):
     """주사위 판정을 실행합니다."""
-    result = await gm_service.rolling_dice(ability_val, diff)
+    try:
+        result = await gm_service.rolling_dice(ability_val, diff)
 
-    return {"data": result}
+        return {"data": result}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"주사위 판정 실패: {str(e)}",
+        )
