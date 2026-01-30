@@ -70,7 +70,11 @@ class ConsumePotionHandler(PhaseHandler):
                     llm_response = await llm.invoke(prompt)
                     potion_name_from_llm = llm_response.content.strip()
                     found_potion = next(
-                        (item for item in heal_items if item["name"] == potion_name_from_llm),
+                        (
+                            item
+                            for item in heal_items
+                            if item["name"] == potion_name_from_llm
+                        ),
                         None,
                     )
                     if found_potion:
@@ -100,9 +104,20 @@ class ConsumePotionHandler(PhaseHandler):
         # 3. diffs 생성
         if consumed_potion and effect_value > 0:
             total_healing = effect_value + additional_heal_point
-            diffs.append(
-                EntityDiff(state_entity_id=player_id, diff={"hp": total_healing})
+            target_portion = next(
+                (item for item in request.relations if item.type == "소비"), None
             )
+
+            diffs.append(
+                EntityDiff(state_entity_id=player_id, diff={"hp": total_healing}),
+            )
+            if target_portion is not None:
+                diffs.append(
+                    EntityDiff(
+                        state_entity_id=target_portion.effect_entity_id,
+                        diff={"quantity": -1},
+                    ),
+                )
 
             print(f"[치유 계산] 포션 기본 회복량: {effect_value}")
             if additional_heal_point > 0:
