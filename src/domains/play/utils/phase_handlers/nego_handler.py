@@ -9,6 +9,7 @@ from domains.play.dtos.play_dtos import (
     HandlerUpdatePhase,
     PhaseUpdate,
     PlaySceneRequest,
+    RelationType,
     SceneAnalysis,
     UpdateRelation,
 )
@@ -23,7 +24,7 @@ class NegoHandler(PhaseHandler):
         item_service: ItemService,
         enemy_service: EnemyService,
         gm_service: GmService,
-        llm: LLMManager
+        llm: LLMManager,
     ) -> HandlerUpdatePhase:
         (
             player_id,
@@ -93,6 +94,13 @@ class NegoHandler(PhaseHandler):
                 bargain_gold_change = -player_payment  # 플레이어가 지불하므로 음수
                 print(
                     f"흥정 성공! 아이템 '{bargain_item['name']}'을(를) {discount_percentage}% 할인된 가격 {player_payment}골드에 구매합니다."
+                )
+                relations.append(
+                    UpdateRelation(
+                        cause_entity_id=player_id,
+                        effect_entity_id=bargain_item["effect_entity_id"],
+                        type=RelationType.OWNERSHIP,
+                    )
                 )
             else:
                 print("흥정 성공! 하지만 거래할 아이템이 없습니다.")
