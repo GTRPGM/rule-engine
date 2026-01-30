@@ -68,7 +68,7 @@ class ConsumePotionHandler(PhaseHandler):
                 prompt = create_potion_selection_prompt(potion_names, request.story)
 
                 try:
-                    llm_response = await llm.invoke(prompt)
+                    llm_response = await llm.ainvoke(prompt)
                     potion_name_from_llm = llm_response.content.strip()
                     found_potion = next(
                         (
@@ -82,6 +82,13 @@ class ConsumePotionHandler(PhaseHandler):
                         consumed_potion = found_potion
                     else:
                         consumed_potion = heal_items[0]
+
+                    print(
+                        f"[소모 아이템 정보] {consumed_potion.name} | 치유량: {consumed_potion.effect_value}"
+                    )
+                    logs.append(
+                        f"[소모 아이템 정보] {consumed_potion.name} | 치유량: {consumed_potion.effect_value}"
+                    )
                 except Exception:
                     consumed_potion = heal_items[0]
             else:
