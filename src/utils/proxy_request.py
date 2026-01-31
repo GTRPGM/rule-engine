@@ -2,6 +2,7 @@ import httpx
 from fastapi import HTTPException, status
 
 from common.dtos.proxy_service_dto import ProxyService
+from configs.http_client import http_holder
 from configs.setting import REMOTE_HOST, SCENARIO_SERVICE_PORT, STATE_MANAGER_PORT
 
 
@@ -19,28 +20,32 @@ async def proxy_request(
         if provider == ProxyService.STATE_MANAGER
         else SCENARIO_SERVICE_PORT
     )
+    url = f"http://{REMOTE_HOST}:{target_port}{path}"
+    client = http_holder.client
 
-    async with httpx.AsyncClient() as client:
-        try:
-            url = f"http://{REMOTE_HOST}:{target_port}{path}"
+    if client is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="HTTP 클라이언트가 초기화되지 않았습니다."
+        )
 
-            response = await client.request(
-                method=method,
-                url=url,
-                params=params,
-                json=json,
-                timeout=10.0,
-            )
+    try:
+        response = await client.request(
+            method=method,
+            url=url,
+            params=params,
+            json=json,
+        )
 
-            if response.status_code >= 400:
-                raise HTTPException(
-                    status_code=response.status_code,
-                    detail=response.json().get("detail", "Remote Service Error"),
-                )
-            return response.json()
-
-        except httpx.RequestError as exc:
+        if response.status_code >= 400:
             raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=f"마이크로서비스 연결 실패: {exc}",
+                status_code=response.status_code,
+                detail=response.json().get("detail", "Remote Service Error"),
             )
+        return response.json()
+
+    except httpx.RequestError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"마이크로서비스 연결 실패: {exc}",
+        )
