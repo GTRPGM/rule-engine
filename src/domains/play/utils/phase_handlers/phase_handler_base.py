@@ -15,6 +15,7 @@ from domains.play.dtos.play_dtos import (
     SceneAnalysis,
 )
 from domains.play.dtos.player_dtos import FullPlayerState
+from src.domains.play.utils.dummy_player import dummy_player
 from utils.logger import error
 from utils.proxy_request import proxy_request
 
@@ -38,7 +39,7 @@ class PhaseHandler(ABC):
         플레이어 상태를 GDB로 관리하는 외부 마이크로서비스를 호출해서 정보를 조회합니다.
         """
 
-        # return dummy_player
+        return dummy_player
 
         # 준비되는 대로 교체
         if not player_id:
