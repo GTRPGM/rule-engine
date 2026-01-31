@@ -1,0 +1,4 @@
+# ANSI 색상 코드
+YELLOW = "\033[33m"
+MAGENTA = "\033[35m"
+RESET = "\033[0m"

@@ -3,7 +3,7 @@ LOGGING_CONFIG = {
     "disable_existing_loggers": True,
     "formatters": {
         "default": {
-            "()": "src.configs.color_hint_formatter.ColorHintFormatter",
+            "()": "src.configs.color_formatter.ColorFormatter",
             "fmt": "%(levelprefix)s %(message)s",
             "use_colors": True,
         },
@@ -17,7 +17,7 @@ LOGGING_CONFIG = {
         "default": {
             "formatter": "default",
             "class": "logging.StreamHandler",
-            "stream": "ext://sys.stderr",
+            "stream": "ext://sys.stdout",
         },
         "access": {
             "formatter": "access",

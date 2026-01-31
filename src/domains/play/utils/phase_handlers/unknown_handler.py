@@ -13,7 +13,7 @@ from src.domains.play.dtos.play_dtos import (
     UpdateRelation,
 )
 from src.domains.play.utils.phase_handlers.phase_handler_base import PhaseHandler
-from utils import logger
+from utils.logger import rule
 
 
 class UnknownHandler(PhaseHandler):
@@ -31,7 +31,7 @@ class UnknownHandler(PhaseHandler):
 
         dice = await gm_service.rolling_dice(2, 6)
         dice_result_log = f"이해할 수 없는 행동... {dice.message}{' | 잭팟!!' if dice.is_critical_success else ''} | 굴림값 {dice.roll_result} + 능력보정치 {dice.ability_score} = 총합 {dice.total}"
-        logger.info(dice_result_log)
+        rule(dice_result_log)
 
         return HandlerUpdatePhase(
             update=PhaseUpdate(diffs=diffs, relations=relations),
