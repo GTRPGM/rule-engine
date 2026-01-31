@@ -54,8 +54,7 @@ class ExplorationHandler(PhaseHandler):
             logs.append("[주사위 결과] 성공")
             if len(items) > 0:
                 for new_item in items:
-                    diffs.append(
-                        EntityDiff(
+                    new_diff = EntityDiff(
                             state_entity_id=player_id,
                             diff={
                                 "item_entity_id": new_item.state_entity_id,
@@ -66,65 +65,70 @@ class ExplorationHandler(PhaseHandler):
                                 ),
                             },
                         )
-                    )
+                    diffs.append(new_diff)
+                    rule(f"diffs.append({new_diff.model_dump()})")
 
-                    relations.append(
-                        UpdateRelation(
+                    new_rel = UpdateRelation(
                             cause_entity_id=player_id,
                             effect_entity_id=new_item.state_entity_id,
                             type=RelationType.OWNERSHIP,
                         )
-                    )
+                    relations.append(new_rel)
+                    rule(f"relations.append({new_rel.model_dump()})")
+
                 rule(f"{len(items)}개 아이템을 습득했니다.")
                 logs.append(f"{len(items)}개 아이템을 습득했니다.")
 
             if len(npcs) > 0:
                 for new_npc in npcs:
-                    diffs.append(
-                        EntityDiff(
-                            state_entity_id=player_id,
-                            diff={
-                                "state_entity_id": new_npc.state_entity_id,
-                                "affinity_score": (
-                                    21 if dice_result.is_critical_success else 0
-                                ),
-                            },
-                        )
-                    )
-
-                    relations.append(
-                        UpdateRelation(
-                            cause_entity_id=player_id,
-                            effect_entity_id=new_npc.state_entity_id,
-                            type=(
-                                RelationType.LITTLE_FRIENDLY
-                                if dice_result.is_critical_success
-                                else RelationType.NEUTRAL
+                    new_diff = EntityDiff(
+                        state_entity_id=player_id,
+                        diff={
+                            "state_entity_id": new_npc.state_entity_id,
+                            "affinity_score": (
+                                21 if dice_result.is_critical_success else 0
                             ),
+                        },
+                    )
+                    diffs.append(new_diff)
+                    rule(f"diffs.append({new_diff.model_dump()})")
+
+                    new_rel = UpdateRelation(
+                        cause_entity_id=player_id,
+                        effect_entity_id=new_npc.state_entity_id,
+                        type=(
+                            RelationType.LITTLE_FRIENDLY
+                            if dice_result.is_critical_success
+                            else RelationType.NEUTRAL
                         )
                     )
+                    relations.append(new_rel)
+                    rule(f"relations.append({new_rel.model_dump()})")
+
                 new_npc_log = f"{len(npcs)}명의 NPC와 {RelationType.LITTLE_FRIENDLY if dice_result.is_critical_success else RelationType.NEUTRAL} 관계를 맺었습니다."
                 rule(new_npc_log)
                 logs.append(new_npc_log)
         else:
             if len(npcs) > 0:
                 for new_npc in npcs:
-                    diffs.append(
-                        EntityDiff(
+                    new_diff = EntityDiff(
                             state_entity_id=player_id,
                             diff={
                                 "state_entity_id": new_npc.state_entity_id,
                                 "affinity_score": -60,
                             },
                         )
+                    diffs.append(new_diff)
+                    rule(f"diffs.append({new_diff.model_dump()})")
+
+                    new_rel = UpdateRelation(
+                        cause_entity_id=player_id,
+                        effect_entity_id=new_npc.state_entity_id,
+                        type=RelationType.LITTLE_HOSTILE
                     )
-                    relations.append(
-                        UpdateRelation(
-                            cause_entity_id=player_id,
-                            effect_entity_id=new_npc.state_entity_id,
-                            type=RelationType.LITTLE_HOSTILE,
-                        )
-                    )
+                    relations.append(new_rel)
+                    rule(f"relations.append({new_rel.model_dump()})")
+
                 new_npc_log = f"{len(npcs)}명의 NPC와 {RelationType.LITTLE_HOSTILE} 관계를 맺었습니다."
                 rule(new_npc_log)
                 logs.append(new_npc_log)

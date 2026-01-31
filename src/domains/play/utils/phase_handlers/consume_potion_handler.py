@@ -128,10 +128,10 @@ class ConsumePotionHandler(PhaseHandler):
             target_portion = next(
                 (item for item in request.relations if item.type == "소비"), None
             )
+            new_diff = EntityDiff(state_entity_id=player_id, diff={"hp": total_healing})
+            diffs.append(new_diff)
+            rule(f"diffs.append({new_diff.model_dump()})")
 
-            diffs.append(
-                EntityDiff(state_entity_id=player_id, diff={"hp": total_healing}),
-            )
             if target_portion is not None:
                 diffs.append(
                     EntityDiff(
@@ -139,12 +139,15 @@ class ConsumePotionHandler(PhaseHandler):
                         diff={"quantity": -1},
                     ),
                 )
+                rule("diffs.append({{'quantity': -1}})")
 
             rule(f"[치유 계산] 포션 기본 회복량: {effect_value}")
             logs.append(f"[치유 계산] 포션 기본 회복량: {effect_value}")
+
             if additional_heal_point > 0:
                 rule(f"[치유 계산] 주사위 추가 회복량: {additional_heal_point}")
                 logs.append(f"[치유 계산] 주사위 추가 회복량: {additional_heal_point}")
+
             rule(f"[치유 계산] 총 치유량: {total_healing}")
             logs.append(f"[치유 계산] 총 치유량: {total_healing}")
 

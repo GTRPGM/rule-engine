@@ -68,7 +68,9 @@ class RestHandler(PhaseHandler):
             rule(fail_log)
             logs.append(fail_log)
 
-        diffs.append(EntityDiff(state_entity_id=player_id, diff={"hp": total_healing}))
+        new_diff = EntityDiff(state_entity_id=player_id, diff={"hp": total_healing})
+        diffs.append(new_diff)
+        rule(f"diffs.append({new_diff.model_dump()})")
 
         return HandlerUpdatePhase(
             update=PhaseUpdate(diffs=diffs, relations=relations),

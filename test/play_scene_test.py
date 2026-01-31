@@ -1,18 +1,29 @@
 import json
+import logging
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
 from src.main import app
+from utils.logger import RULE_LEVEL_NUM
 
 # 테스트 데이터 파일 경로
 TEST_DATA_DIR = Path(__file__).parent
 TEST_REQUEST_FILES = [f for f in TEST_DATA_DIR.glob("play_*.json")]
 
+def setup_module(module):
+    if "RULE" not in logging._levelToName.values():
+        logging.addLevelName(RULE_LEVEL_NUM, "RULE")
+
 
 @pytest.fixture(scope="module")
 def client():
+    from logging.config import dictConfig
+
+    from src.configs.logging_config import LOGGING_CONFIG
+    dictConfig(LOGGING_CONFIG)
+    
     with TestClient(app) as c:
         yield c
 

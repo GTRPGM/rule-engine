@@ -163,19 +163,19 @@ class CombatHandler(PhaseHandler):
                 player_hp_change -= damage_difference
             elif damage_difference < 0:
                 # 플레이어가 더 강함 -> 적이 데미지 입음 (음수이므로 양수로 변환)
-                diffs.append(
-                    EntityDiff(
+                new_diff = EntityDiff(
                         state_entity_id=state_entity_id, diff={"hp": damage_difference}
                     )
-                )
+                diffs.append(new_diff)
+                rule(f"diffs.append({new_diff.model_dump()})")
 
             rule(f"전투력 차이: {damage_difference}")
             logs.append(f"전투력 차이: {damage_difference}")
 
         if player_hp_change != 0:
-            diffs.append(
-                EntityDiff(state_entity_id=player_id, diff={"hp": player_hp_change})
-            )
+            new_diff = EntityDiff(state_entity_id=player_id, diff={"hp": player_hp_change})
+            diffs.append(new_diff)
+            rule(f"diffs.append({new_diff.model_dump()})")
 
         return HandlerUpdatePhase(
             update=PhaseUpdate(

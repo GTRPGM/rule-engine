@@ -103,13 +103,13 @@ class NegoHandler(PhaseHandler):
                 rule(success_log)
                 logs.append(success_log)
 
-                relations.append(
-                    UpdateRelation(
-                        cause_entity_id=player_id,
-                        effect_entity_id=bargain_item["effect_entity_id"],
-                        type=RelationType.OWNERSHIP,
-                    )
+                new_rel = UpdateRelation(
+                    cause_entity_id=player_id,
+                    effect_entity_id=bargain_item["effect_entity_id"],
+                    type=RelationType.OWNERSHIP,
                 )
+                relations.append(new_rel)
+                rule(f"relations.append({new_rel.model_dump()})")
             else:
                 rule("흥정 성공! 하지만 거래할 아이템이 없습니다.")
                 logs.append("흥정 성공! 하지만 거래할 아이템이 없습니다.")
@@ -121,12 +121,12 @@ class NegoHandler(PhaseHandler):
 
         # 플레이어 골드 변동치 적용
         if bargain_gold_change != 0:
-            diffs.append(
-                EntityDiff(
+            new_diff = EntityDiff(
                     state_entity_id=player_id,
                     diff={"gold": bargain_gold_change},
                 )
-            )
+            diffs.append(new_diff)
+            rule(f"diffs.append({new_diff.model_dump()})")
 
         return HandlerUpdatePhase(
             update=PhaseUpdate(diffs=diffs, relations=relations),
