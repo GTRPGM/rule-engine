@@ -93,7 +93,7 @@ class CombatHandler(PhaseHandler):
 
         total_power = combat_items_effect + ability_score + dice.total
         combat_judge_log = f"[전투 판정] 주사위: {dice.total}, 아이템: {combat_items_effect}, 능력치: {ability_score}"
-        total_player_power_log = f"-> 최종 플레이어 전투력: {total_power}"
+        total_player_power_log = f"최종 플레이어 전투력: {total_power}"
         rule(combat_judge_log)
         rule(total_player_power_log)
         logs.append(combat_judge_log)
@@ -147,35 +147,48 @@ class CombatHandler(PhaseHandler):
 
         # 5. 데미지 계산 및 결과 생성
         diffs: List[EntityDiff] = []
-        player_hp_change = 0
         is_success = False
 
+        # 수정된 로직
         for enemy_info in combat_enemy_details:
-            state_entity_id = enemy_info["state_id"]
+            enemy_id = enemy_info["state_id"]
             enemy_difficulty = enemy_info["base_difficulty"]
+            logs.append(f"적 식별번호: {enemy_id} | 적 전투력: {enemy_difficulty}")
+            rule(f"적 식별번호: {enemy_id} | 적 전투력: {enemy_difficulty}")
 
-            # 난이도와 전투력 차이 계산
-            damage_difference = enemy_difficulty - player_combat_power
-            is_success = damage_difference < 0
+            # 내 전투력에서 적 난이도를 뺍니다.
+            # 양수면 내가 이긴 것, 음수면 내가 진 것입니다.
+            power_gap = player_combat_power - enemy_difficulty
+            result_text = (
+                "승리" if power_gap > 0 else ("무승부" if power_gap == 0 else "실패")
+            )
+            logs.append(f"전투 결과: {result_text} | 전투력 차이: {power_gap}")
+            rule(f"전투 결과: {result_text} | 전투력 차이: {power_gap}")
 
-            if damage_difference > 0:
-                # 적이 더 강함 -> 플레이어가 데미지 입음
-                player_hp_change -= damage_difference
-            elif damage_difference < 0:
-                # 플레이어가 더 강함 -> 적이 데미지 입음 (음수이므로 양수로 변환)
+            if power_gap > 0:
+                # 플레이어가 더 강함 -> 적이 데미지 입음 (음수값 적용)
+                is_success = True
                 new_diff = EntityDiff(
-                        state_entity_id=state_entity_id, diff={"hp": damage_difference}
-                    )
+                    state_entity_id=enemy_id,
+                    diff={"hp": -power_gap},  # gap이 7이면 적 HP -7
+                )
                 diffs.append(new_diff)
-                rule(f"diffs.append({new_diff.model_dump()})")
+                logs.append(f"전투 승리! 적에게 {power_gap}의 데미지를 입혔습니다.")
 
-            rule(f"전투력 차이: {damage_difference}")
-            logs.append(f"전투력 차이: {damage_difference}")
+            elif power_gap < 0:
+                # 적이 더 강함 -> 플레이어가 데미지 입음
+                is_success = False
+                new_diff = EntityDiff(
+                    state_entity_id=player_id,
+                    diff={"hp": power_gap},  # gap이 -7이면 플레이어 HP -7
+                )
+                diffs.append(new_diff)
+                logs.append(
+                    f"전투 패배... 플레이어가 {-power_gap}의 데미지를 입었습니다."
+                )
 
-        if player_hp_change != 0:
-            new_diff = EntityDiff(state_entity_id=player_id, diff={"hp": player_hp_change})
-            diffs.append(new_diff)
-            rule(f"diffs.append({new_diff.model_dump()})")
+            else:
+                logs.append("막상막하의 대결이었습니다!")
 
         return HandlerUpdatePhase(
             update=PhaseUpdate(
