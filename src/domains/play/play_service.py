@@ -1,12 +1,6 @@
-import os
 from typing import List
 
-import aiofiles
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnableConfig
-
 from configs.llm_manager import LLMManager
-from configs.setting import APP_ENV
 from domains.gm.gm_service import GmService
 from domains.info.dtos.world_dtos import WorldInfoKey
 from domains.info.enemy_service import EnemyService
@@ -25,30 +19,51 @@ class PlayService:
     def __init__(self, cursor, llm_provider="gateway"):
         self.cursor = cursor
         self.llm = LLMManager.get_instance(llm_provider)
+        self.analyzer_engine = LLMManager.get_instance("bert")
+        self.phase_labels = [
+            "전투",
+            "대화",
+            "흥정",
+            "탐험",
+            "회복",
+            "휴식",
+            "알 수 없음",
+        ]
         self.analyzer = self.llm.with_structured_output(SceneAnalysis)
         self.gm_service = GmService(cursor)
         self.world_service = WorldService(cursor)
         self.item_service = ItemService(cursor)
         self.enemy_service = EnemyService(cursor)
 
+    # async def analyze_scene(self, story: str) -> SceneAnalysis:
+    #     current_dir = os.path.dirname(os.path.abspath(__file__))
+    #     prompt_path = os.path.join(current_dir, "prompts", "instruction.md")
+    #
+    #     async with aiofiles.open(prompt_path, mode="r", encoding="utf-8") as f:
+    #         system_instruction = await f.read()
+    #
+    #     prompt = ChatPromptTemplate.from_messages(
+    #         [
+    #             ("system", system_instruction),
+    #             ("human", "시나리오: {story}"),
+    #         ]
+    #     )
+    #
+    #     chain = prompt | self.analyzer
+    #     config: RunnableConfig = {"run_name": f"SceneAnalysis_{APP_ENV}"}
+    #
+    #     return await chain.ainvoke({"story": story}, config)
+
     async def analyze_scene(self, story: str) -> SceneAnalysis:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        prompt_path = os.path.join(current_dir, "prompts", "instruction.md")
+        # BERT에게 직접 정의한 라벨을 던져서 분류 요청
+        result = await self.analyzer_engine.classify(story, self.phase_labels)
 
-        async with aiofiles.open(prompt_path, mode="r", encoding="utf-8") as f:
-            system_instruction = await f.read()
-
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", system_instruction),
-                ("human", "시나리오: {story}"),
-            ]
+        # 결과를 DTO로 변환
+        return SceneAnalysis(
+            phase_type=result["top_label"],
+            reason=f"BERT 분석 (신뢰도: {result['confidence']:.2f})",
+            confidence=result["confidence"],
         )
-
-        chain = prompt | self.analyzer
-        config: RunnableConfig = {"run_name": f"SceneAnalysis_{APP_ENV}"}
-
-        return await chain.ainvoke({"story": story}, config)
 
     async def play_scene(self, request: PlaySceneRequest) -> PlaySceneResponse:
         logs: List[str] = []

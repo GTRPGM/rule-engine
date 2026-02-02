@@ -1,9 +1,11 @@
+from typing import List
+
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 
-from configs.setting import APP_ENV, GEMINI_API_KEY, OPENAI_API_KEY
 from configs.llm_adapter import NarrativeChatModel
+from configs.setting import APP_ENV, GEMINI_API_KEY, OPENAI_API_KEY
 
 
 class LLMManager:
@@ -12,7 +14,7 @@ class LLMManager:
     @classmethod
     def get_instance(cls, provider="gemini", temperature=0.0):
         provider = provider.lower()
-        instance_key = f"{provider}_{temperature}" # 고유 키
+        instance_key = f"{provider}_{temperature}"  # 고유 키
 
         if instance_key in cls._instances:
             return cls._instances[instance_key]
@@ -42,6 +44,28 @@ class LLMManager:
                 # model="qwen3:8b",  # - 처리속도 약간 느림
                 temperature=temperature,
             )
+        # LLMManager 내부 수정
+        elif provider == "bert":
+            from transformers import pipeline
+
+            # 한국어 지원이 원활한 다국어 Zero-shot 모델
+            model_id = "vicgalle/xlm-roberta-large-xnli-anli"
+            classifier = pipeline("zero-shot-classification", model=model_id)
+
+            class BertClassifier:
+                def __init__(self, pipe):
+                    self.pipe = pipe
+
+                async def classify(self, text: str, labels: List[str]):
+                    # 실시간으로 넘겨받은 labels를 기준으로 분류
+                    result = self.pipe(text, labels)
+                    return {
+                        "top_label": result["labels"][0],
+                        "confidence": result["scores"][0],
+                        "all_scores": dict(zip(result["labels"], result["scores"])),
+                    }
+
+            instance = BertClassifier(classifier)
         else:
             raise ValueError(f"지원하지 않는 모델 제공자입니다: {provider}")
 
