@@ -15,7 +15,6 @@ from domains.play.dtos.play_dtos import (
     SceneAnalysis,
 )
 from domains.play.dtos.player_dtos import FullPlayerState
-from src.domains.play.utils.dummy_player import dummy_player
 from utils.logger import error
 from utils.proxy_request import proxy_request
 
@@ -39,11 +38,13 @@ class PhaseHandler(ABC):
         플레이어 상태를 GDB로 관리하는 외부 마이크로서비스를 호출해서 정보를 조회합니다.
         """
 
-        return dummy_player
+        # return dummy_player
 
         # 준비되는 대로 교체
         if not player_id:
-            raise HTTPException(status_code=400, detail="유효한 플레이어 ID가 필요합니다.")
+            raise HTTPException(
+                status_code=400, detail="유효한 플레이어 ID가 필요합니다."
+            )
 
         try:
             response = await proxy_request(
@@ -57,7 +58,7 @@ class PhaseHandler(ABC):
             if not data:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail="플레이어 정보를 찾을 수 없습니다."
+                    detail="플레이어 정보를 찾을 수 없습니다.",
                 )
 
             return FullPlayerState(**data)
@@ -65,7 +66,7 @@ class PhaseHandler(ABC):
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"플레이어 정보를 찾을 수 없습니다. - {e}"
+                detail=f"플레이어 정보를 찾을 수 없습니다. - {e}",
             )
 
     async def _categorize_entities(self, entities: List[Any]):
