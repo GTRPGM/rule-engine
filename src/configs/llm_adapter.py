@@ -9,8 +9,8 @@ from langchain_core.messages import (
     ChatMessage,
     SystemMessage,
 )
-from langchain_core.runnables import RunnableLambda
 from langchain_core.outputs import ChatGeneration, ChatResult
+from langchain_core.runnables import RunnableLambda
 from pydantic import Field
 
 from configs.llm import (
@@ -31,7 +31,9 @@ class NarrativeChatModel(BaseChatModel):
     base_url: str = Field(
         default_factory=lambda: f"http://{LLM_GATEWAY_HOST}:{LLM_GATEWAY_PORT}"
     )
-    client: httpx.AsyncClient = Field(default_factory=lambda: httpx.AsyncClient())
+    client: httpx.AsyncClient = Field(
+        default_factory=lambda: httpx.AsyncClient(timeout=httpx.Timeout(60.0))
+    )
     temperature: float = 0.7
 
     @property
