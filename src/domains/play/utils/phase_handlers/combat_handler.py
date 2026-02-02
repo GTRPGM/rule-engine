@@ -160,7 +160,7 @@ class CombatHandler(PhaseHandler):
             # 양수면 내가 이긴 것, 음수면 내가 진 것입니다.
             power_gap = player_combat_power - enemy_difficulty
             result_text = (
-                "승리" if power_gap > 0 else ("무승부" if power_gap == 0 else "실패")
+                "승리" if power_gap > 0 else ("무승부" if power_gap == 0 else "패배")
             )
             logs.append(f"전투 결과: {result_text} | 전투력 차이: {power_gap}")
             rule(f"전투 결과: {result_text} | 전투력 차이: {power_gap}")
