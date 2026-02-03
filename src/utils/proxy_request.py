@@ -47,7 +47,7 @@ async def proxy_request(
         if response.status_code >= 400:
             raise HTTPException(
                 status_code=response.status_code,
-                detail=response.json().get("detail", "Remote Service Error"),
+                detail=response.json().get("detail", "원격 서비스 오류"),
             )
         return response.json()
 

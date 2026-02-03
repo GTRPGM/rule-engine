@@ -95,7 +95,8 @@ class InfoHandler:
             enemy = await enemy_service.get_enemy_detail(enemy_id)
             if not enemy:
                 raise HTTPException(
-                    status_code=404, detail="해당 적을 찾을 수 없습니다."
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="해당 적을 찾을 수 없습니다."
                 )
             return {"data": enemy}
         except Exception as e:

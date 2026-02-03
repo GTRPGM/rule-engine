@@ -8,6 +8,7 @@ from domains.info.world_service import WorldService
 from domains.play.minigame_service import MinigameService
 from domains.play.play_service import PlayService
 from domains.scenario.scenario_service import ScenarioService
+from domains.session.session_service import SessionService
 from src.domains.info.item_service import ItemService
 from src.domains.info.personality_service import PersonalityService
 
@@ -46,3 +47,7 @@ def get_play_service(cursor=Depends(get_db_cursor)):
 
 def get_minigame_service(cursor=Depends(get_db_cursor)):
     return MinigameService(cursor)
+
+
+def get_session_service(cursor=Depends(get_db_cursor)):
+    return SessionService(cursor)
