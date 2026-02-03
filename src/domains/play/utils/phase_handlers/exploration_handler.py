@@ -55,24 +55,24 @@ class ExplorationHandler(PhaseHandler):
             if len(items) > 0:
                 for new_item in items:
                     new_diff = EntityDiff(
-                            state_entity_id=player_id,
-                            diff={
-                                "item_entity_id": new_item.state_entity_id,
-                                "quantity": (
-                                    new_item.quantity
-                                    if new_item.quantity is not None
-                                    else 1
-                                ),
-                            },
-                        )
+                        state_entity_id=player_id,
+                        diff={
+                            "item_entity_id": new_item.state_entity_id,
+                            "quantity": (
+                                new_item.quantity
+                                if new_item.quantity is not None
+                                else 1
+                            ),
+                        },
+                    )
                     diffs.append(new_diff)
                     rule(f"diffs.append({new_diff.model_dump()})")
 
                     new_rel = UpdateRelation(
-                            cause_entity_id=player_id,
-                            effect_entity_id=new_item.state_entity_id,
-                            type=RelationType.OWNERSHIP,
-                        )
+                        cause_entity_id=player_id,
+                        effect_entity_id=new_item.state_entity_id,
+                        type=RelationType.OWNERSHIP,
+                    )
                     relations.append(new_rel)
                     rule(f"relations.append({new_rel.model_dump()})")
 
@@ -100,7 +100,7 @@ class ExplorationHandler(PhaseHandler):
                             RelationType.LITTLE_FRIENDLY
                             if dice_result.is_critical_success
                             else RelationType.NEUTRAL
-                        )
+                        ),
                     )
                     relations.append(new_rel)
                     rule(f"relations.append({new_rel.model_dump()})")
@@ -112,19 +112,19 @@ class ExplorationHandler(PhaseHandler):
             if len(npcs) > 0:
                 for new_npc in npcs:
                     new_diff = EntityDiff(
-                            state_entity_id=player_id,
-                            diff={
-                                "state_entity_id": new_npc.state_entity_id,
-                                "affinity_score": -60,
-                            },
-                        )
+                        state_entity_id=player_id,
+                        diff={
+                            "state_entity_id": new_npc.state_entity_id,
+                            "affinity_score": -60,
+                        },
+                    )
                     diffs.append(new_diff)
                     rule(f"diffs.append({new_diff.model_dump()})")
 
                     new_rel = UpdateRelation(
                         cause_entity_id=player_id,
                         effect_entity_id=new_npc.state_entity_id,
-                        type=RelationType.LITTLE_HOSTILE
+                        type=RelationType.LITTLE_HOSTILE,
                     )
                     relations.append(new_rel)
                     rule(f"relations.append({new_rel.model_dump()})")

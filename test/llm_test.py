@@ -61,7 +61,7 @@ class TestPlayService(unittest.IsolatedAsyncioTestCase):
 
                 # 4. 결과 출력
                 print(f"\n[입력 문장]: {story}")
-                print(f"[결과] 예상: {expected_type} | 실제: {result.phase_type}")
+                print(f"[결과] 정답: {expected_type} | 예상: {result.phase_type}")
                 print(f"[소요 시간]: {elapsed:.2f}초")
                 print(f"[분석 이유]: {result.reason}")
                 print(f"{'-' * 60}")
