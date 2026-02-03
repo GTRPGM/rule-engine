@@ -21,7 +21,7 @@ class SessionRouter:
     )
     async def read_user_sessions(
             self,
-            user_id: int = Query(..., description="조회할 사용자의 고유 ID", example=1),
+            user_id: int = Query(..., description="조회할 사용자의 고유 ID", examples=[1]),
             skip: int = Query(0, description="페이지네이션: 건너뛸 항목 수", ge=0),
             limit: int = Query(10, description="페이지네이션: 한 번에 가져올 항목 수", ge=1, le=100),
             is_deleted: bool = Query(False, description="삭제된 세션 포함 여부 (true: 삭제됨, false: 활성 상태)"),
