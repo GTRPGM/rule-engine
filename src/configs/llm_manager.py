@@ -2,8 +2,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 
-from configs.setting import APP_ENV, GEMINI_API_KEY, OPENAI_API_KEY
 from configs.llm_adapter import NarrativeChatModel
+from configs.setting import APP_ENV, GEMINI_API_KEY, OPENAI_API_KEY
 
 
 class LLMManager:
@@ -12,7 +12,7 @@ class LLMManager:
     @classmethod
     def get_instance(cls, provider="gemini", temperature=0.0):
         provider = provider.lower()
-        instance_key = f"{provider}_{temperature}" # 고유 키
+        instance_key = f"{provider}_{temperature}"  # 고유 키
 
         if instance_key in cls._instances:
             return cls._instances[instance_key]

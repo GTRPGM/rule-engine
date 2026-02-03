@@ -9,8 +9,8 @@ from langchain_core.messages import (
     ChatMessage,
     SystemMessage,
 )
-from langchain_core.runnables import RunnableLambda
 from langchain_core.outputs import ChatGeneration, ChatResult
+from langchain_core.runnables import RunnableLambda
 from pydantic import Field
 
 from configs.llm import (

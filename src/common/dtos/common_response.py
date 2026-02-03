@@ -1,8 +1,8 @@
-from fastapi.responses import JSONResponse
-from fastapi import status
-from typing import Any, Optional, Dict
+from typing import Any, Dict, Optional
 
-from src.common.dtos.custom import CustomStatus, CommonResponse
+from fastapi.responses import JSONResponse
+
+from src.common.dtos.custom import CommonResponse, CustomStatus
 
 
 class CustomJSONResponse(JSONResponse):
@@ -11,19 +11,18 @@ class CustomJSONResponse(JSONResponse):
     """
 
     def __init__(
-            self,
-            content: Any,
-            status_code: int = 200,
-            headers: Optional[Dict[str, Any]] = None,
-            media_type: Optional[str] = None,
-            background: Optional[Any] = None,
-            # 커스텀 필드를 추가하여 message와 status를 전달받을 수 있도록 합니다.
-            response_message: Optional[str] = None,
-            response_status: CustomStatus = CustomStatus.SUCCESS,
+        self,
+        content: Any,
+        status_code: int = 200,
+        headers: Optional[Dict[str, Any]] = None,
+        media_type: Optional[str] = None,
+        background: Optional[Any] = None,
+        # 커스텀 필드를 추가하여 message와 status를 전달받을 수 있도록 합니다.
+        response_message: Optional[str] = None,
+        response_status: CustomStatus = CustomStatus.SUCCESS,
     ) -> None:
-
         # content가 이미 CommonResponse 객체인 경우 (에러 핸들러 등) 처리
-        if isinstance(content, dict) and 'status' in content:
+        if isinstance(content, dict) and "status" in content:
             final_content = content
         else:
             # 전달받은 데이터를 CommonResponse 구조의 data 필드에 래핑
