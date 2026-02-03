@@ -11,7 +11,14 @@ class AnswerRequest(BaseModel):
         max_length=50,
         description="사용자가 입력한 수수께끼 정답 후보",
     )
-    current_attempt: Optional[int] = Field(default=None, description="현재 클라이언트상의 시도 횟수")
+    current_attempt: Optional[int] = Field(
+        default=None, description="현재 클라이언트상의 시도 횟수"
+    )
+    flag: str = Field(
+        default="RIDDLE",
+        description="정답을 제출하는 문제의 유형. - 'RIDDLE' | 'QUIZ' ",
+    )
+
 
 class AnswerResponse(BaseModel):
     result: str
@@ -25,12 +32,6 @@ class RiddleData(BaseModel):
     riddle: str = Field(
         description="사용자에게 낼 재미있고 창의적인 수수께끼 질문 내용"
     )
-    answer: str = Field(
-        description="수수께끼의 정답 (가급적 단어 형태로 명확하게)"
-    )
-    hint: str = Field(
-        description="사용자가 어려워할 때 제공할 짧은 힌트"
-    )
-    explanation: str = Field(
-        description="정답에 대한 간단한 해설"
-    )
+    answer: str = Field(description="수수께끼의 정답 (가급적 단어 형태로 명확하게)")
+    hint: str = Field(description="사용자가 어려워할 때 제공할 짧은 힌트")
+    explanation: str = Field(description="정답에 대한 간단한 해설")

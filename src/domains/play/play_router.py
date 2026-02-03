@@ -4,10 +4,23 @@ from starlette.responses import StreamingResponse
 
 from common.dtos.proxy_service_dto import ProxyService
 from common.dtos.wrapped_response import WrappedResponse
-from common.utils.get_services import get_minigame_service, get_play_service
-from domains.play.dtos.minigame_dtos import AnswerRequest, AnswerResponse
+from common.utils.get_services import (
+    get_enemy_service,
+    get_item_service,
+    get_minigame_service,
+    get_npc_service,
+    get_personality_service,
+    get_play_service,
+    get_world_service,
+)
+from domains.info.enemy_service import EnemyService
+from domains.info.item_service import ItemService
+from domains.info.npc_service import NpcService
+from domains.info.personality_service import PersonalityService
+from domains.info.world_service import WorldService
 from domains.play.dtos.play_dtos import PlaySceneRequest, PlaySceneResponse
 from domains.play.dtos.player_dtos import FullPlayerState
+from domains.play.dtos.riddle_dtos import AnswerRequest, AnswerResponse
 from domains.play.minigame_service import MinigameService
 from domains.play.play_service import PlayService
 from utils.proxy_request import proxy_request
@@ -94,3 +107,36 @@ class PlayRouter:
             raise HTTPException(
                 status_code=500, detail=f"수수께끼 답안 제출 실패: {str(e)}"
             )
+
+    @play_router.get(
+        "/quiz/{user_id}",
+        summary="새로운 동굴탐험대 문제를 생성하고 스트리밍으로 반환합니다. 동시에 Redis에 정답과 초기 상태를 저장합니다.",
+    )
+    async def get_quiz(
+        self,
+        user_id: int,
+        minigame_service: MinigameService = Depends(get_minigame_service),
+        item_service: ItemService = Depends(get_item_service),
+        enemy_service: EnemyService = Depends(get_enemy_service),
+        npc_service: NpcService = Depends(get_npc_service),
+        personality_service: PersonalityService = Depends(get_personality_service),
+        world_service: WorldService = Depends(get_world_service),
+    ):
+        """
+        새로운 동굴 탐험대 퀴즈를 생성하고 스트리밍으로 반환합니다.
+        동시에 Redis에 정답과 초기 상태를 저장합니다.
+        """
+        try:
+            # 서비스에서 스트리밍 제너레이터 획득
+            what_stream = await minigame_service.generate_and_save_quiz(
+                user_id,
+                item_service,
+                enemy_service,
+                npc_service,
+                personality_service,
+                world_service,
+            )
+
+            return StreamingResponse(what_stream, media_type="text/event-stream")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"문제 생성 실패: {str(e)}")

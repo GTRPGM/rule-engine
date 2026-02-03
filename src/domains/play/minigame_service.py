@@ -7,10 +7,12 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from configs.llm_manager import LLMManager
 from configs.redis_conn import get_redis_client
-from domains.play.dtos.minigame_dtos import AnswerResponse, RiddleData
+from domains.info.dtos.world_dtos import WorldInfoKey
+from domains.play.dtos.riddle_dtos import AnswerResponse, RiddleData
 from domains.play.prompts.answer_validation_prompt import (
     generate_answer_validation_prompt,
 )
+from domains.play.prompts.prob_generator_prompt import generate_quiz_prompt
 from domains.play.prompts.riddle_generator_prompt import generate_riddle_prompt
 from utils.load_prompt import load_prompt
 
@@ -19,15 +21,23 @@ class MinigameService:
     def __init__(self, cursor, llm_provider="gateway"):
         self.cursor = cursor
         self.redis = get_redis_client()
-        self.REDIS_KEY_PREFIX = "riddle:answer:"
-        self.riddle_llm = LLMManager.get_instance(
+        self.REDIS_RIDDLE_PREFIX = "riddle:answer:"
+        self.REDIS_WHAT_PREFIX = "what:answer:"
+        self.examiner = LLMManager.get_instance(
             llm_provider, temperature=0.9
         )  # 문제 생성용 (창의적 - 높은 온도)
-        self.eval_llm = LLMManager.get_instance(
+        self.evaluator = LLMManager.get_instance(
             llm_provider, temperature=0.0
         )  # 정답 검증용 (정확함 - 낮은 온도)
         self.LIMIT_TIME_MINUTES = 15  # 문제 당 제한 시간
         self.riddle_themes = ["동물", "물건", "자연", "음식", "직업", "추상적인 개념"]
+        self.cave_themes = [
+            *[info_key.value for info_key in WorldInfoKey],
+            "enemies",
+            "items",
+            "npcs",
+            "personalities",
+        ]
         self.prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -37,18 +47,18 @@ class MinigameService:
                 ("human", "{input}"),
             ]
         )
-        self.chain = self.prompt | self.riddle_llm
+        self.chain = self.prompt | self.examiner
 
     async def generate_and_save_riddle(self, user_id: int):
         # 1. 구조화된 데이터 생성 (힌트 포함)
-        structured_llm = self.riddle_llm.with_structured_output(RiddleData)
+        structured_llm = self.examiner.with_structured_output(RiddleData)
         selected_theme = random.choice(self.riddle_themes)
         riddle_obj = await structured_llm.ainvoke(
             generate_riddle_prompt(theme=selected_theme)
         )
 
         # 2. REDIS에 정보 저장 (fail_count 초기값 0 추가)
-        redis_key = f"{self.REDIS_KEY_PREFIX}{user_id}"
+        redis_key = f"{self.REDIS_RIDDLE_PREFIX}{user_id}"
         riddle_data_json = json.dumps(
             {
                 "answer": riddle_obj.answer,
@@ -70,9 +80,85 @@ class MinigameService:
 
         return stream_riddle()
 
-    async def check_user_answer(self, user_id: int, user_guess: str) -> AnswerResponse:
+    async def generate_and_save_quiz(
+        self,
+        user_id: int,
+        item_service,
+        enemy_service,
+        npc_service,
+        personality_service,
+        world_service,
+    ):
+        structured_llm = self.examiner.with_structured_output(RiddleData)
+        selected_theme = random.choice(self.cave_themes)
+        print(f"selected_theme: {selected_theme}")
+
+        # 1. 테마에 따른 서비스 매핑 (world_service를 기본값으로 설정)
+        service_map = {
+            "enemies": enemy_service,
+            "items": item_service,
+            "npcs": npc_service,
+            "personalities": personality_service,
+        }
+
+        singular_form_map = {
+            "enemies": "enemy",
+            "items": "item",
+            "npcs": "npc",
+            "personalities": "personality",
+        }
+
+        # 매핑에 없으면 world_service 사용
+        info_provider = service_map.get(selected_theme, world_service)
+
+        method_name = (
+            f"get_{selected_theme}" if selected_theme in service_map else "get_world"
+        )
+        method_param = (
+            f"{singular_form_map.get(selected_theme, None)}_ids"
+            if (selected_theme in service_map.keys())
+            else selected_theme
+        )
+
+        fetch_method = getattr(info_provider, method_name)
+
+        if selected_theme in service_map.keys():
+            params = {method_param: [], "skip": 0, "limit": 500}
+            info = await fetch_method(**params)
+        else:
+            info = await fetch_method(include_keys=[method_param])
+
+        # 선택된 테마(selected_theme)로 조회된 정보(info)를 토대로 동굴 탐험대 세계관 문제 생성
+        quiz_obj = await structured_llm.ainvoke(
+            generate_quiz_prompt(theme=selected_theme, info=info)
+        )
+
+        redis_key = f"{self.REDIS_WHAT_PREFIX}{user_id}"
+        quiz_data_json = json.dumps(
+            {
+                "answer": quiz_obj.answer,
+                "hint": quiz_obj.hint,
+                "explanation": quiz_obj.explanation,
+                "fail_count": 0,  # 틀린 횟수 추적용
+                "total_time_limit": self.LIMIT_TIME_MINUTES * 60,  # 초 단위 저장
+            },
+            ensure_ascii=False,
+        )
+
+        self.redis.setex(redis_key, timedelta(minutes=15), quiz_data_json)
+
+        async def stream_problem():
+            for char in quiz_obj.riddle:
+                yield char
+                await asyncio.sleep(0.05)
+
+        return stream_problem()
+
+    async def check_user_answer(
+        self, user_id: int, user_guess: str, plag: str = "RIDDLE"
+    ) -> AnswerResponse:
         """사용자의 정답을 검증하는 메인 로직"""
-        redis_key = f"{self.REDIS_KEY_PREFIX}{user_id}"
+        redis_key = f"{self.REDIS_RIDDLE_PREFIX if plag == 'RIDDLE' else self.REDIS_WHAT_PREFIX}{user_id}"
         stored_data = self.redis.get(redis_key)
 
         remaining_ttl = self.redis.ttl(redis_key)  # 남은 시간 조회
@@ -137,7 +223,7 @@ class MinigameService:
         check_prompt = generate_answer_validation_prompt(
             correct_answer=correct_answer, user_guess=user_guess
         )
-        response = await self.eval_llm.ainvoke(check_prompt)
+        response = await self.evaluator.ainvoke(check_prompt)
 
         # "Y"가 포함되어 있는지 검사 (대소문자 무시 및 공백 제거)
         result_text = response.content.strip().upper()
