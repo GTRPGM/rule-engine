@@ -35,6 +35,15 @@ class ExplorationHandler(PhaseHandler):
             items,
             objs,
         ) = await self._categorize_entities(request.entities)
+        
+        if not player_id or not player_state:
+            # Player ID Missing: Skip logic that requires player info or handle gracefully
+            rule("⚠️ Warning: Player ID or State missing in Exploration Handler. Skipping player-related logic.")
+            return HandlerUpdatePhase(
+                update=PhaseUpdate(diffs=[], relations=[]),
+                is_success=True, # Default to success to continue flow
+                logs=["플레이어 정보를 찾을 수 없어 탐험 판정을 건너뜁니다."],
+            )
 
         # 탐험 활동에 따른 관계 변화 로직 구현
         logs: List[str] = []
@@ -53,14 +62,18 @@ class ExplorationHandler(PhaseHandler):
         known_npc_ids = [
             int(player_npc_relation.npc_id)
             for player_npc_relation in player_state.player_npc_relations
+            if player_npc_relation.npc_id
         ]
-        # 시나리오 작성기가 전달한 정보에 있는 NPC 식별번호 목록
-        entity_npc_ids = [int(npc.entity_id) for npc in npcs]
+        
+        # 플레이어가 처음 대면한 NPC만 필터링 (entity_id가 없으면 새로운 NPC로 간주)
+        new_npcs = []
+        for npc in npcs:
+            if npc.entity_id is None:
+                new_npcs.append(npc)
+            elif int(npc.entity_id) not in known_npc_ids:
+                new_npcs.append(npc)
 
-        # 플레이어가 처음 대면한 NPC만 필터링
-        new_npc_ids = set(entity_npc_ids) - set(known_npc_ids)
-        new_npcs = [npc for npc in npcs if int(npc.entity_id) in new_npc_ids]
-        new_npc_info = [f"{npc.entity_name}(ID: {npc.entity_id})" for npc in new_npcs]
+        new_npc_info = [f"{npc.entity_name}(ID: {npc.entity_id or npc.state_entity_id})" for npc in new_npcs]
 
         if len(new_npcs) > 0:
             new_npc_log_text = f"처음 마주친 NPC 명단: {', '.join(new_npc_info) if new_npc_info else '없음'}"

@@ -68,13 +68,16 @@ class PlayService:
         world_data = await self.world_service.get_world(
             include_keys=[WorldInfoKey.LOCALES]
         )
-        locales = world_data.get("locales", [])
+        locales = world_data.get("locales", []) or []
         locale = next(
-            (loc for loc in locales if loc["locale_id"] == request.locale_id), None
+            (loc for loc in locales if loc.get("locale_id") == request.locale_id), None
         )
-        rule(
-            f"장소: {locale['name']} | 식별번호: {locale['locale_id']} | {locale['description']}"
-        )
+        if locale:
+            rule(
+                f"장소: {locale.get('name')} | 식별번호: {locale.get('locale_id')} | {locale.get('description')}"
+            )
+        else:
+            rule(f"장소 정보를 찾을 수 없습니다. (ID: {request.locale_id})")
 
         result = await handler.handle(
             request,

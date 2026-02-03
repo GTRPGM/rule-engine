@@ -77,8 +77,8 @@ class EntityDiff(BaseModel):
 
 
 class UpdateRelation(BaseModel):
-    cause_entity_id: str = Field(default_factory=list, description="원인")
-    effect_entity_id: str = Field(default_factory=list, description="결과")
+    cause_entity_id: str = Field(description="원인")
+    effect_entity_id: str = Field(description="결과")
     type: RelationType
     affinity_score: Optional[int] = Field(default=None, description="우호도 점수")
 
@@ -93,8 +93,8 @@ class PhaseUpdate(BaseModel):
 
 
 class PlaySceneRequest(BaseModel):
-    session_id: int
-    scenario_id: int
+    session_id: str
+    scenario_id: str
     locale_id: int
     entities: List[EntityUnit]
     relations: List[UpdateRelation]
@@ -102,8 +102,8 @@ class PlaySceneRequest(BaseModel):
 
 
 class PlaySceneResponse(BaseModel):
-    session_id: int
-    scenario_id: int
+    session_id: str
+    scenario_id: str
     phase_type: PhaseType  # 룰 엔진이 추론한 페이즈 유형
     reason: str  # 페이즈 유형 판정 이유
     success: bool  # 룰 엔진 주사위 행동 판정 결과 → 시나리오 참고용(무시당할 수 있음)
