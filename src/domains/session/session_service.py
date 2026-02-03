@@ -82,7 +82,7 @@ class SessionService:
             created_at=datetime.now(),
         )
 
-    async def del_session(self, request: SessionRequest) -> str:
+    async def del_user_session(self, request: SessionRequest) -> str:
         params = {"session_id": request.session_id}
         try:
             self.cursor.execute(self.del_session_by_session_id_sql, params)
