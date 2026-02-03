@@ -3,6 +3,7 @@ import json
 import random
 from datetime import timedelta
 
+from fastapi.encoders import jsonable_encoder
 from langchain_core.prompts import ChatPromptTemplate
 
 from configs.llm_manager import LLMManager
@@ -22,7 +23,7 @@ class MinigameService:
         self.cursor = cursor
         self.redis = get_redis_client()
         self.REDIS_RIDDLE_PREFIX = "riddle:answer:"
-        self.REDIS_WHAT_PREFIX = "what:answer:"
+        self.REDIS_WHAT_PREFIX = "quiz:answer:"
         self.examiner = LLMManager.get_instance(
             llm_provider, temperature=0.9
         )  # 문제 생성용 (창의적 - 높은 온도)
@@ -125,8 +126,12 @@ class MinigameService:
         if selected_theme in service_map.keys():
             params = {method_param: [], "skip": 0, "limit": 500}
             info = await fetch_method(**params)
+            if hasattr(info, "data") and info.data is not None:
+                info = info.data
         else:
             info = await fetch_method(include_keys=[method_param])
+
+        info = jsonable_encoder(info)
 
         # 선택된 테마(selected_theme)로 조회된 정보(info)를 토대로 동굴 탐험대 세계관 문제 생성
         quiz_obj = await structured_llm.ainvoke(
