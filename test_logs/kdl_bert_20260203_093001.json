@@ -1,0 +1,89 @@
+{
+  "timestamp": "2026-02-03 09:30:01",
+  "accuracy": 0.44,
+  "total_time": 0.37,
+  "model_info": "BERT-v2",
+  "details": [
+    {
+      "story": "어둠 속에서 갑자기 고블린 무리가 무딘 단검을 휘두르며 달려듭니다.",
+      "expected": "COMBAT",
+      "actual": "COMBAT",
+      "is_correct": true,
+      "confidence": 0.6536666750907898,
+      "reason": "BERT 분석 (신뢰도: 0.65)",
+      "elapsed": 0.175
+    },
+    {
+      "story": "성문 앞 경비병이 통행료로 100골드를 요구합니다.",
+      "expected": "DIALOGUE",
+      "actual": "NEGO",
+      "is_correct": false,
+      "confidence": 0.38315245509147644,
+      "reason": "BERT 분석 (신뢰도: 0.38)",
+      "elapsed": 0.019
+    },
+    {
+      "story": "오래된 유적의 벽면에 새겨진 기괴한 문양을 조사합니다.",
+      "expected": "EXPLORATION",
+      "actual": "EXPLORATION",
+      "is_correct": true,
+      "confidence": 0.5043230056762695,
+      "reason": "BERT 분석 (신뢰도: 0.50)",
+      "elapsed": 0.02
+    },
+    {
+      "story": "주점에서 술을 마시던 중, 옆 테이블의 용병과 시비가 붙었습니다...",
+      "expected": "COMBAT",
+      "actual": "DIALOGUE",
+      "is_correct": false,
+      "confidence": 0.4891175627708435,
+      "reason": "BERT 분석 (신뢰도: 0.49)",
+      "elapsed": 0.022
+    },
+    {
+      "story": "상인 길드장에게 희귀 약초를 팔려고 합니다...",
+      "expected": "DIALOGUE",
+      "actual": "DIALOGUE",
+      "is_correct": true,
+      "confidence": 0.34371134638786316,
+      "reason": "BERT 분석 (신뢰도: 0.34)",
+      "elapsed": 0.02
+    },
+    {
+      "story": "안개 낀 늪지대에서 길을 잃었습니다...",
+      "expected": "EXPLORATION",
+      "actual": "UNKNOWN",
+      "is_correct": false,
+      "confidence": 0.324993371963501,
+      "reason": "BERT 분석 (신뢰도: 0.32)",
+      "elapsed": 0.016
+    },
+    {
+      "story": "배가 고파진 당신은 가방을 열어 딱딱한 빵 한 조각을 꺼내 씹어 먹습니다...",
+      "expected": "REST",
+      "actual": "DIALOGUE",
+      "is_correct": false,
+      "confidence": 0.24889779090881348,
+      "reason": "BERT 분석 (신뢰도: 0.25)",
+      "elapsed": 0.023
+    },
+    {
+      "story": "오늘 날씨가 참 좋군요. 당신은 성벽 위를 거닐며 멀리 보이는 산맥을 바라봅니다...",
+      "expected": "UNKNOWN",
+      "actual": "DIALOGUE",
+      "is_correct": false,
+      "confidence": 0.46759361028671265,
+      "reason": "BERT 분석 (신뢰도: 0.47)",
+      "elapsed": 0.023
+    },
+    {
+      "story": "협상을 하러 갔지만, 상대가 갑자기 탁자를 내리치며 부하들에게 신호를 보냈습니다!...",
+      "expected": "COMBAT",
+      "actual": "COMBAT",
+      "is_correct": true,
+      "confidence": 0.3245627284049988,
+      "reason": "BERT 분석 (신뢰도: 0.32)",
+      "elapsed": 0.023
+    }
+  ]
+}
