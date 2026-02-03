@@ -81,33 +81,6 @@ class PlayRouter:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"수수께끼 생성 실패: {str(e)}")
 
-    @play_router.post(
-        "/answer/{user_id}",
-        summary="사용자가 입력한 수수께끼 정답을 확인합니다. 3회 실패 시 힌트를 포함하며, 남은 시간(TTL)을 반환합니다.",
-        response_model=WrappedResponse[AnswerResponse],
-    )
-    async def submit_answer(
-        self,
-        user_id: int,
-        request: AnswerRequest,
-        service: MinigameService = Depends(get_minigame_service),
-    ):
-        """
-        사용자가 입력한 정답을 확인합니다.
-        3회 실패 시 힌트를 포함하며, 남은 시간(TTL)을 반환합니다.
-        """
-        try:
-            feedback = await service.check_user_answer(user_id, request.user_guess)
-
-            if feedback.result == "error":
-                raise HTTPException(status_code=404, detail=feedback.message)
-
-            return WrappedResponse[AnswerResponse](data=feedback)
-        except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"수수께끼 답안 제출 실패: {str(e)}"
-            )
-
     @play_router.get(
         "/quiz/{user_id}",
         summary="새로운 동굴탐험대 문제를 생성하고 스트리밍으로 반환합니다. 동시에 Redis에 정답과 초기 상태를 저장합니다.",
@@ -140,3 +113,33 @@ class PlayRouter:
             return StreamingResponse(what_stream, media_type="text/event-stream")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"문제 생성 실패: {str(e)}")
+
+    @play_router.post(
+        "/answer/{user_id}",
+        summary="사용자가 입력한 수수께끼 정답을 확인합니다. 3회 실패 시 힌트를 포함하며, 남은 시간(TTL)을 반환합니다.",
+        response_model=WrappedResponse[AnswerResponse],
+    )
+    async def submit_answer(
+        self,
+        user_id: int,
+        request: AnswerRequest,
+        service: MinigameService = Depends(get_minigame_service),
+    ):
+        """
+        사용자가 입력한 정답을 확인합니다.
+        3회 실패 시 힌트를 포함하며, 남은 시간(TTL)을 반환합니다.
+        """
+        try:
+            feedback = await service.check_user_answer(
+                user_id, request.user_guess, request.flag
+            )
+
+            if feedback.result == "error":
+                raise HTTPException(status_code=404, detail=feedback.message)
+
+            return WrappedResponse[AnswerResponse](data=feedback)
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"{'수수께끼' if request.flag == 'RIDDLE' else '퀴즈'} 답안 제출 실패: {str(e)}",
+            )

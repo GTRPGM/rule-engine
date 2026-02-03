@@ -160,10 +160,10 @@ class MinigameService:
         return stream_problem()
 
     async def check_user_answer(
-        self, user_id: int, user_guess: str, plag: str = "RIDDLE"
+        self, user_id: int, user_guess: str, flag: str = "RIDDLE"
     ) -> AnswerResponse:
         """사용자의 정답을 검증하는 메인 로직"""
-        redis_key = f"{self.REDIS_RIDDLE_PREFIX if plag == 'RIDDLE' else self.REDIS_WHAT_PREFIX}{user_id}"
+        redis_key = f"{self.REDIS_RIDDLE_PREFIX if flag == 'RIDDLE' else self.REDIS_WHAT_PREFIX}{user_id}"
         stored_data = self.redis.get(redis_key)
 
         remaining_ttl = self.redis.ttl(redis_key)  # 남은 시간 조회
