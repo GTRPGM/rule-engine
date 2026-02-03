@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     # 서버가 시작될 때 실행
     info("HTTP 클라이언트를 구성합니다...")
     http_holder.client = httpx.AsyncClient(
-        timeout=httpx.Timeout(10.0),
+        timeout=httpx.Timeout(60.0),
         limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
     )
 

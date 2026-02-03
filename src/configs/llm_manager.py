@@ -1,7 +1,9 @@
+import httpx
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 
+from configs.http_client import http_holder
 from configs.llm_adapter import NarrativeChatModel
 from configs.setting import APP_ENV, GEMINI_API_KEY, OPENAI_API_KEY
 
@@ -18,7 +20,15 @@ class LLMManager:
             return cls._instances[instance_key]
 
         if provider == "gateway":
-            instance = NarrativeChatModel(temperature=temperature)
+            # lifespan에서 생성된 전역 클라이언트를 주입합니다.
+            if not http_holder.client:
+                # 만약 테스트 환경 등에서 client가 초기화되지 않았을 경우를 대비한 방어 코드
+                http_holder.client = httpx.AsyncClient()
+
+            instance = NarrativeChatModel(
+                temperature=temperature,
+                client=http_holder.client,  # 전역 클라이언트 사용
+            )
 
         elif provider == "gemini":
             selected_model = (

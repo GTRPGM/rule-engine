@@ -31,7 +31,7 @@ class NarrativeChatModel(BaseChatModel):
     base_url: str = Field(
         default_factory=lambda: f"http://{LLM_GATEWAY_HOST}:{LLM_GATEWAY_PORT}"
     )
-    client: httpx.AsyncClient = Field(default_factory=lambda: httpx.AsyncClient())
+    client: httpx.AsyncClient
     temperature: float = 0.7
 
     @property
