@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 from common.dtos.pagination_meta import PaginationMeta
-from domains.info.dtos.npc_dtos import NpcDetailResponse
 from utils.load_sql import load_sql
 
 

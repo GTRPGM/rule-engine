@@ -1,4 +1,3 @@
-import logging
 from contextlib import asynccontextmanager
 from typing import Dict
 
@@ -23,7 +22,7 @@ async def lifespan(app: FastAPI):
     info("HTTP 클라이언트를 구성합니다...")
     http_holder.client = httpx.AsyncClient(
         timeout=httpx.Timeout(10.0),
-        limits=httpx.Limits(max_connections=100, max_keepalive_connections=20)
+        limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
     )
 
     print("\n" + "⭐" * 40)
@@ -38,6 +37,7 @@ async def lifespan(app: FastAPI):
     info("HTTP 클라이언트 종료 중...")
     rule("룰 엔진 종료 중...")
 
+
 app = FastAPI(
     title="GTRPGM Rule Engine",
     description="GTRPGM 게임 진행의 Rule 위배여부를 판정해 재조정하는 엔진입니다.",
@@ -48,8 +48,9 @@ app = FastAPI(
         {"url": f"http://localhost:{APP_PORT}", "description": "Local env"},
         {"url": f"http://{REMOTE_HOST}:{APP_PORT}", "description": "Dev env"},
     ],
-    lifespan=lifespan
+    lifespan=lifespan,
 )
+
 
 @app.middleware("http")
 async def error_logging_middleware(request: Request, call_next):

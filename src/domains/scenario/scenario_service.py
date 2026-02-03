@@ -1,6 +1,12 @@
 from psycopg2 import IntegrityError
-from domains.scenario.dtos.scenario_dtos import ItemCreateRequest, EnemyCreateRequest, NpcCreateRequest, \
-    EnemyDropCreateRequest, NpcInventoryCreateRequest
+
+from domains.scenario.dtos.scenario_dtos import (
+    EnemyCreateRequest,
+    EnemyDropCreateRequest,
+    ItemCreateRequest,
+    NpcCreateRequest,
+    NpcInventoryCreateRequest,
+)
 from utils.load_sql import load_sql
 
 
@@ -16,7 +22,7 @@ class ScenarioService:
     async def add_item(self, request: ItemCreateRequest) -> int:
         try:
             item_dict = request.model_dump()
-            item_dict['type'] = request.type.value # Enum을 문자열로 변환
+            item_dict["type"] = request.type.value  # Enum을 문자열로 변환
 
             self.cursor.execute(self.add_item_sql, item_dict)
             result = self.cursor.fetchone()
@@ -26,7 +32,7 @@ class ScenarioService:
 
             # 3. 성공 시 커밋
             self.cursor.commit()
-            return result['item_id']
+            return result["item_id"]
 
         except IntegrityError as e:
             self.cursor.rollback()
@@ -37,7 +43,7 @@ class ScenarioService:
         except Exception as e:
             if self.cursor:
                 self.cursor.rollback()
-            print(f"[ScenarioService Error] {e}") # 디버깅용 로그
+            print(f"[ScenarioService Error] {e}")  # 디버깅용 로그
             raise e
 
     async def add_enemy(self, request: EnemyCreateRequest) -> int:
@@ -52,7 +58,7 @@ class ScenarioService:
 
             # 3. 성공 시 커밋
             self.cursor.commit()
-            return result['enemy_id']
+            return result["enemy_id"]
 
         except IntegrityError as e:
             self.cursor.rollback()
@@ -78,15 +84,15 @@ class ScenarioService:
 
             # 3. 성공 시 커밋
             self.cursor.commit()
-            return result['drop_id']
+            return result["drop_id"]
 
         except IntegrityError as e:
             # 외래키 제약 조건 위반 처리 (enemy_id나 item_id가 없을 때)
             self.cursor.rollback()
             error_msg = str(e)
-            if "is not present in table \"enemies\"" in error_msg:
+            if 'is not present in table "enemies"' in error_msg:
                 raise ValueError(f"존재하지 않는 적(ID: {request.enemy_id})입니다.")
-            elif "is not present in table \"items\"" in error_msg:
+            elif 'is not present in table "items"' in error_msg:
                 raise ValueError(f"존재하지 않는 아이템(ID: {request.item_id})입니다.")
             else:
                 raise ValueError(f"데이터 무결성 오류: {error_msg}")
@@ -110,7 +116,7 @@ class ScenarioService:
 
             # 3. 성공 시 커밋
             self.cursor.commit()
-            return result['npc_id']
+            return result["npc_id"]
 
         except IntegrityError as e:
             self.cursor.rollback()
@@ -134,7 +140,7 @@ class ScenarioService:
                 raise ValueError("NPC 인벤토리 저장 후 ID를 반환받지 못했습니다.")
 
             self.cursor.commit()
-            return result['inventory_id']
+            return result["inventory_id"]
 
         except IntegrityError as e:
             self.cursor.rollback()
