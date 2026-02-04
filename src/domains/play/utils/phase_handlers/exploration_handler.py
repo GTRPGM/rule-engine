@@ -35,13 +35,14 @@ class ExplorationHandler(PhaseHandler):
             items,
             objs,
         ) = await self._categorize_entities(request.entities)
-        
+
         if not player_id or not player_state:
-            # Player ID Missing: Skip logic that requires player info or handle gracefully
-            rule("⚠️ Warning: Player ID or State missing in Exploration Handler. Skipping player-related logic.")
+            rule(
+                "⚠️ 경고: 탐색 핸들러에서 플레이어 ID 또는 상태가 누락되었습니다. 플레이어 관련 로직을 건너뛰었습니다."
+            )
             return HandlerUpdatePhase(
                 update=PhaseUpdate(diffs=[], relations=[]),
-                is_success=True, # Default to success to continue flow
+                is_success=True,  # Default to success to continue flow
                 logs=["플레이어 정보를 찾을 수 없어 탐험 판정을 건너뜁니다."],
             )
 
@@ -60,20 +61,23 @@ class ExplorationHandler(PhaseHandler):
 
         # 플레이어가 이미 알고 있는 NPC들의 식별번호 목록
         known_npc_ids = [
-            int(player_npc_relation.npc_id)
+            player_npc_relation.npc_id  # UUID
             for player_npc_relation in player_state.player_npc_relations
             if player_npc_relation.npc_id
         ]
-        
+
         # 플레이어가 처음 대면한 NPC만 필터링 (entity_id가 없으면 새로운 NPC로 간주)
         new_npcs = []
         for npc in npcs:
-            if npc.entity_id is None:
+            if npc.state_entity_id is None:
                 new_npcs.append(npc)
-            elif int(npc.entity_id) not in known_npc_ids:
+            elif npc.state_entity_id not in known_npc_ids:
                 new_npcs.append(npc)
 
-        new_npc_info = [f"{npc.entity_name}(ID: {npc.entity_id or npc.state_entity_id})" for npc in new_npcs]
+        new_npc_info = [
+            f"{npc.entity_name}(ID: {npc.state_entity_id or npc.state_entity_id})"
+            for npc in new_npcs
+        ]
 
         if len(new_npcs) > 0:
             new_npc_log_text = f"처음 마주친 NPC 명단: {', '.join(new_npc_info) if new_npc_info else '없음'}"
