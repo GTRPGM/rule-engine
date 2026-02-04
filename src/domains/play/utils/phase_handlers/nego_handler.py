@@ -42,11 +42,13 @@ class NegoHandler(PhaseHandler):
         relations: List[UpdateRelation] = []
 
         # 1. 아이템 정보 사전 생성
+        item_dict = None
         item_ids = list(set([e.entity_id for e in items if e.entity_id is not None]))
-        item_data, _ = await item_service.get_items(
-            item_ids=item_ids, skip=0, limit=100
-        )
-        item_dict = {item["item_id"]: item for item in item_data}
+        if len(item_ids) > 0:
+            item_data, _ = await item_service.get_items(
+                item_ids=item_ids, skip=0, limit=100
+            )
+            item_dict = {item["item_id"]: item for item in item_data}
 
         # 2. 흥정 주사위 판정
         bargain_ability = 3  # 플레이어의 흥정 능력치 (임시값)
@@ -122,9 +124,9 @@ class NegoHandler(PhaseHandler):
         # 플레이어 골드 변동치 적용
         if bargain_gold_change != 0:
             new_diff = EntityDiff(
-                    state_entity_id=player_id,
-                    diff={"gold": bargain_gold_change},
-                )
+                state_entity_id=player_id,
+                diff={"gold": bargain_gold_change},
+            )
             diffs.append(new_diff)
             rule(f"diffs.append({new_diff.model_dump()})")
 
