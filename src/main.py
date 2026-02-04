@@ -19,6 +19,8 @@ from utils.logger import info, rule
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # 서버가 시작될 때 실행
+    check_db_connection()
+    check_redis_connection()
     info("HTTP 클라이언트를 구성합니다...")
     http_holder.client = httpx.AsyncClient(
         timeout=httpx.Timeout(60.0),
