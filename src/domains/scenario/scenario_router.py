@@ -10,6 +10,7 @@ from domains.scenario.dtos.scenario_dtos import (
     NpcInventoryCreateRequest,
 )
 from domains.scenario.scenario_service import ScenarioService
+from utils.logger import error
 
 scenario_router = APIRouter(prefix="/scenario", tags=["시나리오 요소 생성"])
 
@@ -33,7 +34,7 @@ class ScenarioHandler:
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         except Exception as e:
-            print(f"Item Creation Error: {e}")  # 서버 로그 기록
+            error(f"아이템 생성 실패: {e}")  # 서버 로그 기록
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"아이템 생성 실패: {str(e)}",
@@ -56,7 +57,7 @@ class ScenarioHandler:
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         except Exception as e:
-            print(f"Enemy Creation Error: {e}")  # 서버 로그 기록
+            error(f"적 생성 오류: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"적 생성 실패: {str(e)}",
@@ -79,7 +80,7 @@ class ScenarioHandler:
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         except Exception as e:
-            print(f"Enemy Drop Item Creation Error: {e}")  # 서버 로그 기록
+            error(f"적 드롭 아이템 생성 실패: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"적 드랍 아이템 생성 실패: {str(e)}",
@@ -102,7 +103,7 @@ class ScenarioHandler:
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         except Exception as e:
-            print(f"NPC Creation Error: {e}")  # 서버 로그 기록
+            error(f"NPC 생성 실패: {e}")  # 서버 로그 기록
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"NPC 생성 실패: {str(e)}",
@@ -125,7 +126,7 @@ class ScenarioHandler:
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         except Exception as e:
-            print(f"NPC Inventory Creation Error: {e}")  # 서버 로그 기록
+            error(f"NPC 인벤토리 생성 실패: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"NPC 인벤토리 생성 실패: {str(e)}",

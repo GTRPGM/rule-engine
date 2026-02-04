@@ -92,7 +92,6 @@ class MinigameService:
     ):
         structured_llm = self.examiner.with_structured_output(RiddleData)
         selected_theme = random.choice(self.cave_themes)
-        print(f"selected_theme: {selected_theme}")
 
         # 1. 테마에 따른 서비스 매핑 (world_service를 기본값으로 설정)
         service_map = {

@@ -23,6 +23,7 @@ from domains.play.dtos.player_dtos import FullPlayerState
 from domains.play.dtos.riddle_dtos import AnswerRequest, AnswerResponse
 from domains.play.minigame_service import MinigameService
 from domains.play.play_service import PlayService
+from utils.logger import error
 from utils.proxy_request import proxy_request
 
 play_router = APIRouter(prefix="/play", tags=["게임 플레이"])
@@ -44,7 +45,7 @@ class PlayRouter:
             result = await play_service.play_scene(request)
             return {"data": result, "message": "룰 판정 결과를 반환합니다."}
         except Exception as e:
-            print(f"Item Creation Error: {e}")  # 서버 로그 기록
+            error(f"시나리오 파악 오류: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="알 수 없는 오류가 발생했습니다.",

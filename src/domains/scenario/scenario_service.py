@@ -8,6 +8,7 @@ from domains.scenario.dtos.scenario_dtos import (
     NpcInventoryCreateRequest,
 )
 from utils.load_sql import load_sql
+from utils.logger import error
 
 
 class ScenarioService:
@@ -43,7 +44,7 @@ class ScenarioService:
         except Exception as e:
             if self.cursor:
                 self.cursor.rollback()
-            print(f"[ScenarioService Error] {e}")  # 디버깅용 로그
+            error(f"[시나리오 서비스 오류] {e}")
             raise e
 
     async def add_enemy(self, request: EnemyCreateRequest) -> int:
@@ -69,7 +70,7 @@ class ScenarioService:
         except Exception as e:
             if self.cursor:
                 self.cursor.rollback()
-            print(f"[ScenarioService Error] {e}")  # 디버깅용 로그
+            error(f"[시나리오 서비스 오류] {e}")
             raise e
 
     async def add_enemy_drop(self, request: EnemyDropCreateRequest) -> int:
@@ -101,7 +102,7 @@ class ScenarioService:
             # 기타 시스템 에러 발생 시 롤백
             if self.cursor:
                 self.cursor.rollback()
-            print(f"[ScenarioService Error] {e}")
+            error(f"[시나리오 서비스 오류] {e}")
             raise e
 
     async def add_npc(self, request: NpcCreateRequest) -> int:
@@ -127,7 +128,7 @@ class ScenarioService:
         except Exception as e:
             if self.cursor:
                 self.cursor.rollback()
-            print(f"[ScenarioService Error] {e}")  # 디버깅용 로그
+            error(f"[시나리오 서비스 오류] {e}")
             raise e
 
     async def add_npc_inventory(self, request: NpcInventoryCreateRequest) -> int:
