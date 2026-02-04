@@ -1,43 +1,27 @@
 from contextlib import asynccontextmanager
 from typing import Dict
 
-import httpx
 from fastapi import FastAPI, HTTPException, Request, status
 from starlette.middleware.cors import CORSMiddleware
 
 from configs.api_routers import API_ROUTERS
 from configs.database import check_db_connection
 from configs.exceptions import init_exception_handlers
-from configs.http_client import http_holder
 from configs.redis_conn import check_redis_connection
 from src.common.dtos.common_response import CustomJSONResponse
 from src.configs.logging_config import LOGGING_CONFIG
-from src.configs.setting import APP_ENV, APP_PORT, REMOTE_HOST, WEB_PORT
-from utils.logger import info, rule
+from src.configs.origins import origins
+from src.configs.setting import APP_ENV, APP_PORT, REMOTE_HOST
+from src.utils.lifespan_handlers import shutdown_event_handler, startup_event_handler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # 서버가 시작될 때 실행
-    check_db_connection()
-    check_redis_connection()
-    info("HTTP 클라이언트를 구성합니다...")
-    http_holder.client = httpx.AsyncClient(
-        timeout=httpx.Timeout(60.0),
-        limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
-    )
-
-    print("\n" + "⭐" * 40)
-    print(f"  Swagger UI: http://127.0.0.1:{APP_PORT}/docs")
-    print(f"  ReDoc:      http://127.0.0.1:{APP_PORT}/redoc")
-    print("⭐" * 40 + "\n")
-
+    startup_event_handler()
     yield  # 서버가 동작하는 지점
-
     # 서버가 종료될 때 실행
-    await http_holder.client.aclose()
-    info("HTTP 클라이언트 종료 중...")
-    rule("룰 엔진 종료 중...")
+    await shutdown_event_handler()
 
 
 app = FastAPI(
@@ -64,20 +48,9 @@ async def error_logging_middleware(request: Request, call_next):
 # 커스덤 에러 핸들러 초기화
 init_exception_handlers(app)
 
-# CORS 미들웨어 추가
-origins = [
-    f"http://localhost:{WEB_PORT}",
-    f"http://127.0.0.1:{WEB_PORT}",
-    f"http://localhost:{APP_PORT}",
-    f"http://127.0.0.1:{APP_PORT}",
-    f"http://{REMOTE_HOST}:{APP_PORT}",
-    f"http://{REMOTE_HOST}:{WEB_PORT}",
-    f"http://{REMOTE_HOST}",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # 허용할 출처 목록
+    allow_origins=origins,  # 허용할 CORS 출처 목록
     allow_credentials=True,  # 쿠키 등 자격 증명 허용 여부
     allow_methods=["*"],  # 모든 HTTP 메서드 허용 (GET, POST 등)
     allow_headers=["*"],  # 모든 HTTP 헤더 허용
