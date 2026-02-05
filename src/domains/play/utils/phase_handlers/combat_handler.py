@@ -81,12 +81,14 @@ class CombatHandler(PhaseHandler):
         logs.append(dice_result_log)
 
         # 2. 아이템 효과 계산
+        combat_items_effect = 0
         item_ids = [int(item.item_id) for item in player_state.player.items]
-        items, _ = await item_service.get_items(item_ids=item_ids, skip=0, limit=100)
+        if len(item_ids) > 0:
+            items, _ = await item_service.get_items(item_ids=item_ids, skip=0, limit=100)
 
-        combat_items_effect = sum(
-            item["effect_value"] for item in items if item["type"] in ("무기", "방어구")
-        )
+            combat_items_effect = sum(
+                item["effect_value"] for item in items if item["type"] in ("무기", "방어구")
+            )
 
         # 3. 능력치 (현재 하드코딩)
         ability_score = 2

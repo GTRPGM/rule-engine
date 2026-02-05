@@ -52,13 +52,15 @@ class ConsumePotionHandler(PhaseHandler):
 
         # 1. 플레이어 인벤토리에서 포션 찾기
         item_ids = [int(item.item_id) for item in player_state.player.items]
-        items, _ = await item_service.get_items(item_ids=item_ids, skip=0, limit=100)
+        heal_items = None
+        if len(item_ids) > 0:
+            items, _ = await item_service.get_items(item_ids=item_ids, skip=0, limit=100)
 
-        heal_items = [
-            item
-            for item in items
-            if "소모품" == item["type"] and "포션" in item["name"]
-        ]
+            heal_items = [
+                item
+                for item in items
+                if "소모품" == item["type"] and "포션" in item["name"]
+            ]
 
         consumed_potion = None
         effect_value: int = 0
@@ -98,6 +100,10 @@ class ConsumePotionHandler(PhaseHandler):
 
             if consumed_potion:
                 effect_value = consumed_potion["effect_value"]
+
+        else:
+            logs.append("이런! 보유한 포션이 하나도 없습니다.")
+            rule("이런! 보유한 포션이 하나도 없습니다.")
 
         # 2. 추가 치유량 계산
         additional_heal_point: int = 0
