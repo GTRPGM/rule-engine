@@ -122,21 +122,11 @@ class DialogueHandler(PhaseHandler):
                 else:
                     relation_grade = RelationType.NEUTRAL
 
-            new_diff = EntityDiff(
-                state_entity_id=player_id,
-                diff={
-                    "state_entity_id": target_npc_state_id,
-                    "affinity_score": affinity_change_amount,
-                },
-            )
-            diffs.append(new_diff)
-            rule(f"diffs.append({new_diff.model_dump()})")
-            logs.append(f"diffs.append({new_diff.model_dump()})")
-
             new_rel = UpdateRelation(
                 cause_entity_id=player_id,
                 effect_entity_id=target_npc_state_id,
                 type=relation_grade,
+                affinity_score=affinity_change_amount,
             )
 
             relations.append(new_rel)
