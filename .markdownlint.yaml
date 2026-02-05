@@ -2,3 +2,7 @@ MD041: false
 MD013: false
 MD007: { "indent": 4 }
 MD029: false
+MD004: { "style": "dash" }
+MD040: false
+MD026: false
+MD022: false
