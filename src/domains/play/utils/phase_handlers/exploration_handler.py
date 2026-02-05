@@ -86,9 +86,7 @@ class ExplorationHandler(PhaseHandler):
                     rule(new_items_log)
 
                 if len(objs) > 0:
-                    new_objs_log = (
-                        f"[사물] {len(objs)}종의 사물 {total_objs_qty}를 획득했습니다."
-                    )
+                    new_objs_log = f"[사물] {len(objs)}종의 사물 {total_objs_qty}개를 획득했습니다."
                     logs.append(new_objs_log)
                     rule(new_objs_log)
 
