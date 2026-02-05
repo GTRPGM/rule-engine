@@ -65,34 +65,35 @@ class ExplorationHandler(PhaseHandler):
             # 아이템/오브젝트 통합 처리
             for loot in items + objs:
                 quantity = loot.quantity if loot.quantity is not None else 1
-                diffs.append(
-                    EntityDiff(
-                        state_entity_id=player_id,
-                        diff={
-                            "state_entity_id": loot.state_entity_id,
-                            "quantity": quantity,
-                        },
-                    )
+                loot_rel = UpdateRelation(
+                    cause_entity_id=player_id,
+                    effect_entity_id=loot.state_entity_id,
+                    type=RelationType.OWNERSHIP,
+                    quantity=quantity,
                 )
-                relations.append(
-                    UpdateRelation(
-                        cause_entity_id=player_id,
-                        effect_entity_id=loot.state_entity_id,
-                        type=RelationType.OWNERSHIP,
-                    )
-                )
+                relations.append(loot_rel)
 
             if items or objs:
-                new_items_log = f"{len(items)}개 아이템을 획득했습니다."
-                new_objs_log = f"{len(items)}개 아이템을 획득했습니다."
-                new_loots_log = (
-                    f"[정산] 총 {len(items) + len(objs)}개 전리품을 획득했습니다."
+                total_items_qty = sum(
+                    (getattr(item, "quantity", 1) or 1) for item in items
                 )
-                logs.append(new_items_log)
-                logs.append(new_objs_log)
+                total_objs_qty = sum((getattr(obj, "quantity", 1) or 1) for obj in objs)
+                total_loot_qty = total_items_qty + total_objs_qty
+
+                if len(items) > 0:
+                    new_items_log = f"[아이템] {len(items)}종의 아이템 {total_items_qty}개를 획득했습니다."
+                    logs.append(new_items_log)
+                    rule(new_items_log)
+
+                if len(objs) > 0:
+                    new_objs_log = (
+                        f"[사물] {len(objs)}종의 사물 {total_objs_qty}를 획득했습니다."
+                    )
+                    logs.append(new_objs_log)
+                    rule(new_objs_log)
+
+                new_loots_log = f"[정산] 총 {len(items) + len(objs)}종의 전리품 {total_loot_qty}개를 획득했습니다."
                 logs.append(new_loots_log)
-                rule(new_items_log)
-                rule(new_objs_log)
                 rule(new_loots_log)
 
         # 4. NPC 관계 처리 (성공/실패 공통 로직 내 분기)

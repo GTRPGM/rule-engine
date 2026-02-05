@@ -87,11 +87,20 @@ class NegoHandler(PhaseHandler):
                 logs.append(success_log)
                 rule(success_log)
 
+                # 거래 수량 확인
+                target_entity = next(
+                    (e for e in items if e.state_entity_id == item_map[item_id]), None
+                )
+                current_quantity = (
+                    getattr(target_entity, "quantity", 1) if target_entity else 1
+                )
+
                 # 소유권 변경 (Relations) - item_map을 사용하여 안전하게 접근
                 new_rel = UpdateRelation(
                     cause_entity_id=player_id,
                     effect_entity_id=item_map[item_id],
                     type=RelationType.OWNERSHIP,
+                    quantity=current_quantity,
                 )
                 relations.append(new_rel.model_dump())
                 rule(f"relations.append({new_rel.model_dump()})")

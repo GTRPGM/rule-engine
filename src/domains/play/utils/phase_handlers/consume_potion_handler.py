@@ -9,6 +9,7 @@ from domains.play.dtos.play_dtos import (
     HandlerUpdatePhase,
     PhaseUpdate,
     PlaySceneRequest,
+    RelationType,
     SceneAnalysis,
     UpdateRelation,
 )
@@ -128,18 +129,22 @@ class ConsumePotionHandler(PhaseHandler):
             target_portion = next(
                 (item for item in request.relations if item.type == "소비"), None
             )
-            new_diff = EntityDiff(state_entity_id=player_id, diff={"hp": total_healing})
-            diffs.append(new_diff)
-            rule(f"diffs.append({new_diff.model_dump()})")
-
             if target_portion is not None:
-                diffs.append(
-                    EntityDiff(
-                        state_entity_id=target_portion.effect_entity_id,
-                        diff={"quantity": -1},
-                    ),
+                player_diff = EntityDiff(
+                    state_entity_id=player_id, diff={"hp": total_healing}
                 )
-                rule("diffs.append({{'quantity': -1}})")
+                diffs.append(player_diff)
+                rule(f"diffs.append({player_diff.model_dump()})")
+
+                consumed_potion_rel = UpdateRelation(
+                    cause_entity_id=player_id,
+                    effect_entity_id=target_portion.effect_entity_id,
+                    type=RelationType.CONSUME,
+                    quantity=-1,
+                )
+
+                relations.append(consumed_potion_rel.model_dump())
+                rule(f"relations.append({consumed_potion_rel.model_dump()})")
 
             rule(f"[치유 계산] 포션 기본 회복량: {effect_value}")
             logs.append(f"[치유 계산] 포션 기본 회복량: {effect_value}")

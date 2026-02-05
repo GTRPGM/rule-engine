@@ -21,7 +21,8 @@
       "entity_id": 18,
       "phase_id": 3,
       "entity_name": "마비 포자 주머니",
-      "entity_type": "item"
+      "entity_type": "item",
+      "quantity": 3
     }
   ],
   "relations": [
@@ -29,7 +30,7 @@
       "cause_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
       "effect_entity_id": "npc_merchant_42",
       "type": "중립적",
-      "affinity_score": -20
+      "affinity_score": 20
     },
     {
       "cause_entity_id": "npc_merchant_42",

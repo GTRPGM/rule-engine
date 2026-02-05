@@ -13,7 +13,8 @@
       "state_entity_id": "obj_iron_chest_001",
       "phase_id": 2,
       "entity_name": "낡은 철제 상자",
-      "entity_type": "object"
+      "entity_type": "object",
+      "quantity": 7
     }
   ],
   "relations": [],

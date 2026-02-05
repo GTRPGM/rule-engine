@@ -14,14 +14,16 @@
       "entity_id": 34,
       "phase_id": 2,
       "entity_name": "경비대의 둥근 방패",
-      "entity_type": "item"
+      "entity_type": "item",
+      "quantity": 2
     },
     {
       "state_entity_id": "item_battle_axe_001",
       "entity_id": 39,
       "phase_id": 2,
       "entity_name": "개척 연합의 전투 도끼",
-      "entity_type": "item"
+      "entity_type": "item",
+      "quantity": 3
     }
   ],
   "relations": [],
