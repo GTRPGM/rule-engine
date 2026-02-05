@@ -1,5 +1,3 @@
-from typing import List
-
 from configs.llm_manager import LLMManager
 from domains.gm.gm_service import GmService
 from domains.info.enemy_service import EnemyService
@@ -47,134 +45,95 @@ class ExplorationHandler(PhaseHandler):
             )
 
         # 탐험 활동에 따른 관계 변화 로직 구현
-        logs: List[str] = []
-        diffs: List[EntityDiff] = []
-        relations: List[UpdateRelation] = []
+        logs, diffs, relations = [], [], []
 
-        player_point = 2  # 플레이어 능력 - 보정치 (미정) - 임의값
+        # 1. 주사위 판정 (플레이어 스탯 연동 권장)
+        # player_luck: 플레이어 정보에서 perception(통찰력/인지력) 능력치 찾기(없으면 기본값 2)
+        player_luck = getattr(player_state, "perception", 2)
+        dice_result = await gm_service.rolling_dice(player_luck, 6)
+        logs.append(f"탐험 시도... {dice_result.message} (총합: {dice_result.total})")
 
-        rule("주사위 판정 시작")
-        dice_result = await gm_service.rolling_dice(player_point, 6)
-        dice_result_log = f"탐험 시도... {dice_result.message}{' | 잭팟!!' if dice_result.is_critical_success else ''} | 굴림값 {dice_result.roll_result} + 능력보정치 {dice_result.ability_score} = 총합 {dice_result.total}"
-        rule(dice_result_log)
-        logs.append(dice_result_log)
+        # 2. 신규 NPC 필터링 (Set 사용으로 최적화)
+        known_npc_ids = {
+            rel.npc_id for rel in player_state.player_npc_relations if rel.npc_id
+        }
+        new_npcs = [n for n in npcs if n.state_entity_id not in known_npc_ids]
 
-        # 플레이어가 이미 알고 있는 NPC들의 식별번호 목록
-        known_npc_ids = [
-            player_npc_relation.npc_id  # UUID
-            for player_npc_relation in player_state.player_npc_relations
-            if player_npc_relation.npc_id
-        ]
-
-        # 플레이어가 처음 대면한 NPC만 필터링 (entity_id가 없으면 새로운 NPC로 간주)
-        new_npcs = []
-        for npc in npcs:
-            if npc.state_entity_id is None:
-                new_npcs.append(npc)
-            elif npc.state_entity_id not in known_npc_ids:
-                new_npcs.append(npc)
-
-        new_npc_info = [
-            f"{npc.entity_name}(ID: {npc.state_entity_id or npc.state_entity_id})"
-            for npc in new_npcs
-        ]
-
-        if len(new_npcs) > 0:
-            new_npc_log_text = f"처음 마주친 NPC 명단: {', '.join(new_npc_info) if new_npc_info else '없음'}"
-            rule(new_npc_log_text)
-            logs.append(new_npc_log_text)
-
+        # 3. 아이템 및 오브젝트 습득 (성공 시에만)
         if dice_result.is_success:
-            rule("[주사위 결과] 성공")
-            logs.append("[주사위 결과] 성공")
-            if len(items) > 0:
-                for new_item in items:
-                    new_diff = EntityDiff(
+            # 아이템/오브젝트 통합 처리
+            for loot in items + objs:
+                quantity = loot.quantity if loot.quantity is not None else 1
+                diffs.append(
+                    EntityDiff(
                         state_entity_id=player_id,
                         diff={
-                            "item_entity_id": new_item.state_entity_id,
-                            "quantity": (
-                                new_item.quantity
-                                if new_item.quantity is not None
-                                else 1
-                            ),
+                            "state_entity_id": loot.state_entity_id,
+                            "quantity": quantity,
                         },
                     )
-                    diffs.append(new_diff)
-                    rule(f"diffs.append({new_diff.model_dump()})")
-
-                    new_rel = UpdateRelation(
+                )
+                relations.append(
+                    UpdateRelation(
                         cause_entity_id=player_id,
-                        effect_entity_id=new_item.state_entity_id,
+                        effect_entity_id=loot.state_entity_id,
                         type=RelationType.OWNERSHIP,
                     )
-                    relations.append(new_rel)
-                    rule(f"relations.append({new_rel.model_dump()})")
+                )
 
-                rule(f"{len(items)}개 아이템을 습득했습니다.")
-                logs.append(f"{len(items)}개 아이템을 습득했습니다.")
+            if items or objs:
+                new_items_log = f"{len(items)}개 아이템을 획득했습니다."
+                new_objs_log = f"{len(items)}개 아이템을 획득했습니다."
+                new_loots_log = (
+                    f"[정산] 총 {len(items) + len(objs)}개 전리품을 획득했습니다."
+                )
+                logs.append(new_items_log)
+                logs.append(new_objs_log)
+                logs.append(new_loots_log)
+                rule(new_items_log)
+                rule(new_objs_log)
+                rule(new_loots_log)
 
-            if len(npcs) > 0:
-                if not new_npcs:
-                    rule("새로 마주친 NPC가 없습니다.")
-                    logs.append("새로 마주친 NPC가 없습니다.")
+        # 4. NPC 관계 처리 (성공/실패 공통 로직 내 분기)
+        if new_npcs:
+            for npc in new_npcs:
+                # 결과에 따른 값 설정
+                if dice_result.is_success:
+                    affinity = 21 if dice_result.is_critical_success else 0
+                    rel_type = (
+                        RelationType.LITTLE_FRIENDLY
+                        if dice_result.is_critical_success
+                        else RelationType.NEUTRAL
+                    )
                 else:
-                    for new_npc in new_npcs:
-                        new_diff = EntityDiff(
-                            state_entity_id=player_id,
-                            diff={
-                                "state_entity_id": new_npc.state_entity_id,
-                                "affinity_score": (
-                                    21 if dice_result.is_critical_success else 0
-                                ),
-                            },
-                        )
-                        diffs.append(new_diff)
-                        rule(f"diffs.append({new_diff.model_dump()})")
+                    affinity = -60
+                    rel_type = RelationType.LITTLE_HOSTILE
 
-                        new_rel = UpdateRelation(
-                            cause_entity_id=player_id,
-                            effect_entity_id=new_npc.state_entity_id,
-                            type=(
-                                RelationType.LITTLE_FRIENDLY
-                                if dice_result.is_critical_success
-                                else RelationType.NEUTRAL
-                            ),
-                        )
-                        relations.append(new_rel)
-                        rule(f"relations.append({new_rel.model_dump()})")
-
-                    new_npc_log = f"{len(new_npcs)}명의 새로운 NPC와 {RelationType.LITTLE_FRIENDLY if dice_result.is_critical_success else RelationType.NEUTRAL} 관계를 맺었습니다."
-                    rule(new_npc_log)
-                    logs.append(new_npc_log)
-        else:
-            if len(npcs) > 0:
-                if not new_npcs:
-                    rule("새로 마주친 NPC가 없습니다.")
-                    logs.append("새로 마주친 NPC가 없습니다.")
-                else:
-                    for new_npc in new_npcs:
-                        new_diff = EntityDiff(
-                            state_entity_id=player_id,
-                            diff={
-                                "state_entity_id": new_npc.state_entity_id,
-                                "affinity_score": -60,
-                            },
-                        )
-                        diffs.append(new_diff)
-                        rule(f"diffs.append({new_diff.model_dump()})")
-
-                        new_rel = UpdateRelation(
-                            cause_entity_id=player_id,
-                            effect_entity_id=new_npc.state_entity_id,
-                            type=RelationType.LITTLE_HOSTILE,
-                        )
-                        relations.append(new_rel)
-                        rule(f"relations.append({new_rel.model_dump()})")
-
-                    new_npc_log = f"{len(npcs)}명의 NPC와 {RelationType.LITTLE_HOSTILE} 관계를 맺었습니다."
-                    rule(new_npc_log)
-                    logs.append(new_npc_log)
+                diffs.append(
+                    EntityDiff(
+                        state_entity_id=player_id,
+                        diff={
+                            "state_entity_id": npc.state_entity_id,
+                            "affinity_score": affinity,
+                        },
+                    )
+                )
+                relations.append(
+                    UpdateRelation(
+                        cause_entity_id=player_id,
+                        effect_entity_id=npc.state_entity_id,
+                        type=rel_type,
+                    )
+                )
+            new_npc_log = (
+                f"{len(new_npcs)}명의 새로운 인연을 만났습니다. (결과: {rel_type})"
+            )
+            logs.append(new_npc_log)
+            rule(new_npc_log)
+        elif npcs:
+            new_npc_log = "새로운 만남은 없었지만 주변을 탐색했습니다."
+            logs.append(new_npc_log)
+            rule(new_npc_log)
 
         return HandlerUpdatePhase(
             update=PhaseUpdate(diffs=diffs, relations=relations),
