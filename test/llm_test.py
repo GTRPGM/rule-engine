@@ -12,13 +12,15 @@ SAMPLE_STORIES = [
         PhaseType.COMBAT,
         "어둠 속에서 갑자기 고블린 무리가 무딘 단검을 휘두르며 달려듭니다.",
     ),
-    (PhaseType.DIALOGUE, "성문 앞 경비병이 통행료로 100골드를 요구합니다."),
+    (PhaseType.NEGO, "성문 앞 경비병이 통행료로 100골드를 요구합니다."),
+    (PhaseType.DIALOGUE, "마을 촌장 듄에게 인사를 건냅니다."),
     (PhaseType.EXPLORATION, "오래된 유적의 벽면에 새겨진 기괴한 문양을 조사합니다."),
     (
         PhaseType.COMBAT,
         "주점에서 술을 마시던 중, 옆 테이블의 용병과 시비가 붙었습니다...",
     ),  # 중략
-    (PhaseType.DIALOGUE, "상인 길드장에게 희귀 약초를 팔려고 합니다..."),  # 중략
+    (PhaseType.NEGO, "상인 길드장에게 희귀 약초를 팔려고 합니다..."),  # 중략
+    (PhaseType.DIALOGUE, "미치광이 마법사 수나에게 뇌물을 건냅니다."),  # 중략
     (PhaseType.EXPLORATION, "안개 낀 늪지대에서 길을 잃었습니다..."),  # 중략
     (
         PhaseType.REST,
