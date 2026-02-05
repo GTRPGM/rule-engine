@@ -1,6 +1,6 @@
 {
-  "session_id": 12345,
-  "scenario_id": 10,
+  "session_id": "12345",
+  "scenario_id": "10",
   "locale_id": 1,
   "entities": [
     {
