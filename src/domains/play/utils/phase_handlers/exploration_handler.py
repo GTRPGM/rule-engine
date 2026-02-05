@@ -109,20 +109,12 @@ class ExplorationHandler(PhaseHandler):
                     affinity = -60
                     rel_type = RelationType.LITTLE_HOSTILE
 
-                diffs.append(
-                    EntityDiff(
-                        state_entity_id=player_id,
-                        diff={
-                            "state_entity_id": npc.state_entity_id,
-                            "affinity_score": affinity,
-                        },
-                    )
-                )
                 relations.append(
                     UpdateRelation(
                         cause_entity_id=player_id,
                         effect_entity_id=npc.state_entity_id,
                         type=rel_type,
+                        affinity_score=affinity
                     )
                 )
             new_npc_log = (
