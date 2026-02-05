@@ -80,6 +80,7 @@ class UpdateRelation(BaseModel):
     cause_entity_id: str = Field(description="원인")
     effect_entity_id: str = Field(description="결과")
     type: RelationType
+    affinity_score: Optional[int] = Field(default=None, description="우호도 점수")
 
 
 class PhaseUpdate(BaseModel):

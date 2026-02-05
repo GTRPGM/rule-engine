@@ -43,10 +43,14 @@ class NegoHandler(PhaseHandler):
 
         # 1. 아이템 정보 사전 생성
         item_dict = None
-        item_ids = list(set([e.entity_id for e in items if e.entity_id is not None]))
+        item_ids = list([e.entity_id for e in items if e.entity_id is not None])
+        item_state_ids = list(
+            [e.state_entity_id for e in items if e.state_entity_id is not None]
+        )
+
         if len(item_ids) > 0:
             item_data, _ = await item_service.get_items(
-                item_ids=item_ids, skip=0, limit=100
+                item_ids=list(set(item_ids)), skip=0, limit=100
             )
             item_dict = {item["item_id"]: item for item in item_data}
 
@@ -105,13 +109,17 @@ class NegoHandler(PhaseHandler):
                 rule(success_log)
                 logs.append(success_log)
 
-                new_rel = UpdateRelation(
-                    cause_entity_id=player_id,
-                    effect_entity_id=bargain_item["effect_entity_id"],
-                    type=RelationType.OWNERSHIP,
-                )
-                relations.append(new_rel)
-                rule(f"relations.append({new_rel.model_dump()})")
+                if bargain_item is not None:
+                    bargain_item_state_entity_id = item_state_ids[
+                        item_ids.index(bargain_item["item_id"])
+                    ]
+                    new_rel = UpdateRelation(
+                        cause_entity_id=player_id,
+                        effect_entity_id=bargain_item_state_entity_id,
+                        type=RelationType.OWNERSHIP,
+                    )
+                    relations.append(new_rel)
+                    rule(f"relations.append({new_rel.model_dump()})")
             else:
                 rule("흥정 성공! 하지만 거래할 아이템이 없습니다.")
                 logs.append("흥정 성공! 하지만 거래할 아이템이 없습니다.")
