@@ -1,5 +1,3 @@
-from typing import List
-
 from configs.llm_manager import LLMManager
 from domains.gm.gm_service import GmService
 from domains.info.enemy_service import EnemyService
@@ -35,108 +33,82 @@ class NegoHandler(PhaseHandler):
             items,
             objs,
         ) = await self._categorize_entities(request.entities)
+        logs, diffs, relations = [], [], []
 
-        # 대화 내용에 따른 우호도(Relation) 변화, 아이템 교환에 따른 골드 변화 로직
-        logs: List[str] = []
-        diffs: List[EntityDiff] = []
-        relations: List[UpdateRelation] = []
+        # 1. 아이템 매핑 정보 생성 (ID: State_ID)
+        # item_map: {18: "uuid-1234..."} 형태로 저장하여 index() 에러 방지
+        item_map = {
+            e.entity_id: e.state_entity_id
+            for e in items
+            if e.entity_id and e.state_entity_id
+        }
 
-        # 1. 아이템 정보 사전 생성
-        item_dict = None
-        item_ids = list([e.entity_id for e in items if e.entity_id is not None])
-        item_state_ids = list(
-            [e.state_entity_id for e in items if e.state_entity_id is not None]
-        )
-
-        if len(item_ids) > 0:
-            item_data, _ = await item_service.get_items(
-                item_ids=list(set(item_ids)), skip=0, limit=100
-            )
-            item_dict = {item["item_id"]: item for item in item_data}
-
-        # 2. 흥정 주사위 판정
-        bargain_ability = 3  # 플레이어의 흥정 능력치 (임시값)
-
-        # NPC 우호도 점수를 기반으로 흥정 난이도 설정
-        target_npc_affinity_score = 0
-        for npc_entity in npcs:
-            for rel in request.relations:
-                if (
-                    rel.cause_entity_id == player_id
-                    and rel.effect_entity_id == npc_entity.state_entity_id
-                ) or (
-                    rel.effect_entity_id == player_id
-                    and rel.cause_entity_id == npc_entity.state_entity_id
-                ):
-                    if rel.affinity_score is not None:
-                        target_npc_affinity_score = rel.affinity_score
-                        break
-            if target_npc_affinity_score != 0:
+        # 2. NPC 우호도 조회 (중첩 for문 간소화)
+        target_npc_affinity = 0
+        npc_state_ids = {n.state_entity_id for n in npcs}
+        for rel in request.relations:
+            if (
+                rel.cause_entity_id == player_id
+                and rel.effect_entity_id in npc_state_ids
+            ):
+                target_npc_affinity = rel.affinity_score or 0
                 break
 
-        bargain_difficulty = -target_npc_affinity_score
-        rule(f"NPC 우호도: {target_npc_affinity_score}")
-        rule(f"할인 능력치: {bargain_ability}")
-        rule(f"할인 난이도: {bargain_difficulty}")
-        logs.append(f"NPC 우호도: {target_npc_affinity_score}")
-        logs.append(f"할인 능력치: {bargain_ability}")
-        logs.append(f"할인 난이도: {bargain_difficulty}")
+        # 3. 판정 로직
+        bargain_ability = 3
+        difficulty = -target_npc_affinity
+        dice_result = await gm_service.rolling_dice(bargain_ability, difficulty)
 
-        dice_result = await gm_service.rolling_dice(bargain_ability, bargain_difficulty)
-        dice_result_log = f"흥정 시도... {dice_result.message}{' | 잭팟!!' if dice_result.is_critical_success else ''} | 굴림값 {dice_result.roll_result} + 능력보정치 {dice_result.ability_score} = 총합 {dice_result.total}"
-        rule(dice_result_log)
-        logs.append(dice_result_log)
+        logs.extend(
+            [
+                f"NPC 우호도: {target_npc_affinity}, 난이도: {difficulty}",
+                f"흥정 시도... {dice_result.message} (합계: {dice_result.total})",
+            ]
+        )
+        rule(f"NPC 우호도: {target_npc_affinity}, 난이도: {difficulty}")
+        rule(f"흥정 시도... {dice_result.message} (합계: {dice_result.total})")
 
-        # 3. 흥정 결과에 따른 골드 변동치 적용
-        bargain_gold_change = 0
-        if dice_result.is_success:
-            # 거래 대상 아이템 (현재는 scene에 있는 첫 번째 아이템으로 가정)
-            if item_dict:
-                bargain_item_id = next(iter(item_dict))  # 첫 번째 아이템의 ID를 가져옴
-                bargain_item = item_dict[bargain_item_id]
-                base_price = bargain_item["base_price"]
-
-                # dice_result.roll_result (2~12)에 따라 할인율 차등 적용 (5% ~ 25%)
-                # 2 -> 5%, 12 -> 25%
-                discount_percentage = 5 + (dice_result.roll_result - 2) * 2
-
-                discount_amount = base_price * (discount_percentage / 100.0)
-                player_payment = base_price - int(discount_amount)  # 소수점 이하 버림
-
-                bargain_gold_change = -player_payment  # 플레이어가 지불하므로 음수
-                success_log = f"흥정 성공! 아이템 '{bargain_item['name']}'을(를) {discount_percentage}% 할인된 가격 {player_payment}골드에 구매합니다."
-
-                rule(success_log)
-                logs.append(success_log)
-
-                if bargain_item is not None:
-                    bargain_item_state_entity_id = item_state_ids[
-                        item_ids.index(bargain_item["item_id"])
-                    ]
-                    new_rel = UpdateRelation(
-                        cause_entity_id=player_id,
-                        effect_entity_id=bargain_item_state_entity_id,
-                        type=RelationType.OWNERSHIP,
-                    )
-                    relations.append(new_rel)
-                    rule(f"relations.append({new_rel.model_dump()})")
-            else:
-                rule("흥정 성공! 하지만 거래할 아이템이 없습니다.")
-                logs.append("흥정 성공! 하지만 거래할 아이템이 없습니다.")
-        else:
-            # 흥정 실패 시 페널티 (예: 정가 지불 혹은 거래 불가)
-            # 여기서는 흥정 실패 시 거래가 성사되지 않는 것으로 가정하고 골드 변화 없음
-            rule("흥정 실패! 거래가 성사되지 않았습니다.")
-            logs.append("흥정 실패! 거래가 성사되지 않았습니다.")
-
-        # 플레이어 골드 변동치 적용
-        if bargain_gold_change != 0:
-            new_diff = EntityDiff(
-                state_entity_id=player_id,
-                diff={"gold": bargain_gold_change},
+        # 4. 흥정 성공 처리
+        if dice_result.is_success and item_map:
+            # DB에서 아이템 상세 정보 가져오기
+            item_data, _ = await item_service.get_items(
+                item_ids=list(item_map.keys()), skip=0, limit=1
             )
-            diffs.append(new_diff)
-            rule(f"diffs.append({new_diff.model_dump()})")
+
+            if item_data:
+                target_item = item_data[0]
+                item_id = target_item["item_id"]
+
+                # 할인율 계산 및 골드 변동액 산출
+                discount_rate = 5 + (dice_result.roll_result - 2) * 2
+                final_price = int(target_item["base_price"] * (1 - discount_rate / 100))
+
+                success_log = f"흥정 성공! '{target_item['name']}'을 {discount_rate}% 할인된 {final_price}골드에 구매."
+                logs.append(success_log)
+                rule(success_log)
+
+                # 소유권 변경 (Relations) - item_map을 사용하여 안전하게 접근
+                new_rel = UpdateRelation(
+                    cause_entity_id=player_id,
+                    effect_entity_id=item_map[item_id],
+                    type=RelationType.OWNERSHIP,
+                )
+                relations.append(new_rel.model_dump())
+                rule(f"relations.append({new_rel.model_dump()})")
+
+                # 골드 차감 (Diffs)
+                new_diff = EntityDiff(
+                    state_entity_id=player_id, diff={"gold": -final_price}
+                )
+                diffs.append(new_diff.model_dump())
+                rule(f"diffs.append({new_diff.model_dump()})")
+            else:
+                logs.append("거래 가능한 아이템 정보를 찾을 수 없습니다.")
+                rule("거래 가능한 아이템 정보를 찾을 수 없습니다.")
+
+        elif not dice_result.is_success:
+            logs.append("흥정 실패! 거래가 성사되지 않았습니다.")
+            rule("흥정 실패! 거래가 성사되지 않았습니다.")
 
         return HandlerUpdatePhase(
             update=PhaseUpdate(diffs=diffs, relations=relations),
