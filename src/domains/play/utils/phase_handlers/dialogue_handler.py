@@ -123,21 +123,25 @@ class DialogueHandler(PhaseHandler):
                     relation_grade = RelationType.NEUTRAL
 
             new_diff = EntityDiff(
-                    state_entity_id=target_npc_state_id,
-                    diff={"affinity_score": affinity_change_amount},
-                )
+                state_entity_id=player_id,
+                diff={
+                    "state_entity_id": target_npc_state_id,
+                    "affinity_score": affinity_change_amount,
+                },
+            )
             diffs.append(new_diff)
             rule(f"diffs.append({new_diff.model_dump()})")
+            logs.append(f"diffs.append({new_diff.model_dump()})")
 
             new_rel = UpdateRelation(
-                    cause_entity_id=player_id,
-                    effect_entity_id=target_npc_state_id,
-                    type=relation_grade,
-                    affinity_score=total_affinity,
-                )
+                cause_entity_id=player_id,
+                effect_entity_id=target_npc_state_id,
+                type=relation_grade,
+            )
 
             relations.append(new_rel)
             rule(f"relations.append({new_rel.model_dump()})")
+            logs.append(f"relations.append({new_rel.model_dump()})")
         else:
             rule("대화할 NPC를 찾을 수 없어 우호도 변경을 적용하지 않습니다.")
             logs.append("대화할 NPC를 찾을 수 없어 우호도 변경을 적용하지 않습니다.")
