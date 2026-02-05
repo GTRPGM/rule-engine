@@ -34,24 +34,25 @@ class ExplorationHandler(PhaseHandler):
             objs,
         ) = await self._categorize_entities(request.entities)
 
+        # 탐험 활동에 따른 관계 변화 로직 구현
+        logs, diffs, relations = [], [], []
+
         if not player_id or not player_state:
-            rule(
-                "⚠️ 경고: 탐색 핸들러에서 플레이어 ID 또는 상태가 누락되었습니다. 플레이어 관련 로직을 건너뛰었습니다."
-            )
+            no_player_id_log = "⚠️ 경고: 탐색 핸들러에서 플레이어 ID 또는 상태가 누락되었습니다. 플레이어 관련 로직을 건너뛰었습니다."
+            logs.append(no_player_id_log)
+            rule(no_player_id_log)
             return HandlerUpdatePhase(
                 update=PhaseUpdate(diffs=[], relations=[]),
                 is_success=True,  # Default to success to continue flow
                 logs=["플레이어 정보를 찾을 수 없어 탐험 판정을 건너뜁니다."],
             )
 
-        # 탐험 활동에 따른 관계 변화 로직 구현
-        logs, diffs, relations = [], [], []
-
         # 1. 주사위 판정 (플레이어 스탯 연동 권장)
         # player_luck: 플레이어 정보에서 perception(통찰력/인지력) 능력치 찾기(없으면 기본값 2)
         player_luck = getattr(player_state, "perception", 2)
         dice_result = await gm_service.rolling_dice(player_luck, 6)
         logs.append(f"탐험 시도... {dice_result.message} (총합: {dice_result.total})")
+        rule(f"탐험 시도... {dice_result.message} (총합: {dice_result.total})")
 
         # 2. 신규 NPC 필터링 (Set 사용으로 최적화)
         known_npc_ids = {
