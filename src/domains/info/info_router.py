@@ -55,6 +55,8 @@ class InfoHandler:
             )
 
             return {"data": {"items": items, "meta": meta}}
+        except HTTPException as he:
+            raise he
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -77,6 +79,8 @@ class InfoHandler:
             )
 
             return {"data": {"enemies": enemies, "meta": meta}}
+        except HTTPException as he:
+            raise he
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -96,9 +100,11 @@ class InfoHandler:
             if not enemy:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail="해당 적을 찾을 수 없습니다."
+                    detail="해당 적을 찾을 수 없습니다.",
                 )
             return {"data": enemy}
+        except HTTPException as he:
+            raise he
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -121,6 +127,8 @@ class InfoHandler:
             )
 
             return {"data": {"npcs": npcs, "meta": meta}}
+        except HTTPException as he:
+            raise he
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -141,6 +149,8 @@ class InfoHandler:
         try:
             npc = await npc_service.get_npc_by_id(npc_id)
             return {"data": npc}
+        except HTTPException as he:
+            raise he
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -163,6 +173,8 @@ class InfoHandler:
             )
 
             return {"data": {"personalities": personalities, "meta": meta}}
+        except HTTPException as he:
+            raise he
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -189,6 +201,8 @@ class InfoHandler:
         try:
             world_data = await world_service.get_world(include_keys)
             return {"data": world_data}
+        except HTTPException as he:
+            raise he
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

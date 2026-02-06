@@ -31,6 +31,8 @@ class ScenarioHandler:
             new_id = await scenario_service.add_item(request_data)
             return {"data": new_id, "message": "아이템이 생성되었습니다."}
 
+        except HTTPException as he:
+            raise he
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         except Exception as e:
@@ -54,6 +56,8 @@ class ScenarioHandler:
             new_id = await scenario_service.add_enemy(request_data)
             return {"data": new_id, "message": "적이 생성되었습니다."}
 
+        except HTTPException as he:
+            raise he
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         except Exception as e:
@@ -77,6 +81,8 @@ class ScenarioHandler:
             new_id = await scenario_service.add_enemy_drop(request_data)
             return {"data": new_id, "message": "적 드랍 아이템 정보가 생성되었습니다."}
 
+        except HTTPException as he:
+            raise he
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         except Exception as e:
@@ -100,6 +106,8 @@ class ScenarioHandler:
             new_id = await scenario_service.add_npc(request_data)
             return {"data": new_id, "message": "NPC가 생성되었습니다."}
 
+        except HTTPException as he:
+            raise he
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         except Exception as e:
@@ -123,6 +131,8 @@ class ScenarioHandler:
             new_id = await scenario_service.add_npc_inventory(request_data)
             return {"data": new_id, "message": "NPC 인벤토리가 생성되었습니다."}
 
+        except HTTPException as he:
+            raise he
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         except Exception as e:

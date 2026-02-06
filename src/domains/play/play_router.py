@@ -44,6 +44,8 @@ class PlayRouter:
         try:
             result = await play_service.play_scene(request)
             return {"data": result, "message": "룰 판정 결과를 반환합니다."}
+        except HTTPException as he:
+            raise he
         except Exception as e:
             error(f"시나리오 파악 오류: {e}")
             raise HTTPException(
@@ -79,6 +81,8 @@ class PlayRouter:
             riddle_stream = await service.generate_and_save_riddle(user_id)
 
             return StreamingResponse(riddle_stream, media_type="text/event-stream")
+        except HTTPException as he:
+            raise he
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"수수께끼 생성 실패: {str(e)}")
 
@@ -112,6 +116,8 @@ class PlayRouter:
             )
 
             return StreamingResponse(what_stream, media_type="text/event-stream")
+        except HTTPException as he:
+            raise he
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"문제 생성 실패: {str(e)}")
 
@@ -139,6 +145,8 @@ class PlayRouter:
                 raise HTTPException(status_code=404, detail=feedback.message)
 
             return WrappedResponse[AnswerResponse](data=feedback)
+        except HTTPException as he:
+            raise he
         except Exception as e:
             raise HTTPException(
                 status_code=500,
