@@ -106,22 +106,43 @@ class PlayService:
 
         final_state: PlaySessionState = await self.graph.ainvoke(initial_state)
 
-        return PlaySceneResponse(
-            session_id=final_state.request.session_id,
-            scenario_id=final_state.request.scenario_id,
-            phase_type=(
+        if isinstance(final_state, dict):
+            # 딕셔너리 데이터를 기반으로 응답 생성
+            analysis = final_state.get("analysis") or initial_state.analysis
+            is_success = final_state.get("is_success", False)
+            diffs = final_state.get("diffs", [])
+            relations = final_state.get("relations", [])
+            logs = final_state.get("logs", [])
+            phase_type = analysis.phase_type if analysis else PhaseType.UNKNOWN
+            reason = analysis.reason if analysis else "분석 실패"
+            session_id = request.session_id
+            scenario_id = request.scenario_id
+        else:
+            # 객체인 경우 (기존 로직)
+            session_id = final_state.request.session_id
+            scenario_id = final_state.request.scenario_id
+            phase_type = (
                 final_state.analysis.phase_type
                 if final_state.analysis
                 else PhaseType.UNKNOWN
-            ),
-            reason=final_state.analysis.reason if final_state.analysis else "분석 실패",
-            success=(
+            )
+            reason = (
+                final_state.analysis.reason if final_state.analysis else "분석 실패"
+            )
+            is_success = (
                 final_state.is_success if final_state.is_success is not None else False
-            ),
-            suggested=PhaseUpdate(
-                diffs=final_state.diffs,
-                relations=final_state.relations,
-            ),
+            )
+            diffs = final_state.diffs
+            relations = final_state.relations
+            logs = final_state.logs
+
+        return PlaySceneResponse(
+            session_id=session_id,
+            scenario_id=scenario_id,
+            phase_type=phase_type,
+            reason=reason,
+            success=is_success,
+            suggested=PhaseUpdate(diffs=diffs, relations=relations),
             value_range=12,
-            logs=final_state.logs,
+            logs=logs,
         )

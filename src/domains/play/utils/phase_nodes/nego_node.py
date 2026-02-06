@@ -16,10 +16,20 @@ async def nego_node(state: PlaySessionState) -> Dict[str, Any]:
     diffs = state.diffs[:]
     relations = state.relations[:]
 
+    from domains.play.dtos.play_dtos import EntityType, EntityUnit  # Added import
+
     player_id = state.current_player_id
     player_state = state.player_state
-    npcs = state.npcs
-    items = state.drop_items
+    npcs = [EntityUnit(**npc) for npc in state.npc_data] if state.npc_data else []
+    items = (
+        [
+            EntityUnit(**data)
+            for data in state.item_data
+            if EntityUnit(**data).entity_type == EntityType.ITEM
+        ]
+        if state.item_data
+        else []
+    )
 
     gm_service: GmService = state.gm_service
     item_service: ItemService = state.item_service

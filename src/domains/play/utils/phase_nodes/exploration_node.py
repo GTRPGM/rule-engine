@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 from domains.gm.gm_service import GmService
 from domains.play.dtos.play_dtos import (
+    EntityUnit,
     PlaySessionState,
     RelationType,
     UpdateRelation,
@@ -16,9 +17,23 @@ async def exploration_node(state: PlaySessionState) -> Dict[str, Any]:
 
     player_id = state.current_player_id
     player_state = state.player_state
-    npcs = state.npcs
-    items = state.drop_items
-    objs = state.objects
+
+    from domains.play.dtos.play_dtos import EntityType  # Added import
+
+    npcs = [EntityUnit(**npc) for npc in state.npc_data] if state.npc_data else []
+    all_items_and_objects = (
+        [EntityUnit(**data) for data in state.item_data] if state.item_data else []
+    )
+    items = [
+        entity
+        for entity in all_items_and_objects
+        if entity.entity_type == EntityType.ITEM
+    ]
+    objs = [
+        entity
+        for entity in all_items_and_objects
+        if entity.entity_type == EntityType.OBJECT
+    ]
 
     gm_service: GmService = state.gm_service
 
@@ -41,7 +56,7 @@ async def exploration_node(state: PlaySessionState) -> Dict[str, Any]:
 
     # 2. 신규 NPC 필터링 (Set 사용으로 최적화)
     known_npc_ids = {
-        rel.npc_id for rel in player_state.player.npc_relations if rel.npc_id
+        rel.npc_id for rel in player_state.player_npc_relations if rel.npc_id
     }
     new_npcs = [n for n in npcs if n.state_entity_id not in known_npc_ids]
 

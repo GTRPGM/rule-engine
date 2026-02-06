@@ -137,6 +137,8 @@ class PlaySessionState(BaseModel):
     player_state: Optional[FullPlayerState] = None
     world_data: Optional[Dict] = None
     enemy_data: Optional[List[Dict]] = None
+    npc_data: Optional[List[Dict]] = None
+    item_data: Optional[List[Dict]] = None
     diffs: List[EntityDiff] = Field(default_factory=list)
     relations: List[UpdateRelation] = Field(default_factory=list)
     is_success: Optional[bool] = None
@@ -145,8 +147,8 @@ class PlaySessionState(BaseModel):
     # 플레이어
     current_player_id: str = ""
     # Services
-    item_service: ItemService
-    enemy_service: EnemyService
-    gm_service: GmService
-    world_service: WorldService
-    llm: Union[LLMManager, Any]
+    item_service: ItemService = Field(exclude=True)
+    enemy_service: EnemyService = Field(exclude=True)
+    gm_service: GmService = Field(exclude=True)
+    world_service: WorldService = Field(exclude=True)
+    llm: Union[LLMManager, Any] = Field(exclude=True)
