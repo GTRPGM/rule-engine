@@ -1,3 +1,4 @@
+import json
 from typing import Any, List, Optional
 
 import httpx
@@ -74,12 +75,10 @@ class NarrativeChatModel(BaseChatModel):
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> ChatResult:
-        import json
-
         schema_messages = [self._convert_message_to_schema(m) for m in messages]
 
         request_body = ChatCompletionRequest(
-            model="gemini-2.0-flash",
+            model="gpt-4o-mini",
             messages=schema_messages,
             temperature=kwargs.get("temperature", self.temperature),
             max_tokens=kwargs.get("max_tokens"),
@@ -143,26 +142,74 @@ class NarrativeChatModel(BaseChatModel):
         return ChatResult(generations=[generation])
 
     def with_structured_output(self, schema, *, method: str = "json_schema", **kwargs):
-        async def _call(messages):
-            result = await self.ainvoke(
-                messages,
-                response_format={
-                    "type": "json_schema",
-                    "json_schema": {"schema": schema.model_json_schema()},
-                },
+        async def _call(input_data: Any) -> Any:
+            # 1. 입력 데이터 타입별 메시지 추출 (PromptValue 대응 추가)
+            if hasattr(input_data, "to_messages"):
+                # ChatPromptValue 등 PromptValue 객체인 경우
+                messages = input_data.to_messages()
+            elif isinstance(input_data, dict) and "messages" in input_data:
+                messages = input_data["messages"]
+            elif isinstance(input_data, list):
+                messages = input_data
+            else:
+                messages = (
+                    [input_data] if not isinstance(input_data, list) else input_data
+                )
+
+            # 2. JSON Schema 추출 (Pydantic 모델 대응)
+            schema_str = ""
+            if hasattr(schema, "model_json_schema"):
+                schema_str = json.dumps(
+                    schema.model_json_schema(), indent=2, ensure_ascii=False
+                )
+
+            # 3. 시스템 메시지에 지시사항 주입
+            modified_messages = list(messages)
+            schema_instruction = (
+                "\n\nYour response MUST be a single JSON object "
+                f"matching this schema:\n```json\n{schema_str}\n```\n"
+                "Do not include any explanation or markdown outside the JSON."
             )
 
-            content = result.content
+            # 기존 시스템 메시지 찾기
+            system_msg_index = -1
+            for i, m in enumerate(modified_messages):
+                if isinstance(m, SystemMessage):
+                    system_msg_index = i
+                    break
 
-            # LangChain content 규격(list[str|dict]) 처리
-            if isinstance(content, list):
-                if not content:
-                    raise ValueError("Empty structured output")
-                data = content[0]
+            if system_msg_index != -1:
+                # 기존 시스템 메시지가 있으면 내용 추가
+                modified_messages[system_msg_index] = SystemMessage(
+                    content=str(modified_messages[system_msg_index].content)
+                    + schema_instruction
+                )
             else:
-                data = content
+                # 없으면 맨 앞에 추가
+                modified_messages.insert(0, SystemMessage(content=schema_instruction))
 
-            # Pydantic 객체로 직접 변환
+            # 4. 모델 호출 (ainvoke 사용)
+            result = await self.ainvoke(
+                modified_messages,
+                response_format={"type": "json_object"},
+            )
+
+            # 5. 결과 파싱 및 검증
+            content = result.content
+            # _agenerate에서 content를 이미 list나 dict로 파싱했을 수 있음 처리
+            data = (
+                content[0]
+                if isinstance(content, list) and len(content) > 0
+                else content
+            )
+
+            if isinstance(data, str):
+                try:
+                    data = json.loads(data)
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"Failed to parse JSON response: {data}") from e
+
+            # Pydantic 모델로 변환하여 반환
             return schema.model_validate(data)
 
         return RunnableLambda(_call)

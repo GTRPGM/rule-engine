@@ -4,7 +4,7 @@
   "locale_id": 7,
   "entities": [
     {
-      "state_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "state_entity_id": "66c3b5e1-b9e3-40ee-a420-db1fc9ecc173",
       "phase_id": 1,
       "entity_name": "아리",
       "entity_type": "player"
@@ -19,7 +19,7 @@
   ],
   "relations": [
     {
-      "cause_entity_id": "ddfae707-229d-4950-823e-b495c9ad680e",
+      "cause_entity_id": "66c3b5e1-b9e3-40ee-a420-db1fc9ecc173",
       "effect_entity_id": "npc_merchant_42",
       "type": "중립적",
       "affinity_score": 10
