@@ -1,0 +1,55 @@
+from domains.user.dtos.user_dtos import UserCreateRequest, UserInfo, UserUpdateRequest
+from utils.load_sql import load_sql
+
+
+class UserService:
+    def __init__(self, cursor):
+        self.cursor = cursor
+        self.get_user_sql = load_sql("user", "select_user")
+        self.add_user_sql = load_sql("user", "insert_user")
+        self.update_user_sql = load_sql("user", "update_user")
+        self.del_user_sql = load_sql("user", "delete_user")
+
+    async def create_user(self, request: UserCreateRequest) -> UserInfo:
+        await self.cursor.execute(self.add_user_sql, request.model_dump())
+        user_data = await self.cursor.fetchone()
+
+        if user_data:
+            return UserInfo(
+                user_id=user_data[0],
+                username=user_data[1],
+                email=user_data[2],
+                created_at=user_data[3],
+            )
+
+        raise Exception("회원 가입에 실패했습니다.")
+
+    async def update_user(self, request: UserUpdateRequest) -> UserInfo | None:
+        await self.cursor.execute(self.update_user_sql, request.model_dump())
+        user_data = await self.cursor.fetchone()
+
+        if user_data:
+            return UserInfo(
+                user_id=user_data[0],
+                username=user_data[1],
+                email=user_data[2],
+                created_at=user_data[3],
+            )
+        return None
+
+    async def get_user(self, user_id: int) -> UserInfo | None:
+        await self.cursor.execute(self.get_user_sql, (user_id,))
+        user_data = await self.cursor.fetchone()
+
+        if user_data:
+            return UserInfo(
+                user_id=user_data[0],
+                username=user_data[1],
+                email=user_data[2],
+                created_at=user_data[3],
+            )
+        return None
+
+    async def del_user(self, user_id: int) -> int:
+        await self.cursor.execute(self.del_user_sql, (user_id,))
+        return user_id
