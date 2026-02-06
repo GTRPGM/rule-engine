@@ -15,12 +15,7 @@ class UserService:
         user_data = self.cursor.fetchone()
 
         if user_data:
-            return UserInfo(
-                user_id=user_data[0],
-                username=user_data[1],
-                email=user_data[2],
-                created_at=user_data[3],
-            )
+            return UserInfo(**user_data)
 
         raise Exception("회원 가입에 실패했습니다.")
 
@@ -29,12 +24,7 @@ class UserService:
         user_data = self.cursor.fetchone()
 
         if user_data:
-            return UserInfo(
-                user_id=user_data[0],
-                username=user_data[1],
-                email=user_data[2],
-                created_at=user_data[3],
-            )
+            return UserInfo(**user_data)
         return None
 
     async def get_user(self, user_id: int) -> UserInfo | None:
@@ -42,12 +32,7 @@ class UserService:
         user_data = self.cursor.fetchone()
 
         if user_data:
-            return UserInfo(
-                user_id=user_data[0],
-                username=user_data[1],
-                email=user_data[2],
-                created_at=user_data[3],
-            )
+            return UserInfo(**user_data)
         return None
 
     async def del_user(self, user_id: int) -> int | None:
@@ -55,5 +40,5 @@ class UserService:
         user_data = self.cursor.fetchone()
 
         if user_data:
-            return user_data[0]
+            return user_data["user_id"]
         return None
