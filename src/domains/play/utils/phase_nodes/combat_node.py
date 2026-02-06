@@ -75,7 +75,7 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
                     }
                 )
 
-    # Logic from CombatHandler.calculate_player_combat_power
+    # 플레이어 전투력 계산
     combat_logs: List[str] = []
     dice = await gm_service.rolling_dice(2, 6)
     dice_result_log = f"전투 시도... {dice.message}{' | 잭팟!!' if dice.is_critical_success else ''} | 굴림값 {dice.roll_result} + 능력보정치 {dice.ability_score} = 총합 {dice.total}"
