@@ -17,6 +17,11 @@ class UserUpdateRequest(BaseModel):
     email: str
 
 
+class UserPWUpdateRequest(BaseModel):
+    user_id: int
+    password_hash: str
+
+
 class UserCreateRequest(BaseModel):
     username: str
     password_hash: str

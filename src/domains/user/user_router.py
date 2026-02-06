@@ -3,7 +3,12 @@ from fastapi_utils.cbv import Depends, cbv
 
 from common.dtos.wrapped_response import WrappedResponse
 from common.utils.get_services import get_user_service
-from domains.user.dtos.user_dtos import UserCreateRequest, UserInfo, UserUpdateRequest
+from domains.user.dtos.user_dtos import (
+    UserCreateRequest,
+    UserInfo,
+    UserPWUpdateRequest,
+    UserUpdateRequest,
+)
 from domains.user.user_service import UserService
 
 user_router = APIRouter(prefix="/user", tags=["회원 가입 / 탈퇴"])
@@ -54,7 +59,7 @@ class UserHandler:
                 detail=f"회원 가입 중 오류가 발생했습니다: {e}",
             )
 
-    @user_router.post(
+    @user_router.put(
         "/update", response_model=WrappedResponse[UserInfo], summary="회원 정보 수정"
     )
     async def update_user(
@@ -76,6 +81,30 @@ class UserHandler:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"회원 정보 수정 중 오류가 발생했습니다: {e}",
+            )
+
+    @user_router.patch(
+        "/password", response_model=WrappedResponse[int], summary="회원 비밀번호 변경"
+    )
+    async def update_password(
+        self,
+        request: UserPWUpdateRequest,
+        user_service: UserService = Depends(get_user_service),
+    ):
+        try:
+            user_id = await user_service.update_user_password(request)
+            if not user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="존재하지 않는 회원입니다.",
+                )
+            return {"data": user_id, "message": "비밀번호를 변경했습니다."}
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"비밀번호 변경 중 오류가 발생했습니다: {e}",
             )
 
     @user_router.delete(

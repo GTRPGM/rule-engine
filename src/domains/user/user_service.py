@@ -1,4 +1,9 @@
-from domains.user.dtos.user_dtos import UserCreateRequest, UserInfo, UserUpdateRequest
+from domains.user.dtos.user_dtos import (
+    UserCreateRequest,
+    UserInfo,
+    UserPWUpdateRequest,
+    UserUpdateRequest,
+)
 from utils.load_sql import load_sql
 
 
@@ -8,7 +13,16 @@ class UserService:
         self.get_user_sql = load_sql("user", "select_user")
         self.add_user_sql = load_sql("user", "insert_user")
         self.update_user_sql = load_sql("user", "update_user")
+        self.update_user_password_sql = load_sql("user", "update_user_password")
         self.del_user_sql = load_sql("user", "delete_user")
+
+    async def get_user(self, user_id: int) -> UserInfo | None:
+        self.cursor.execute(self.get_user_sql, (user_id,))
+        user_data = self.cursor.fetchone()
+
+        if user_data:
+            return UserInfo(**user_data)
+        return None
 
     async def create_user(self, request: UserCreateRequest) -> UserInfo:
         self.cursor.execute(self.add_user_sql, request.model_dump())
@@ -27,12 +41,13 @@ class UserService:
             return UserInfo(**user_data)
         return None
 
-    async def get_user(self, user_id: int) -> UserInfo | None:
-        self.cursor.execute(self.get_user_sql, (user_id,))
+    async def update_user_password(self, request: UserPWUpdateRequest) -> int | None:
+        self.cursor.execute(self.update_user_password_sql, request.model_dump())
         user_data = self.cursor.fetchone()
 
         if user_data:
-            return UserInfo(**user_data)
+            return user_data["user_id"]
+
         return None
 
     async def del_user(self, user_id: int) -> int | None:
