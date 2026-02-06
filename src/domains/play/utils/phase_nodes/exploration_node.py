@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from domains.gm.gm_service import GmService
 from domains.play.dtos.play_dtos import (
-    EntityUnit,
+    EntityType,
     PlaySessionState,
     RelationType,
     UpdateRelation,
@@ -18,20 +18,16 @@ async def exploration_node(state: PlaySessionState) -> Dict[str, Any]:
     player_id = state.current_player_id
     player_state = state.player_state
 
-    from domains.play.dtos.play_dtos import EntityType  # Added import
-
-    npcs = [EntityUnit(**npc) for npc in state.npc_data] if state.npc_data else []
-    all_items_and_objects = (
-        [EntityUnit(**data) for data in state.item_data] if state.item_data else []
-    )
+    entities_in_request = state.request.entities
+    npcs = [e for e in entities_in_request if e.entity_type == EntityType.NPC]
     items = [
         entity
-        for entity in all_items_and_objects
+        for entity in entities_in_request
         if entity.entity_type == EntityType.ITEM
     ]
     objs = [
         entity
-        for entity in all_items_and_objects
+        for entity in entities_in_request
         if entity.entity_type == EntityType.OBJECT
     ]
 
@@ -71,6 +67,7 @@ async def exploration_node(state: PlaySessionState) -> Dict[str, Any]:
                 quantity=quantity,
             )
             relations.append(loot_rel)
+            rule(f"relations.append({loot_rel})")
 
         if items or objs:
             total_items_qty = sum((getattr(item, "quantity", 1) or 1) for item in items)
@@ -107,14 +104,14 @@ async def exploration_node(state: PlaySessionState) -> Dict[str, Any]:
                 affinity = -60
                 rel_type = RelationType.LITTLE_HOSTILE
 
-            relations.append(
-                UpdateRelation(
+            new_rel = UpdateRelation(
                     cause_entity_id=player_id,
                     effect_entity_id=npc.state_entity_id,
                     type=rel_type,
                     affinity_score=affinity,
                 )
-            )
+            relations.append(new_rel)
+            rule(f"relations.append({new_rel})")
         new_npc_log = (
             f"{len(new_npcs)}명의 새로운 인연을 만났습니다. (결과: {rel_type})"
         )

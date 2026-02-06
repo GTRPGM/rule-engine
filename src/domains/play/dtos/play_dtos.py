@@ -136,9 +136,6 @@ class PlaySessionState(BaseModel):
     analysis: Optional[SceneAnalysis] = None
     player_state: Optional[FullPlayerState] = None
     world_data: Optional[Dict] = None
-    enemy_data: Optional[List[Dict]] = None
-    npc_data: Optional[List[Dict]] = None
-    item_data: Optional[List[Dict]] = None
     diffs: List[EntityDiff] = Field(default_factory=list)
     relations: List[UpdateRelation] = Field(default_factory=list)
     is_success: Optional[bool] = None

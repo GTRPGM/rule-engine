@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 from domains.gm.gm_service import GmService
 from domains.play.dtos.play_dtos import (
+    EntityType,
     PlaySessionState,
     RelationType,
     UpdateRelation,
@@ -14,11 +15,10 @@ async def dialogue_node(state: PlaySessionState) -> Dict[str, Any]:
     diffs = state.diffs[:]
     relations = state.relations[:]
 
-    from domains.play.dtos.play_dtos import EntityUnit  # Added import
-
     player_id = state.current_player_id
     player_state = state.player_state
-    npcs = [EntityUnit(**npc) for npc in state.npc_data] if state.npc_data else []
+    entities_in_request = state.request.entities
+    npcs = [e for e in entities_in_request if e.entity_type == EntityType.NPC]
 
     gm_service: GmService = state.gm_service
 

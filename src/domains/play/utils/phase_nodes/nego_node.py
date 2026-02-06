@@ -4,6 +4,7 @@ from domains.gm.gm_service import GmService
 from domains.info.item_service import ItemService
 from domains.play.dtos.play_dtos import (
     EntityDiff,
+    EntityType,
     PlaySessionState,
     RelationType,
     UpdateRelation,
@@ -16,20 +17,15 @@ async def nego_node(state: PlaySessionState) -> Dict[str, Any]:
     diffs = state.diffs[:]
     relations = state.relations[:]
 
-    from domains.play.dtos.play_dtos import EntityType, EntityUnit  # Added import
-
     player_id = state.current_player_id
     player_state = state.player_state
-    npcs = [EntityUnit(**npc) for npc in state.npc_data] if state.npc_data else []
-    items = (
-        [
-            EntityUnit(**data)
-            for data in state.item_data
-            if EntityUnit(**data).entity_type == EntityType.ITEM
-        ]
-        if state.item_data
-        else []
-    )
+    entities_in_request = state.request.entities
+    npcs = [e for e in entities_in_request if e.entity_type == EntityType.NPC]
+    items = [
+        entity
+        for entity in entities_in_request
+        if entity.entity_type == EntityType.ITEM
+    ]
 
     gm_service: GmService = state.gm_service
     item_service: ItemService = state.item_service
