@@ -3,7 +3,6 @@ from domains.gm.gm_service import GmService
 from domains.info.enemy_service import EnemyService
 from domains.info.item_service import ItemService
 from domains.play.dtos.play_dtos import (
-    EntityDiff,
     HandlerUpdatePhase,
     PhaseUpdate,
     PlaySceneRequest,

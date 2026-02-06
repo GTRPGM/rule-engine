@@ -1,3 +1,4 @@
+import json
 from typing import Any, List, Optional
 
 import httpx
@@ -74,7 +75,6 @@ class NarrativeChatModel(BaseChatModel):
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> ChatResult:
-        import json
 
         schema_messages = [self._convert_message_to_schema(m) for m in messages]
 
@@ -143,26 +143,55 @@ class NarrativeChatModel(BaseChatModel):
         return ChatResult(generations=[generation])
 
     def with_structured_output(self, schema, *, method: str = "json_schema", **kwargs):
-        async def _call(messages):
+        async def _call(messages: List[BaseMessage]) -> Any:
+            # Extract JSON schema for prompt injection
+            schema_str = ""
+            if hasattr(schema, "model_json_schema"):
+                schema_str = json.dumps(
+                    schema.model_json_schema(), indent=2, ensure_ascii=False
+                )
+
+            # Inject schema into the system message if not already present
+            modified_messages = list(messages)
+            schema_instruction = (
+                "\n\nYour response MUST be a single JSON object "
+                f"matching this schema:\n```json\n{schema_str}\n```\n"
+                "Do not include any explanation or markdown outside the JSON."
+            )
+
+            # Find system message to append instruction
+            system_msg_index = -1
+            for i, m in enumerate(modified_messages):
+                if isinstance(m, SystemMessage):
+                    system_msg_index = i
+                    break
+
+            if system_msg_index != -1:
+                modified_messages[system_msg_index] = SystemMessage(
+                    content=modified_messages[system_msg_index].content
+                    + schema_instruction
+                )
+            else:
+                modified_messages.insert(0, SystemMessage(content=schema_instruction))
+
             result = await self.ainvoke(
-                messages,
-                response_format={
-                    "type": "json_schema",
-                    "json_schema": {"schema": schema.model_json_schema()},
-                },
+                modified_messages,
+                response_format={"type": "json_object"},
             )
 
             content = result.content
-
-            # LangChain content 규격(list[str|dict]) 처리
-            if isinstance(content, list):
-                if not content:
-                    raise ValueError("Empty structured output")
+            # Handle cases where result.content might be a string or a list/dict
+            if isinstance(content, list) and len(content) > 0:
                 data = content[0]
             else:
                 data = content
 
-            # Pydantic 객체로 직접 변환
+            if isinstance(data, str):
+                try:
+                    data = json.loads(data)
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"Failed to parse JSON response: {data}") from e
+
             return schema.model_validate(data)
 
         return RunnableLambda(_call)
