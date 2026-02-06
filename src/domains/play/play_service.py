@@ -1,103 +1,127 @@
-import os
-from typing import List
-
-import aiofiles
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnableConfig
+from langgraph.graph import END, StateGraph
 
 from configs.llm_manager import LLMManager
-from configs.setting import APP_ENV
 from domains.gm.gm_service import GmService
-from domains.info.dtos.world_dtos import WorldInfoKey
 from domains.info.enemy_service import EnemyService
 from domains.info.item_service import ItemService
 from domains.info.world_service import WorldService
 from domains.play.dtos.play_dtos import (
+    PhaseType,
+    PhaseUpdate,
     PlaySceneRequest,
     PlaySceneResponse,
+    PlaySessionState,
     SceneAnalysis,
 )
-from domains.play.utils.phase_handler_factory import PhaseHandlerFactory
+from domains.play.utils.nodes import (
+    analyze_scene_node,
+    categorize_entities_node,
+    fetch_world_data_node,
+)
+from domains.play.utils.phase_nodes.combat_node import combat_node
+from domains.play.utils.phase_nodes.dialogue_node import dialogue_node
+from domains.play.utils.phase_nodes.exploration_node import exploration_node
+from domains.play.utils.phase_nodes.nego_node import nego_node
+from domains.play.utils.phase_nodes.recovery_node import recovery_node
+from domains.play.utils.phase_nodes.rest_node import rest_node
+from domains.play.utils.phase_nodes.unknown_node import unknown_node
 from utils.logger import rule
 
 
 class PlayService:
     def __init__(self, cursor, llm_provider="gateway"):
         self.cursor = cursor
-        self.llm = LLMManager.get_instance(llm_provider)
-        self.analyzer = self.llm.with_structured_output(SceneAnalysis)
+        self.llm_manager = LLMManager.get_instance(llm_provider)
+        self.analyzer = self.llm_manager.with_structured_output(SceneAnalysis)
         self.gm_service = GmService(cursor)
         self.world_service = WorldService(cursor)
         self.item_service = ItemService(cursor)
         self.enemy_service = EnemyService(cursor)
 
-    async def analyze_scene(self, story: str) -> SceneAnalysis:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        prompt_path = os.path.join(current_dir, "prompts", "instruction.md")
+        # 랭그래프 빌드
+        workflow = StateGraph(PlaySessionState)
+        rule("랭그래프 빌드")
 
-        async with aiofiles.open(prompt_path, mode="r", encoding="utf-8") as f:
-            system_instruction = await f.read()
+        # 노드 추가
+        workflow.add_node("analyze_scene", analyze_scene_node)
+        workflow.add_node("fetch_world_data", fetch_world_data_node)
+        workflow.add_node("categorize_entities", categorize_entities_node)
+        workflow.add_node("combat", combat_node)
+        workflow.add_node("exploration", exploration_node)
+        workflow.add_node("dialogue", dialogue_node)
+        workflow.add_node("nego", nego_node)
+        workflow.add_node("rest", rest_node)
+        workflow.add_node("recovery", recovery_node)
+        workflow.add_node("unknown", unknown_node)
 
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", system_instruction),
-                ("human", "시나리오: {story}"),
-            ]
+        # 엔트리 포인트 설정
+        workflow.set_entry_point("analyze_scene")
+
+        # 엣지 추가
+        workflow.add_edge("analyze_scene", "fetch_world_data")
+        workflow.add_edge("fetch_world_data", "categorize_entities")
+
+        # 페이즈 유형에 따라 조건부 간선 추가
+        workflow.add_conditional_edges(
+            "categorize_entities",
+            self._route_phase,
+            {
+                PhaseType.COMBAT: "combat",
+                PhaseType.EXPLORATION: "exploration",
+                PhaseType.DIALOGUE: "dialogue",
+                PhaseType.NEGO: "nego",
+                PhaseType.REST: "rest",
+                PhaseType.RECOVERY: "recovery",
+                PhaseType.UNKNOWN: "unknown",
+            },
         )
 
-        chain = prompt | self.analyzer
-        config: RunnableConfig = {"run_name": f"SceneAnalysis_{APP_ENV}"}
+        # End points for each phase
+        workflow.add_edge("combat", END)
+        workflow.add_edge("exploration", END)
+        workflow.add_edge("dialogue", END)
+        workflow.add_edge("nego", END)
+        workflow.add_edge("rest", END)
+        workflow.add_edge("recovery", END)
+        workflow.add_edge("unknown", END)
 
-        return await chain.ainvoke({"story": story}, config)
+        self.graph = workflow.compile()
+
+    def _route_phase(self, state: PlaySessionState):
+        """analysis.phase_type 기반으로 적절한 위상 노드로 라우팅합니다."""
+        if state.analysis and state.analysis.phase_type:
+            return state.analysis.phase_type
+        return PhaseType.UNKNOWN
 
     async def play_scene(self, request: PlaySceneRequest) -> PlaySceneResponse:
-        logs: List[str] = []
-        analysis = await self.analyze_scene(request.story)
-
-        rule(f"분석된 플레이 유형: {analysis.phase_type}")
-        rule(f"분석 근거: {analysis.reason}")
-        rule(f"분석 확신도: {analysis.confidence}")
-        logs.append(f"분석된 플레이 유형: {analysis.phase_type}")
-        logs.append(f"사유: {analysis.reason}")
-        logs.append(f"분석 확신도: {analysis.confidence}")
-
-        # 분석된 플레이 유형 → 팩토리를 통해 적절한 핸들러 획득
-        handler = PhaseHandlerFactory.get_handler(analysis.phase_type)
-
-        # 필요한 경우 RDB에서 필요한 데이터 추가 조회(일단, 장소만)
-        world_data = await self.world_service.get_world(
-            include_keys=[WorldInfoKey.LOCALES]
-        )
-        locales = world_data.get("locales", []) or []
-        locale = next(
-            (loc for loc in locales if loc.get("locale_id") == request.locale_id), None
-        )
-        if locale:
-            rule(
-                f"장소: {locale.get('name')} | 식별번호: {locale.get('locale_id')} | {locale.get('description')}"
-            )
-        else:
-            rule(f"장소 정보를 찾을 수 없습니다. (ID: {request.locale_id})")
-
-        result = await handler.handle(
-            request,
-            analysis,
-            self.item_service,
-            self.enemy_service,
-            self.gm_service,
-            self.llm,
+        initial_state = PlaySessionState(
+            request=request,
+            logs=[],
+            item_service=self.item_service,
+            enemy_service=self.enemy_service,
+            gm_service=self.gm_service,
+            llm=self.llm_manager,
+            world_service=self.world_service,
         )
 
-        if result.logs is not None:
-            logs.extend(result.logs)
+        final_state: PlaySessionState = await self.graph.ainvoke(initial_state)
 
         return PlaySceneResponse(
-            session_id=request.session_id,
-            scenario_id=request.scenario_id,
-            phase_type=analysis.phase_type,
-            reason=analysis.reason,
-            success=result.is_success,
-            suggested=result.update.model_dump(),
+            session_id=final_state.request.session_id,
+            scenario_id=final_state.request.scenario_id,
+            phase_type=(
+                final_state.analysis.phase_type
+                if final_state.analysis
+                else PhaseType.UNKNOWN
+            ),
+            reason=final_state.analysis.reason if final_state.analysis else "분석 실패",
+            success=(
+                final_state.is_success if final_state.is_success is not None else False
+            ),
+            suggested=PhaseUpdate(
+                diffs=final_state.diffs,
+                relations=final_state.relations,
+            ),
             value_range=12,
-            logs=logs,
+            logs=final_state.logs,
         )

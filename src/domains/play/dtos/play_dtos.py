@@ -1,7 +1,14 @@
 from enum import Enum
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+from configs.llm_manager import LLMManager
+from domains.gm.gm_service import GmService
+from domains.info.enemy_service import EnemyService
+from domains.info.item_service import ItemService
+from domains.info.world_service import WorldService
+from domains.play.dtos.player_dtos import FullPlayerState
 
 
 class PhaseType(str, Enum):
@@ -120,3 +127,26 @@ class HandlerUpdatePhase(BaseModel):
     update: PhaseUpdate
     is_success: bool
     logs: Optional[List[str]] = None
+
+
+# LangGraph State DTO
+class PlaySessionState(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    request: PlaySceneRequest
+    analysis: Optional[SceneAnalysis] = None
+    player_state: Optional[FullPlayerState] = None
+    world_data: Optional[Dict] = None
+    enemy_data: Optional[List[Dict]] = None
+    diffs: List[EntityDiff] = Field(default_factory=list)
+    relations: List[UpdateRelation] = Field(default_factory=list)
+    is_success: Optional[bool] = None
+    logs: List[str] = Field(default_factory=list)
+
+    # 플레이어
+    current_player_id: str = ""
+    # Services
+    item_service: ItemService
+    enemy_service: EnemyService
+    gm_service: GmService
+    world_service: WorldService
+    llm: Union[LLMManager, Any]
