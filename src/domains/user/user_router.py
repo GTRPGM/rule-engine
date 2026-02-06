@@ -86,6 +86,11 @@ class UserHandler:
     ):
         try:
             user_id = await user_service.del_user(user_id)
+            if not user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="존재하지 않는 회원입니다.",
+                )
             return {"data": user_id, "message": "게임에서 탈퇴했습니다."}
         except HTTPException as he:
             raise he

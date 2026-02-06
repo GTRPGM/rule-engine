@@ -11,8 +11,8 @@ class UserService:
         self.del_user_sql = load_sql("user", "delete_user")
 
     async def create_user(self, request: UserCreateRequest) -> UserInfo:
-        await self.cursor.execute(self.add_user_sql, request.model_dump())
-        user_data = await self.cursor.fetchone()
+        self.cursor.execute(self.add_user_sql, request.model_dump())
+        user_data = self.cursor.fetchone()
 
         if user_data:
             return UserInfo(
@@ -25,8 +25,8 @@ class UserService:
         raise Exception("회원 가입에 실패했습니다.")
 
     async def update_user(self, request: UserUpdateRequest) -> UserInfo | None:
-        await self.cursor.execute(self.update_user_sql, request.model_dump())
-        user_data = await self.cursor.fetchone()
+        self.cursor.execute(self.update_user_sql, request.model_dump())
+        user_data = self.cursor.fetchone()
 
         if user_data:
             return UserInfo(
@@ -38,8 +38,8 @@ class UserService:
         return None
 
     async def get_user(self, user_id: int) -> UserInfo | None:
-        await self.cursor.execute(self.get_user_sql, (user_id,))
-        user_data = await self.cursor.fetchone()
+        self.cursor.execute(self.get_user_sql, (user_id,))
+        user_data = self.cursor.fetchone()
 
         if user_data:
             return UserInfo(
@@ -50,6 +50,10 @@ class UserService:
             )
         return None
 
-    async def del_user(self, user_id: int) -> int:
-        await self.cursor.execute(self.del_user_sql, (user_id,))
-        return user_id
+    async def del_user(self, user_id: int) -> int | None:
+        self.cursor.execute(self.del_user_sql, (user_id,))
+        user_data = self.cursor.fetchone()
+
+        if user_data:
+            return user_data[0]
+        return None

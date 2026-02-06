@@ -2,6 +2,7 @@ import sys
 from contextlib import contextmanager
 
 import psycopg2
+from fastapi import HTTPException
 from psycopg2 import extras, pool
 
 from src.configs.setting import DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER
@@ -38,6 +39,9 @@ def get_db_cursor():
         cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
         yield cursor
         conn.commit()
+    except HTTPException:
+        # FastAPI의 HTTPException은 그대로 다시 던집니다 (404 등을 유지하기 위해)
+        raise
     except psycopg2.OperationalError as e:
         if conn:
             conn.rollback()
@@ -53,6 +57,11 @@ def get_db_cursor():
     except Exception as e:
         if conn:
             conn.rollback()
+
+        # 만약 e가 이미 HTTPException이라면 로깅하지 않고 그대로 던짐
+        if isinstance(e, HTTPException):
+            raise e
+
         logger.error(
             f"❌ 데이터베이스 커서 사용 중 예상치 못한 오류 발생: {e}", exc_info=True
         )
