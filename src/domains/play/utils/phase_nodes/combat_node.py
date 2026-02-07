@@ -39,7 +39,7 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
 
     # 적 상세정보 조회
     combat_enemies_info = []
-    enemy_state_ids = {
+    hostile_enemy_state_ids = {
         (
             rel.effect_entity_id
             if rel.cause_entity_id == player_id
@@ -50,9 +50,20 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
         and (rel.cause_entity_id == player_id or rel.effect_entity_id == player_id)
     }
 
+    # Fallback: relation 정보가 비어도 요청에 포함된 enemy 엔티티를 전투 대상으로 사용.
+    enemy_state_ids = (
+        hostile_enemy_state_ids
+        if hostile_enemy_state_ids
+        else {e.state_entity_id for e in enemies}
+    )
+    if not hostile_enemy_state_ids and enemies:
+        logs.append(
+            "적대 관계 정보가 없어 요청 enemy 목록 전체를 전투 대상으로 사용합니다."
+        )
+
     enemy_id_map = {
         e.state_entity_id: e.entity_id
-        for e in entities_in_request
+        for e in enemies
         if e.state_entity_id in enemy_state_ids and e.entity_id is not None
     }
 
@@ -64,16 +75,26 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
 
     for state_id in enemy_state_ids:
         rdb_id = enemy_id_map.get(state_id)
-        if rdb_id:
+        base_difficulty = None
+        if rdb_id is not None:
             enemy_data = enemy_details_map.get(rdb_id)
-            if enemy_data and "base_difficulty" in enemy_data:
-                combat_enemies_info.append(
-                    {
-                        "rdb_id": rdb_id,
-                        "state_id": state_id,
-                        "base_difficulty": enemy_data["base_difficulty"],
-                    }
-                )
+            if enemy_data and enemy_data.get("base_difficulty") is not None:
+                base_difficulty = int(enemy_data["base_difficulty"])
+
+        if base_difficulty is None:
+            # 상세 조회 실패 시에도 전투 처리를 중단하지 않기 위한 기본 난이도
+            base_difficulty = 6
+            logs.append(
+                f"적 상세정보 누락(state_id={state_id}, rdb_id={rdb_id})으로 기본 난이도 6을 사용합니다."
+            )
+
+        combat_enemies_info.append(
+            {
+                "rdb_id": rdb_id,
+                "state_id": state_id,
+                "base_difficulty": base_difficulty,
+            }
+        )
 
     # 플레이어 전투력 계산
     combat_logs: List[str] = []
