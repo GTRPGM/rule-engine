@@ -33,28 +33,31 @@ async def exploration_node(state: PlaySessionState) -> Dict[str, Any]:
 
     gm_service: GmService = state.gm_service
 
-    if not player_id or not player_state:
-        no_player_id_log = "⚠️ 경고: 탐색 핸들러에서 플레이어 ID 또는 상태가 누락되었습니다. 플레이어 관련 로직을 건너뛰었습니다."
+    if not player_id:
+        no_player_id_log = "⚠️ 경고: 탐색 핸들러에서 플레이어 ID가 누락되었습니다. 플레이어 관련 로직을 건너뛰었습니다."
         logs.append(no_player_id_log)
         rule(no_player_id_log)
         return {
             "diffs": diffs,
             "relations": relations,
             "is_success": True,
-            "logs": logs + ["플레이어 정보를 찾을 수 없어 탐험 판정을 건너뜁니다."],
+            "logs": logs + ["플레이어 ID를 찾을 수 없어 탐험 판정을 건너뜁니다."],
         }
 
     # 1. 주사위 판정 (플레이어 스탯 연동 권장)
-    player_luck = getattr(player_state, "perception", 2)
+    player_luck = getattr(player_state, "perception", 2) if player_state else 2
     dice_result = await gm_service.rolling_dice(player_luck, 6)
     logs.append(f"탐험 시도... {dice_result.message} (총합: {dice_result.total})")
     rule(f"탐험 시도... {dice_result.message} (총합: {dice_result.total})")
 
-    # 2. 신규 NPC 필터링 (Set 사용으로 최적화)
-    known_npc_ids = {
-        rel.npc_id for rel in player_state.player_npc_relations if rel.npc_id
-    }
-    new_npcs = [n for n in npcs if n.state_entity_id not in known_npc_ids]
+    # 2. 신규 NPC 필터링 (Set 사용으로 최적화, UUID/str 형변환 안전장치 추가)
+    known_npc_ids = set()
+    if player_state and player_state.player_npc_relations:
+        for rel in player_state.player_npc_relations:
+            if rel.npc_id:
+                known_npc_ids.add(str(rel.npc_id))
+    
+    new_npcs = [n for n in npcs if str(n.state_entity_id) not in known_npc_ids]
 
     # 3. 아이템 및 오브젝트 습득 (성공 시에만)
     if dice_result.is_success:
@@ -92,6 +95,7 @@ async def exploration_node(state: PlaySessionState) -> Dict[str, Any]:
 
     # 4. NPC 관계 처리 (성공/실패 공통 로직 내 분기)
     if new_npcs:
+        relations_created = []
         for npc in new_npcs:
             if dice_result.is_success:
                 affinity = 21 if dice_result.is_critical_success else 0
@@ -111,9 +115,11 @@ async def exploration_node(state: PlaySessionState) -> Dict[str, Any]:
                     affinity_score=affinity,
                 )
             relations.append(new_rel)
+            relations_created.append(f"{npc.entity_name}({rel_type.value})")
             rule(f"relations.append({new_rel})")
+            
         new_npc_log = (
-            f"{len(new_npcs)}명의 새로운 인연을 만났습니다. (결과: {rel_type})"
+            f"{len(new_npcs)}명의 새로운 인연을 만났습니다: {', '.join(relations_created)}"
         )
         logs.append(new_npc_log)
         rule(new_npc_log)

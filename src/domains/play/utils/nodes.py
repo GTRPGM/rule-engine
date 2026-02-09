@@ -98,7 +98,12 @@ async def categorize_entities_node(state: PlaySessionState) -> Dict[str, Any]:
 
     player_state = None
     if player_entity_id:
-        player_state = await get_player_state_from_proxy(player_entity_id)
+        try:
+            player_state = await get_player_state_from_proxy(player_entity_id)
+        except Exception as e:
+            error(f"Warning: 플레이어 상태 조회 실패 (ID: {player_entity_id}) - {e}")
+            logs.append(f"Warning: 플레이어 상태 조회 실패 - {e}")
+            player_state = None
     else:
         error("Warning: Scene 내에 플레이어 엔티티가 존재하지 않습니다.")
         logs.append("Warning: Scene 내에 플레이어 엔티티가 존재하지 않습니다.")

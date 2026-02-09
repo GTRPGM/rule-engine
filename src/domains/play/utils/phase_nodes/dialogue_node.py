@@ -52,6 +52,13 @@ async def dialogue_node(state: PlaySessionState) -> Dict[str, Any]:
         if target_npc_state_id:
             break
 
+    # [Patch] 신규 NPC 조우 시 관계가 없어도 대화 대상을 식별하도록 수정
+    if not target_npc_state_id and npcs:
+        target_npc = npcs[0]
+        target_npc_state_id = target_npc.state_entity_id
+        initial_affinity_score = 0  # 초기값
+        rule(f"기존 관계 없음. 신규 NPC({target_npc.entity_name}, {target_npc_state_id})를 대화 대상으로 지정.")
+
     if not target_npc_state_id:
         affinity_difficulty = -5
         rule("상호작용중인 NPC가 없습니다. 기본 우호도로 주사위를 굴립니다.")
