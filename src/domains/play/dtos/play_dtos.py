@@ -105,6 +105,7 @@ class PlaySceneRequest(BaseModel):
     scenario_id: str
     locale_id: int
     sequence_type: Optional[str] = None
+    target: str = Field(default="", description="행동의 직접 대상 엔티티 식별자")
     entities: List[EntityUnit]
     relations: List[UpdateRelation]
     story: str

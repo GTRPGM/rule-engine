@@ -1,3 +1,4 @@
+import re
 from typing import Any, Dict, List, Optional
 
 from domains.gm.gm_service import GmService
@@ -27,6 +28,57 @@ def _is_combat_item_type(item_type: Optional[str]) -> bool:
         return False
     normalized = str(item_type).strip().lower()
     return normalized in {"무기", "방어구", "equipment", "weapon", "armor"}
+
+
+def _normalize_for_match(value: str) -> str:
+    return re.sub(r"[^0-9a-z가-힣]+", "", str(value).lower())
+
+
+def _resolve_target_enemy_state_id(
+    requested_target: str, enemies: List[Any]
+) -> Optional[str]:
+    target_raw = str(requested_target or "").strip()
+    if not target_raw:
+        return None
+
+    target_lower = target_raw.lower()
+    target_norm = _normalize_for_match(target_raw)
+    if not target_norm:
+        return None
+
+    best_state_id: Optional[str] = None
+    best_score = 0
+    for enemy in enemies:
+        state_id = str(getattr(enemy, "state_entity_id", "") or "").strip()
+        if not state_id:
+            continue
+        entity_name = str(getattr(enemy, "entity_name", "") or "").strip()
+        aliases = {state_id, entity_name}
+        aliases = {a for a in aliases if a}
+        if not aliases:
+            continue
+
+        candidate_score = 0
+        for alias in aliases:
+            alias_lower = alias.lower()
+            alias_norm = _normalize_for_match(alias)
+            if not alias_norm:
+                continue
+
+            score = 0
+            if target_lower == alias_lower or target_norm == alias_norm:
+                score = max(score, 120 + len(alias_norm))
+            if alias_lower in target_lower:
+                score = max(score, 90 + len(alias_lower))
+            if alias_norm in target_norm:
+                score = max(score, 80 + len(alias_norm))
+            candidate_score = max(candidate_score, score)
+
+        if candidate_score > best_score:
+            best_score = candidate_score
+            best_state_id = state_id
+
+    return best_state_id if best_score > 0 else None
 
 
 def _extract_effect_value(meta: Dict[str, Any]) -> int:
@@ -126,13 +178,21 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
         and (rel.cause_entity_id == player_id or rel.effect_entity_id == player_id)
     }
 
-    # Fallback: relation 정보가 비어도 요청에 포함된 enemy 엔티티를 전투 대상으로 사용.
-    enemy_state_ids = (
-        hostile_enemy_state_ids
-        if hostile_enemy_state_ids
-        else {e.state_entity_id for e in enemies}
-    )
-    if not hostile_enemy_state_ids and enemies:
+    requested_target = str(getattr(state.request, "target", "") or "").strip()
+    resolved_target_state_id = _resolve_target_enemy_state_id(requested_target, enemies)
+
+    if resolved_target_state_id:
+        enemy_state_ids = {resolved_target_state_id}
+        target_log = (
+            f"요청 target='{requested_target}' -> 전투 대상 {resolved_target_state_id}로 고정."
+        )
+        logs.append(target_log)
+        rule(target_log)
+    elif hostile_enemy_state_ids:
+        enemy_state_ids = hostile_enemy_state_ids
+    else:
+        # Fallback: relation/target 정보가 없으면 요청 enemy 전체를 전투 대상으로 사용.
+        enemy_state_ids = {e.state_entity_id for e in enemies}
         no_enemies_log = (
             "적대 관계 정보가 없어 요청 enemy 목록 전체를 전투 대상으로 사용합니다."
         )
