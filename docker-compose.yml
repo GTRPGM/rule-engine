@@ -45,7 +45,7 @@ services:
       WEB_HOST: ${WEB_HOST}
       WEB_PORT: ${WEB_PORT}
       # LLM Settings
-      LLM_MODEL_NAME: "${LLM_MODEL_NAME:-gemini-2.5-flash-lite}"
+      LLM_MODEL_NAME: "${LLM_MODEL_NAME:-gpt-4o-mini}"
 
     networks:
       - platform-net

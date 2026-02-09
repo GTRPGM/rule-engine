@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from configs.llm_manager import LLMManager
 from domains.gm.gm_service import GmService
@@ -13,6 +13,37 @@ from domains.play.prompts.potion_selection_prompt import (
     create_potion_selection_prompt,
 )
 from utils.logger import rule
+
+
+def _try_parse_int(value: Optional[str]) -> Optional[int]:
+    if value is None:
+        return None
+    raw = str(value).strip()
+    if not raw or not raw.isdigit():
+        return None
+    return int(raw)
+
+
+def _extract_heal_value(meta: Dict[str, Any]) -> int:
+    if not isinstance(meta, dict):
+        return 0
+    for key in ("heal_amount", "effect_value", "heal", "recovery"):
+        value = meta.get(key)
+        if value is None:
+            continue
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            continue
+    return 0
+
+
+def _is_potion_item(name: Optional[str], item_type: Optional[str]) -> bool:
+    normalized_name = (name or "").strip().lower()
+    normalized_type = (item_type or "").strip().lower()
+    if "포션" in normalized_name or "potion" in normalized_name:
+        return True
+    return normalized_type in {"소모품", "consumable"}
 
 
 async def recovery_node(state: PlaySessionState) -> Dict[str, Any]:
@@ -39,16 +70,44 @@ async def recovery_node(state: PlaySessionState) -> Dict[str, Any]:
         }
 
     # 1. 플레이어 인벤토리에서 포션 찾기
-    item_ids = [int(item.item_id) for item in player_state.player.items]
-    heal_items = None
-    if len(item_ids) > 0:
-        items, _ = await item_service.get_items(item_ids=item_ids, skip=0, limit=100)
+    numeric_item_ids = []
+    for item in player_state.player.items:
+        parsed = _try_parse_int(item.item_id)
+        if parsed is not None:
+            numeric_item_ids.append(parsed)
 
-        heal_items = [
-            item
-            for item in items
-            if "소모품" == item["type"] and "포션" in item["name"]
-        ]
+    heal_items: list[Dict[str, Any]] = []
+    resolved_numeric_ids: set[str] = set()
+    if numeric_item_ids:
+        items, _ = await item_service.get_items(
+            item_ids=list(set(numeric_item_ids)), skip=0, limit=100
+        )
+        for item in items:
+            if not _is_potion_item(item.get("name"), item.get("type")):
+                continue
+            heal_items.append(
+                {
+                    "name": item.get("name"),
+                    "effect_value": int(item.get("effect_value") or 0),
+                    "match_ids": {str(item.get("item_id"))},
+                }
+            )
+            if item.get("item_id") is not None:
+                resolved_numeric_ids.add(str(item.get("item_id")))
+
+    # scenario_item_id(문자열) 기반 아이템 fallback
+    for item in player_state.player.items:
+        if item.item_id in resolved_numeric_ids:
+            continue
+        if not _is_potion_item(item.name, item.item_type):
+            continue
+        heal_items.append(
+            {
+                "name": item.name,
+                "effect_value": _extract_heal_value(item.meta),
+                "match_ids": {item.item_id},
+            }
+        )
 
     consumed_potion = None
     effect_value: int = 0
@@ -125,18 +184,22 @@ async def recovery_node(state: PlaySessionState) -> Dict[str, Any]:
                 rel
                 for rel in state.request.relations
                 if rel.type == RelationType.CONSUME
-                and consumed_potion["item_id"] == rel.effect_entity_id
+                and rel.effect_entity_id in consumed_potion.get("match_ids", set())
             ),
             None,
         )
+        if target_portion is None:
+            consume_rels = [
+                rel for rel in state.request.relations if rel.type == RelationType.CONSUME
+            ]
+            if len(consume_rels) == 1:
+                target_portion = consume_rels[0]
+
+        player_diff = EntityDiff(state_entity_id=player_id, diff={"hp": total_healing})
+        diffs.append(player_diff)
+        rule(f"diffs.append({player_diff.model_dump()})")
 
         if target_portion is not None:
-            player_diff = EntityDiff(
-                state_entity_id=player_id, diff={"hp": total_healing}
-            )
-            diffs.append(player_diff)
-            rule(f"diffs.append({player_diff.model_dump()})")
-
             consumed_potion_rel = UpdateRelation(
                 cause_entity_id=player_id,
                 effect_entity_id=target_portion.effect_entity_id,
@@ -146,6 +209,11 @@ async def recovery_node(state: PlaySessionState) -> Dict[str, Any]:
 
             relations.append(consumed_potion_rel)
             rule(f"relations.append({consumed_potion_rel.model_dump()})")
+        else:
+            logs.append(
+                "소모 관계 매칭 실패로 아이템 차감 relation은 생략하고 회복만 적용했습니다."
+            )
+            rule("소모 관계 매칭 실패: 회복 diff만 적용")
 
         rule(f"[치유 계산] 포션 기본 회복량: {effect_value}")
         logs.append(f"[치유 계산] 포션 기본 회복량: {effect_value}")

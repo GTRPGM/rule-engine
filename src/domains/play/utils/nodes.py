@@ -12,12 +12,36 @@ from domains.info.dtos.world_dtos import WorldInfoKey
 from domains.info.world_service import WorldService
 from domains.play.dtos.play_dtos import (
     EntityType,
+    PhaseType,
     PlaySessionState,
     SceneAnalysis,
 )
 from domains.play.dtos.player_dtos import FullPlayerState
 from utils.logger import error, rule
 from utils.proxy_request import proxy_request
+
+
+def _phase_from_sequence_type(raw: str | None) -> PhaseType | None:
+    if not raw:
+        return None
+    norm = str(raw).strip().upper()
+    if not norm:
+        return None
+    if any(k in norm for k in ["COMBAT", "BATTLE", "BOSS", "교전", "결전"]):
+        return PhaseType.COMBAT
+    if any(k in norm for k in ["DIALOG", "DIALOGUE", "대화"]):
+        return PhaseType.DIALOGUE
+    if any(k in norm for k in ["NEGO", "NEGOTIATION", "협상", "흥정"]):
+        return PhaseType.NEGO
+    if any(k in norm for k in ["REST", "휴식"]):
+        return PhaseType.REST
+    if any(k in norm for k in ["RECOVERY", "HEAL", "회복"]):
+        return PhaseType.RECOVERY
+    if any(k in norm for k in ["INFILTRATION", "STEALTH", "잠입"]):
+        return PhaseType.EXPLORATION
+    if any(k in norm for k in ["EXPLORATION", "EXPLORE", "탐색"]):
+        return PhaseType.EXPLORATION
+    return None
 
 
 async def get_player_state_from_proxy(player_id: str) -> FullPlayerState:
@@ -94,6 +118,22 @@ async def analyze_scene_node(state: PlaySessionState) -> Dict[str, Any]:
     """
     LLM을 사용하여 스토리를 분석하고 페이즈 유형을 결정합니다.
     """
+    forced_phase = _phase_from_sequence_type(state.request.sequence_type)
+    if forced_phase is not None:
+        analysis = SceneAnalysis(
+            phase_type=forced_phase,
+            reason=f"sequence_type hint applied: {state.request.sequence_type}",
+            confidence=1.0,
+        )
+        logs = state.logs[:]
+        logs.append(f"분석된 플레이 유형: {analysis.phase_type}")
+        logs.append(f"사유: {analysis.reason}")
+        logs.append(f"분석 확신도: {analysis.confidence}")
+        rule(f"분석된 플레이 유형: {analysis.phase_type}")
+        rule(f"분석 근거: {analysis.reason}")
+        rule(f"분석 확신도: {analysis.confidence}")
+        return {"analysis": analysis, "logs": logs}
+
     current_dir = os.path.dirname(os.path.abspath(__file__))
     prompt_path = os.path.join(current_dir, "..", "prompts", "instruction.md")
 
