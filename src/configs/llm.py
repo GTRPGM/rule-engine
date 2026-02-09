@@ -18,7 +18,7 @@ class ChatMessage(BaseModel):
 
 
 class ChatCompletionRequest(BaseModel):
-    model: str = "gpt-4"
+    model: str = "gpt-4o-mini"
     messages: List[ChatMessage]
     temperature: float = 0.7
     max_tokens: Optional[int] = None

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from domains.gm.gm_service import GmService
 from domains.info.enemy_service import EnemyService
@@ -9,7 +9,82 @@ from domains.play.dtos.play_dtos import (
     PlaySessionState,
     RelationType,
 )
+from domains.play.dtos.player_dtos import ItemBase
 from utils.logger import rule
+
+
+def _try_parse_int(value: Optional[str]) -> Optional[int]:
+    if value is None:
+        return None
+    raw = str(value).strip()
+    if not raw or not raw.isdigit():
+        return None
+    return int(raw)
+
+
+def _is_combat_item_type(item_type: Optional[str]) -> bool:
+    if not item_type:
+        return False
+    normalized = str(item_type).strip().lower()
+    return normalized in {"무기", "방어구", "equipment", "weapon", "armor"}
+
+
+def _extract_effect_value(meta: Dict[str, Any]) -> int:
+    if not isinstance(meta, dict):
+        return 0
+    for key in (
+        "effect_value",
+        "attack_bonus",
+        "defense_bonus",
+        "attack",
+        "defense",
+        "power",
+    ):
+        value = meta.get(key)
+        if value is None:
+            continue
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            continue
+    return 0
+
+
+async def _calculate_player_combat_item_effect(
+    player_items: List[ItemBase], item_service: ItemService, logs: List[str]
+) -> int:
+    numeric_item_ids: List[int] = []
+    for item in player_items:
+        parsed = _try_parse_int(item.item_id)
+        if parsed is not None:
+            numeric_item_ids.append(parsed)
+
+    effect_sum = 0
+    resolved_numeric_ids: set[str] = set()
+    if numeric_item_ids:
+        items, _ = await item_service.get_items(
+            item_ids=list(set(numeric_item_ids)), skip=0, limit=100
+        )
+        for db_item in items:
+            if _is_combat_item_type(db_item.get("type")):
+                effect_sum += int(db_item.get("effect_value") or 0)
+            db_item_id = db_item.get("item_id")
+            if db_item_id is not None:
+                resolved_numeric_ids.add(str(db_item_id))
+
+    # scenario_item_id(문자열) 기반 인벤토리도 처리되도록 로컬 메타를 fallback으로 사용.
+    for item in player_items:
+        if item.item_id in resolved_numeric_ids:
+            continue
+        if not _is_combat_item_type(item.item_type):
+            continue
+        effect_sum += _extract_effect_value(item.meta)
+
+    if effect_sum > 0:
+        logs.append(f"전투 보정치(아이템): {effect_sum}")
+        rule(f"전투 보정치(아이템): {effect_sum}")
+
+    return effect_sum
 
 
 async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
@@ -30,6 +105,7 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
 
     if not player_id or not player_state:
         logs.append("전투 페이즈: 플레이어 정보를 찾을 수 없습니다.")
+        rule("전투 페이즈: 플레이어 정보를 찾을 수 없습니다.")
         return {
             "diffs": state.diffs,
             "relations": state.relations,
@@ -39,7 +115,7 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
 
     # 적 상세정보 조회
     combat_enemies_info = []
-    enemy_state_ids = {
+    hostile_enemy_state_ids = {
         (
             rel.effect_entity_id
             if rel.cause_entity_id == player_id
@@ -50,9 +126,22 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
         and (rel.cause_entity_id == player_id or rel.effect_entity_id == player_id)
     }
 
+    # Fallback: relation 정보가 비어도 요청에 포함된 enemy 엔티티를 전투 대상으로 사용.
+    enemy_state_ids = (
+        hostile_enemy_state_ids
+        if hostile_enemy_state_ids
+        else {e.state_entity_id for e in enemies}
+    )
+    if not hostile_enemy_state_ids and enemies:
+        no_enemies_log = (
+            "적대 관계 정보가 없어 요청 enemy 목록 전체를 전투 대상으로 사용합니다."
+        )
+        logs.append(no_enemies_log)
+        rule(no_enemies_log)
+
     enemy_id_map = {
         e.state_entity_id: e.entity_id
-        for e in entities_in_request
+        for e in enemies
         if e.state_entity_id in enemy_state_ids and e.entity_id is not None
     }
 
@@ -64,16 +153,26 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
 
     for state_id in enemy_state_ids:
         rdb_id = enemy_id_map.get(state_id)
-        if rdb_id:
+        base_difficulty = None
+        if rdb_id is not None:
             enemy_data = enemy_details_map.get(rdb_id)
-            if enemy_data and "base_difficulty" in enemy_data:
-                combat_enemies_info.append(
-                    {
-                        "rdb_id": rdb_id,
-                        "state_id": state_id,
-                        "base_difficulty": enemy_data["base_difficulty"],
-                    }
-                )
+            if enemy_data and enemy_data.get("base_difficulty") is not None:
+                base_difficulty = int(enemy_data["base_difficulty"])
+
+        if base_difficulty is None:
+            # 상세 조회 실패 시에도 전투 처리를 중단하지 않기 위한 기본 난이도
+            base_difficulty = 6
+            no_enemy_detail_log = f"적 상세정보 누락(state_id={state_id}, rdb_id={rdb_id})으로 기본 난이도 6을 사용합니다."
+            logs.append(no_enemy_detail_log)
+            rule(no_enemy_detail_log)
+
+        combat_enemies_info.append(
+            {
+                "rdb_id": rdb_id,
+                "state_id": state_id,
+                "base_difficulty": base_difficulty,
+            }
+        )
 
     # 플레이어 전투력 계산
     combat_logs: List[str] = []
@@ -82,13 +181,9 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
     rule(dice_result_log)
     combat_logs.append(dice_result_log)
 
-    combat_items_effect = 0
-    item_ids = [int(item.item_id) for item in player_state.player.items]
-    if len(item_ids) > 0:
-        items, _ = await item_service.get_items(item_ids=item_ids, skip=0, limit=100)
-        combat_items_effect = sum(
-            item["effect_value"] for item in items if item["type"] in ("무기", "방어구")
-        )
+    combat_items_effect = await _calculate_player_combat_item_effect(
+        player_state.player.items, item_service, logs
+    )
 
     ability_score = 2  # Hardcoded
     player_combat_power = combat_items_effect + ability_score + dice.total
@@ -125,6 +220,7 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
             )
             diffs.append(new_diff)
             logs.append(f"전투 승리! 적에게 {power_gap}의 데미지를 입혔습니다.")
+            rule(f"전투 승리! 적에게 {power_gap}의 데미지를 입혔습니다.")
 
         elif power_gap < 0:
             is_success = False
@@ -134,8 +230,10 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
             )
             diffs.append(new_diff)
             logs.append(f"전투 패배... 플레이어가 {-power_gap}의 데미지를 입었습니다.")
+            rule(f"전투 패배... 플레이어가 {-power_gap}의 데미지를 입었습니다.")
         else:
             logs.append("막상막하의 대결이었습니다!")
+            rule("막상막하의 대결이었습니다!")
 
     return {
         "diffs": diffs,

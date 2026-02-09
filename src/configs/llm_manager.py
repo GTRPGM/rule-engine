@@ -12,7 +12,7 @@ class LLMManager:
     _instances = {}
 
     @classmethod
-    def get_instance(cls, provider="gemini", temperature=0.0):
+    def get_instance(cls, provider="gateway", temperature=0.0):
         provider = provider.lower()
         instance_key = f"{provider}_{temperature}"  # 고유 키
 

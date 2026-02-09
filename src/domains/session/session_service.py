@@ -7,6 +7,15 @@ from domains.session.dtos.session_dtos import (
     SessionResponse,
 )
 from utils.load_sql import load_sql
+from utils.logger import warning
+
+
+def _is_missing_user_sessions_table(exc: Exception) -> bool:
+    message = str(exc).lower()
+    return (
+        "user_sessions" in message
+        and ("does not exist" in message or "undefinedtable" in message)
+    )
 
 
 class SessionService:
@@ -29,13 +38,22 @@ class SessionService:
             "is_deleted": is_deleted,
         }
 
-        self.cursor.execute(self.count_sessions_sql, params)
-        count_result = self.cursor.fetchone()
+        try:
+            self.cursor.execute(self.count_sessions_sql, params)
+            count_result = self.cursor.fetchone()
+            total_count = count_result["count"] if count_result else 0
 
-        total_count = count_result["count"] if count_result else 0
-
-        self.cursor.execute(self.get_sessions_sql, params)
-        sessions = self.cursor.fetchall()
+            self.cursor.execute(self.get_sessions_sql, params)
+            sessions = self.cursor.fetchall()
+        except Exception as exc:
+            if not _is_missing_user_sessions_table(exc):
+                raise
+            warning(
+                "user_sessions 테이블이 없어 세션 목록을 빈 값으로 반환합니다: %s",
+                exc,
+            )
+            total_count = 0
+            sessions = []
 
         total_pages = (total_count + limit - 1) // limit if total_count > 0 else 0
         is_last_page = (skip + limit) >= total_count
@@ -55,8 +73,16 @@ class SessionService:
             "user_id": request.user_id,
             "session_id": request.session_id,
         }
-        self.cursor.execute(self.insert_session_sql, params)
-        self.cursor.connection.commit()
+        try:
+            self.cursor.execute(self.insert_session_sql, params)
+            self.cursor.connection.commit()
+        except Exception as exc:
+            if not _is_missing_user_sessions_table(exc):
+                raise
+            warning(
+                "user_sessions 테이블이 없어 세션 추가를 no-op 처리합니다: %s",
+                exc,
+            )
 
         return SessionResponse(
             user_id=request.user_id,
@@ -66,6 +92,14 @@ class SessionService:
 
     async def del_user_session(self, request: SessionRequest) -> str:
         params = {"session_id": request.session_id}
-        self.cursor.execute(self.del_session_by_session_id_sql, params)
-        self.cursor.connection.commit()
+        try:
+            self.cursor.execute(self.del_session_by_session_id_sql, params)
+            self.cursor.connection.commit()
+        except Exception as exc:
+            if not _is_missing_user_sessions_table(exc):
+                raise
+            warning(
+                "user_sessions 테이블이 없어 세션 삭제를 no-op 처리합니다: %s",
+                exc,
+            )
         return request.session_id

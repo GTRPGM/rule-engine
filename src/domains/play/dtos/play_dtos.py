@@ -104,6 +104,7 @@ class PlaySceneRequest(BaseModel):
     session_id: str
     scenario_id: str
     locale_id: int
+    sequence_type: Optional[str] = None
     entities: List[EntityUnit]
     relations: List[UpdateRelation]
     story: str
