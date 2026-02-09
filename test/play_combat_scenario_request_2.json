@@ -1,0 +1,36 @@
+{
+  "session_id": "12345",
+  "scenario_id": "1",
+  "locale_id": 1,
+  "entities": [
+    {
+      "state_entity_id": "66c3b5e1-b9e3-40ee-a420-db1fc9ecc173",
+      "phase_id": 1,
+      "entity_name": "아리",
+      "entity_type": "player"
+    },
+    {
+      "state_entity_id": "enemy_wild_dog_101",
+      "entity_id": 15,
+      "phase_id": 2,
+      "entity_name": "그림자 들개",
+      "entity_type": "enemy"
+    },
+    {
+      "state_entity_id": "enemy_wild_dog_102",
+      "entity_id": 15,
+      "phase_id": 2,
+      "entity_name": "그림자 들개",
+      "entity_type": "enemy"
+    },
+    {
+      "state_entity_id": "enemy_wild_dog_103",
+      "entity_id": 15,
+      "phase_id": 2,
+      "entity_name": "그림자 들개",
+      "entity_type": "enemy"
+    }
+  ],
+  "relations": [],
+  "story": "아리는 어두운 숲에서 마주친 그림자 들개를 향해 녹슨 검을 휘두르자 그림자 들개 떼는 본능적으로 컹컹 짖어대며 달려들었다."
+}

@@ -183,21 +183,31 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
 
     if resolved_target_state_id:
         enemy_state_ids = {resolved_target_state_id}
-        target_log = (
-            f"요청 target='{requested_target}' -> 전투 대상 {resolved_target_state_id}로 고정."
-        )
+        target_log = f"요청 target='{requested_target}' -> 전투 대상 {resolved_target_state_id}로 고정."
         logs.append(target_log)
         rule(target_log)
     elif hostile_enemy_state_ids:
-        enemy_state_ids = hostile_enemy_state_ids
-    else:
-        # Fallback: relation/target 정보가 없으면 요청 enemy 전체를 전투 대상으로 사용.
-        enemy_state_ids = {e.state_entity_id for e in enemies}
-        no_enemies_log = (
-            "적대 관계 정보가 없어 요청 enemy 목록 전체를 전투 대상으로 사용합니다."
+        first_id = next(iter(hostile_enemy_state_ids), None)
+        enemy_state_ids = {first_id}
+
+        hostile_target_log = (
+            f"적대 관계 목록 중 첫 번째 대상({first_id})을 전투 대상으로 설정합니다."
         )
-        logs.append(no_enemies_log)
-        rule(no_enemies_log)
+        logs.append(hostile_target_log)
+        rule(hostile_target_log)
+    else:
+        if enemies:
+            target_enemy = enemies[0]
+            enemy_state_ids = {target_enemy.state_entity_id}
+
+            no_enemies_log = f"적대 관계 정보가 없어 목록의 첫 번째 적({target_enemy.state_entity_id})을 대상으로 설정합니다."
+            logs.append(no_enemies_log)
+            rule(no_enemies_log)
+        else:
+            enemy_state_ids = set()
+            no_enemies_log = "전투 가능한 적이 목록에 없습니다."
+            logs.append(no_enemies_log)
+            rule(no_enemies_log)
 
     enemy_id_map = {
         e.state_entity_id: e.entity_id
@@ -211,6 +221,8 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
     )
     enemy_details_map = {e["enemy_id"]: e for e in enemies_data}
 
+    # 정책: 한 번에 대상 하나만 공격 | 광역기 없음
+    # 나중에 정책이 바뀔 가능성에 대비해 반복문 형태 유지
     for state_id in enemy_state_ids:
         rdb_id = enemy_id_map.get(state_id)
         base_difficulty = None

@@ -1,0 +1,31 @@
+{
+  "session_id": "12345",
+  "scenario_id": "1",
+  "locale_id": 1,
+  "entities": [
+    {
+      "state_entity_id": "66c3b5e1-b9e3-40ee-a420-db1fc9ecc173",
+      "phase_id": 1,
+      "entity_name": "아리",
+      "entity_type": "player"
+    }
+  ],
+  "relations": [
+    {
+      "cause_entity_id": "66c3b5e1-b9e3-40ee-a420-db1fc9ecc173",
+      "effect_entity_id": "enemy_npc_101",
+      "type": "적대적"
+    },
+    {
+      "cause_entity_id": "66c3b5e1-b9e3-40ee-a420-db1fc9ecc173",
+      "effect_entity_id": "enemy_npc_102",
+      "type": "적대적"
+    },
+    {
+      "cause_entity_id": "66c3b5e1-b9e3-40ee-a420-db1fc9ecc173",
+      "effect_entity_id": "enemy_npc_103",
+      "type": "적대적"
+    }
+  ],
+  "story": "아리가 주점에서 시비를 거는 불량배 중 한 명에게 주먹을 날렸다."
+}
