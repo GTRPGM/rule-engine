@@ -82,6 +82,7 @@ async def _calculate_player_combat_item_effect(
 
     if effect_sum > 0:
         logs.append(f"전투 보정치(아이템): {effect_sum}")
+        rule(f"전투 보정치(아이템): {effect_sum}")
 
     return effect_sum
 
@@ -104,6 +105,7 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
 
     if not player_id or not player_state:
         logs.append("전투 페이즈: 플레이어 정보를 찾을 수 없습니다.")
+        rule("전투 페이즈: 플레이어 정보를 찾을 수 없습니다.")
         return {
             "diffs": state.diffs,
             "relations": state.relations,
@@ -131,9 +133,11 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
         else {e.state_entity_id for e in enemies}
     )
     if not hostile_enemy_state_ids and enemies:
-        logs.append(
+        no_enemies_log = (
             "적대 관계 정보가 없어 요청 enemy 목록 전체를 전투 대상으로 사용합니다."
         )
+        logs.append(no_enemies_log)
+        rule(no_enemies_log)
 
     enemy_id_map = {
         e.state_entity_id: e.entity_id
@@ -158,9 +162,9 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
         if base_difficulty is None:
             # 상세 조회 실패 시에도 전투 처리를 중단하지 않기 위한 기본 난이도
             base_difficulty = 6
-            logs.append(
-                f"적 상세정보 누락(state_id={state_id}, rdb_id={rdb_id})으로 기본 난이도 6을 사용합니다."
-            )
+            no_enemy_detail_log = f"적 상세정보 누락(state_id={state_id}, rdb_id={rdb_id})으로 기본 난이도 6을 사용합니다."
+            logs.append(no_enemy_detail_log)
+            rule(no_enemy_detail_log)
 
         combat_enemies_info.append(
             {
@@ -216,6 +220,7 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
             )
             diffs.append(new_diff)
             logs.append(f"전투 승리! 적에게 {power_gap}의 데미지를 입혔습니다.")
+            rule(f"전투 승리! 적에게 {power_gap}의 데미지를 입혔습니다.")
 
         elif power_gap < 0:
             is_success = False
@@ -225,8 +230,10 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
             )
             diffs.append(new_diff)
             logs.append(f"전투 패배... 플레이어가 {-power_gap}의 데미지를 입었습니다.")
+            rule(f"전투 패배... 플레이어가 {-power_gap}의 데미지를 입었습니다.")
         else:
             logs.append("막상막하의 대결이었습니다!")
+            rule("막상막하의 대결이었습니다!")
 
     return {
         "diffs": diffs,
