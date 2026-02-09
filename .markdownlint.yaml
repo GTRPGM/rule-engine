@@ -2,7 +2,11 @@ MD041: false
 MD013: false
 MD007: { "indent": 4 }
 MD029: false
-MD004: { "style": "dash" }
+MD004: false
 MD040: false
 MD026: false
 MD022: false
+MD003: false # 헤딩 스타일 자유롭게
+MD030: false # 리스트 마커 뒤 공백 허용
+MD032: false # 리스트 앞뒤 빈 줄 강제 안 함
+MD031: false # 코드 블록 앞뒤 빈 줄 강제 안 함
