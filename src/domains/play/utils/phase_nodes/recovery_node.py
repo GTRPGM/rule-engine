@@ -62,6 +62,7 @@ async def recovery_node(state: PlaySessionState) -> Dict[str, Any]:
 
     if not player_id or not player_state:
         logs.append("회복 페이즈: 플레이어 정보를 찾을 수 없습니다.")
+        rule("회복 페이즈: 플레이어 정보를 찾을 수 없습니다.")
         return {
             "diffs": diffs,
             "relations": relations,
@@ -134,12 +135,9 @@ async def recovery_node(state: PlaySessionState) -> Dict[str, Any]:
                 else:
                     consumed_potion = heal_items[0]
 
-                rule(
-                    f"[소모 아이템 정보] {consumed_potion['name']} | 치유량: {consumed_potion['effect_value']}"
-                )
-                logs.append(
-                    f"[소모 아이템 정보] {consumed_potion['name']} | 치유량: {consumed_potion['effect_value']}"
-                )
+                consume_item_log = f"[소모 아이템 정보] {consumed_potion['name']} | 치유량: {consumed_potion['effect_value']}"
+                rule(consume_item_log)
+                logs.append(consume_item_log)
             except Exception:
                 consumed_potion = heal_items[0]
         else:
@@ -190,7 +188,9 @@ async def recovery_node(state: PlaySessionState) -> Dict[str, Any]:
         )
         if target_portion is None:
             consume_rels = [
-                rel for rel in state.request.relations if rel.type == RelationType.CONSUME
+                rel
+                for rel in state.request.relations
+                if rel.type == RelationType.CONSUME
             ]
             if len(consume_rels) == 1:
                 target_portion = consume_rels[0]
