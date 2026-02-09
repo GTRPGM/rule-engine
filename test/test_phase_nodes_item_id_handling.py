@@ -60,11 +60,12 @@ class StubWorldService(WorldService):
         super().__init__(cursor=None)
 
 
-def _base_request(entities, relations, story):
+def _base_request(entities, relations, story, target=""):
     return PlaySceneRequest(
         session_id="sess-1",
         scenario_id="scn-1",
         locale_id=1,
+        target=target,
         entities=entities,
         relations=relations,
         story=story,
@@ -198,3 +199,65 @@ async def test_recovery_node_accepts_string_item_ids_and_applies_heal():
         rel.type == RelationType.CONSUME and rel.effect_entity_id == potion_id
         for rel in result["relations"]
     )
+
+
+@pytest.mark.asyncio
+async def test_combat_node_prioritizes_requested_target_without_hostile_relation():
+    player_id = "player-1"
+    enemy_a = "enemy-a"
+    enemy_b = "enemy-b"
+    request = _base_request(
+        entities=[
+            EntityUnit(
+                state_entity_id=player_id,
+                phase_id=1,
+                entity_name="플레이어",
+                entity_type=EntityType.PLAYER,
+            ),
+            EntityUnit(
+                state_entity_id=enemy_a,
+                entity_id=9001,
+                phase_id=1,
+                entity_name="고블린",
+                entity_type=EntityType.ENEMY,
+            ),
+            EntityUnit(
+                state_entity_id=enemy_b,
+                entity_id=9002,
+                phase_id=1,
+                entity_name="오크",
+                entity_type=EntityType.ENEMY,
+            ),
+        ],
+        relations=[],
+        story="플레이어가 오크를 집중 공격한다.",
+        target="enemy-b",
+    )
+    player_state = FullPlayerState(
+        player=PlayerStateResponse(
+            hp=30,
+            gold=0,
+            items=[],
+        ),
+        player_npc_relations=[],
+    )
+
+    state = PlaySessionState(
+        request=request,
+        player_state=player_state,
+        current_player_id=player_id,
+        item_service=StubItemService(),
+        enemy_service=StubEnemyService(),
+        gm_service=StubGmService(),
+        world_service=StubWorldService(),
+        llm=DummyLLM(),
+    )
+
+    result = await combat_node(state)
+
+    enemy_target_logs = [
+        line for line in (result.get("logs") or []) if line.startswith("적 식별번호:")
+    ]
+    assert len(enemy_target_logs) == 1
+    assert enemy_b in enemy_target_logs[0]
+    assert enemy_a not in enemy_target_logs[0]
