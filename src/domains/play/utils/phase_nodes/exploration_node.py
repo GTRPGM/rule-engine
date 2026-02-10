@@ -18,9 +18,6 @@ async def exploration_node(state: PlaySessionState) -> Dict[str, Any]:
     player_id = state.current_player_id
     player_state = state.player_state
 
-    rule(state.request)
-    logs.append(f"{state.request}")
-
     entities_in_request = state.request.entities
     npcs = [e for e in entities_in_request if e.entity_type == EntityType.NPC]
     items = [

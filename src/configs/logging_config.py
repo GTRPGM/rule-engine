@@ -26,8 +26,12 @@ LOGGING_CONFIG = {
         },
     },
     "loggers": {
-        "uvicorn": {"handlers": ["default"], "level": "INFO"},
-        "uvicorn.error": {"handlers": ["default"], "level": "INFO", "propagate": False},
+        "uvicorn": {"handlers": ["default"], "level": "DEBUG"},
+        "uvicorn.error": {
+            "handlers": ["default"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
         "uvicorn.access": {"handlers": ["access"], "level": "INFO", "propagate": False},
         "sqlalchemy.engine": {
             "handlers": ["default"],

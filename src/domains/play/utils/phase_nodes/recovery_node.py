@@ -60,9 +60,6 @@ async def recovery_node(state: PlaySessionState) -> Dict[str, Any]:
 
     is_success = False
 
-    rule(state.request)
-    logs.append(f"{state.request}")
-
     if not player_id or not player_state:
         logs.append("회복 페이즈: 플레이어 정보를 찾을 수 없습니다.")
         rule("회복 페이즈: 플레이어 정보를 찾을 수 없습니다.")

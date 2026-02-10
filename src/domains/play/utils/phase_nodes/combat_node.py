@@ -155,9 +155,6 @@ async def combat_node(state: PlaySessionState) -> Dict[str, Any]:
     entities_in_request = state.request.entities
     enemies = [e for e in entities_in_request if e.entity_type == EntityType.ENEMY]
 
-    rule(state.request)
-    logs.append(f"{state.request}")
-
     if not player_id or not player_state:
         logs.append("전투 페이즈: 플레이어 정보를 찾을 수 없습니다.")
         rule("전투 페이즈: 플레이어 정보를 찾을 수 없습니다.")

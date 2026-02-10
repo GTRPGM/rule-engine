@@ -17,7 +17,7 @@ from domains.play.dtos.play_dtos import (
     SceneAnalysis,
 )
 from domains.play.dtos.player_dtos import FullPlayerState
-from utils.logger import error, rule
+from utils.logger import debug, error, rule
 from utils.proxy_request import proxy_request
 
 
@@ -168,7 +168,9 @@ async def fetch_world_data_node(state: PlaySessionState) -> Dict[str, Any]:
     RDB에서 월드 데이터를 조회합니다.
     """
     logs = state.logs[:]
-    # world_service가 상태에서 전달되었다고 가정합니다
+    # DEBUG - state.request 출력
+    debug(f"state.request = {state.request.model_dump_json(indent=2)}")
+
     world_service: WorldService = state.world_service
 
     world_data = await world_service.get_world(include_keys=[WorldInfoKey.LOCALES])

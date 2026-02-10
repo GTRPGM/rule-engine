@@ -30,9 +30,6 @@ async def nego_node(state: PlaySessionState) -> Dict[str, Any]:
     gm_service: GmService = state.gm_service
     item_service: ItemService = state.item_service
 
-    rule(state.request)
-    logs.append(f"{state.request}")
-
     if not player_id or not player_state:
         logs.append("흥정 페이즈: 플레이어 정보를 찾을 수 없습니다.")
         return {
