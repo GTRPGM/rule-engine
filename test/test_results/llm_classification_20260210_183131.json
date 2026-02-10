@@ -1,0 +1,908 @@
+{
+  "timestamp": "2026-02-10 18:31:31",
+  "accuracy": 0.69,
+  "total_time": 249.59,
+  "model_info": "qwen2.5:1.5b",
+  "details": [
+    {
+      "story": "해저 탐사정 안에서 잠시 휴식을 취합니다. (988)",
+      "expected": "휴식",
+      "actual": "휴식",
+      "is_correct": true,
+      "confidence": 0.75,
+      "reason": "안전한 곳에서의 식사, 수면, 자원 회복",
+      "elapsed": 5.578634099918418
+    },
+    {
+      "story": "뜨거운 태양 아래 지친 몸을 물로 축이며 회복합니다. (86)",
+      "expected": "회복",
+      "actual": "휴식",
+      "is_correct": false,
+      "confidence": 0.95,
+      "reason": "회복은 소모품(포션 등) 즉시 사용으로 분류됩니다.",
+      "elapsed": 2.4378682000096887
+    },
+    {
+      "story": "평행 우주로 통하는 문을 발견하고 탐험합니다. (795)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "문서에 언급된 '문'은 환경과의 상호작용을 위한 것이기 때문에, 탐험 유형으로 분류할 수 있습니다.",
+      "elapsed": 3.227264599991031
+    },
+    {
+      "story": "화산 동굴 내부의 안전한 공간에서 잠시 쉽니다. (589)",
+      "expected": "휴식",
+      "actual": "휴식",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "안전한 곳에서의 식사, 수면, 자원 회복.",
+      "elapsed": 2.203505299985409
+    },
+    {
+      "story": "기차 안에서 안전하게 휴식을 취합니다. (617)",
+      "expected": "휴식",
+      "actual": "휴식",
+      "is_correct": true,
+      "confidence": 50.0,
+      "reason": "안전한 곳에서의 식사, 수면, 자원 회복.",
+      "elapsed": 2.266957000014372
+    },
+    {
+      "story": "지하에 숨겨진 비밀 실험실을 발견합니다. (221)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 200.0,
+      "reason": "지하의 비밀 실험실을 조사하고, 환경과의 상호작용을 통해 정보를 수집하거나 물건을 찾는 과정입니다.",
+      "elapsed": 3.442946699913591
+    },
+    {
+      "story": "환상의 숲에서 유니콘을 찾아 나섭니다. (970)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 0.9,
+      "reason": "유니콘은 환상의 숲에 존재하는 미지의 동물로, 이는 자연환경과 상호작용을 중심으로 진행될 수 있는 탐험 유형입니다.",
+      "elapsed": 3.5018478001002222
+    },
+    {
+      "story": "밤이 깊은 도시의 뒷골목을 배회합니다. (109)",
+      "expected": "탐험",
+      "actual": "알 수 없음",
+      "is_correct": false,
+      "confidence": 2.0,
+      "reason": "문장이 짧고 모호하여 특정 유형에 분류하기 어려움.",
+      "elapsed": 2.3784812999656424
+    },
+    {
+      "story": "저주받은 고성을 탐험하며 비밀을 풀어냅니다. (144)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 200.0,
+      "reason": "고성의 특별한 기능이나 비밀을 알아내는 과정에서 나타난다.",
+      "elapsed": 2.5279596999753267
+    },
+    {
+      "story": "도시의 정보상에게 은밀한 정보를 얻습니다. (111)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 200.0,
+      "reason": "정보 상에 대한 요청이므로 감정적 교류와 설득을 포함하는 대화 유형으로 분류할 수 있습니다.",
+      "elapsed": 2.850607500062324
+    },
+    {
+      "story": "하늘의 현자와 대화하여 날씨를 예측하는 방법을 배웁니다. (272)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.52439450006932
+    },
+    {
+      "story": "다른 차원에서 안전한 공간을 찾아 잠시 쉽니다. (715)",
+      "expected": "휴식",
+      "actual": "탐험",
+      "is_correct": false,
+      "confidence": 0.95,
+      "reason": "이 문장은 환경과의 상호작용을 나타내며, 특정 장소를 조사하고 찾는 과정을 설명합니다.",
+      "elapsed": 3.062080000061542
+    },
+    {
+      "story": "심해 탐사정 안에서 잠시 휴식을 취합니다. (106)",
+      "expected": "휴식",
+      "actual": "휴식",
+      "is_correct": true,
+      "confidence": 200.0,
+      "reason": "안전한 곳에서의 식사, 수면, 자원 회복.",
+      "elapsed": 2.4268128001131117
+    },
+    {
+      "story": "다른 차원의 자신과 싸웁니다. (712)",
+      "expected": "전투",
+      "actual": "전투",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "무기 사용, 공격 선언, 물리적 위협이 발생하는 즉시 상황",
+      "elapsed": 2.376073900028132
+    },
+    {
+      "story": "고대 기술의 의료 장비로 몸을 회복합니다. (429)",
+      "expected": "회복",
+      "actual": "회복",
+      "is_correct": true,
+      "confidence": 100.0,
+      "reason": "소모품(포션 등) 즉시 사용.",
+      "elapsed": 2.046940099913627
+    },
+    {
+      "story": "환상의 성 내부의 아름다운 방에서 휴식을 취합니다. (316)",
+      "expected": "휴식",
+      "actual": "휴식",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "방에서 식사, 수면, 자원 회복을 취하는 것으로 보입니다.",
+      "elapsed": 2.375394600094296
+    },
+    {
+      "story": "시간을 거스르는 유물을 얻기 위해 수호자와 거래합니다. (791)",
+      "expected": "흥정",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 0.0,
+      "reason": "거래 조건",
+      "elapsed": 1.497908700024709
+    },
+    {
+      "story": "외딴 섬에서 조용히 명상하며 휴식을 취합니다. (50)",
+      "expected": "휴식",
+      "actual": "휴식",
+      "is_correct": true,
+      "confidence": 1.0,
+      "reason": "문장이 짧고 모호하지 않아 '알 수 없음'으로 처리할 것.",
+      "elapsed": 2.3461719999322668
+    },
+    {
+      "story": "유적이 갑자기 활성화되어 알 수 없는 에너지를 방출합니다. (234)",
+      "expected": "알 수 없음",
+      "actual": "알 수 없음",
+      "is_correct": true,
+      "confidence": 0.9,
+      "reason": "문장이 짧고 모호하여 특정 유형을 분류할 수 없습니다.",
+      "elapsed": 2.3557394000235945
+    },
+    {
+      "story": "저승의 힘으로 몸과 마음을 치유합니다. (296)",
+      "expected": "회복",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 10.0,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.522886299993843
+    },
+    {
+      "story": "얼음 마법으로 몸의 상처를 치유합니다. (933)",
+      "expected": "회복",
+      "actual": "회복",
+      "is_correct": true,
+      "confidence": 100.0,
+      "reason": "소모품(포션 등) 즉시 사용",
+      "elapsed": 1.9638881999999285
+    },
+    {
+      "story": "용과 대화하여 고대 지식을 얻습니다. (461)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.4025044000009075
+    },
+    {
+      "story": "유니콘의 마법으로 몸과 마음을 치유합니다. (625)",
+      "expected": "회복",
+      "actual": "회복",
+      "is_correct": true,
+      "confidence": 0.9,
+      "reason": "마법적 치료로 유니콘의 마법으로 몸과 마음을 치유합니다.",
+      "elapsed": 2.4918401000322774
+    },
+    {
+      "story": "행성의 안전한 동굴에서 잠시 쉽니다. (848)",
+      "expected": "휴식",
+      "actual": "휴식",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "안전한 곳에서의 식사, 수면, 자원 회복.",
+      "elapsed": 2.227584399981424
+    },
+    {
+      "story": "금지된 마법 아이템을 얻기 위해 마녀와 거래합니다. (854)",
+      "expected": "흥정",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 0.0,
+      "reason": "거래 조건",
+      "elapsed": 1.498676700051874
+    },
+    {
+      "story": "미지의 행성에서 외계 문명의 도시를 탐험합니다. (991)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "미지의 행성에서 탐험하는 것은 환경과의 상호작용을 중심으로 합니다.",
+      "elapsed": 2.47523410001304
+    },
+    {
+      "story": "용의 보물을 얻기 위해 용과 거래합니다. (462)",
+      "expected": "흥정",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 0.95,
+      "reason": "거래 조건을 핵심으로 분석할 수 있습니다.",
+      "elapsed": 2.129259799956344
+    },
+    {
+      "story": "신들의 시험을 통과하기 위해 싸웁니다. (257)",
+      "expected": "전투",
+      "actual": "전투",
+      "is_correct": true,
+      "confidence": 0.9,
+      "reason": "신들의 시험을 통과하기 위해 무기 사용, 공격 선언, 물리적 위협이 발생하는 즉시 상황.",
+      "elapsed": 2.8246170999482274
+    },
+    {
+      "story": "우주선의 의료 시설을 이용해 외계 생명체를 치료합니다. (702)",
+      "expected": "회복",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 5.0,
+      "reason": "치료는 감정적 교류와 설득이 핵심입니다.",
+      "elapsed": 2.119237200007774
+    },
+    {
+      "story": "연구소의 최첨단 휴식 공간에서 피로를 풉니다. (246)",
+      "expected": "휴식",
+      "actual": "휴식",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "피로가 풀리는 곳이므로 휴식 유형으로 분류합니다.",
+      "elapsed": 2.4727786999428645
+    },
+    {
+      "story": "오아시스의 물로 몸의 열기를 식히고 회복합니다. (863)",
+      "expected": "회복",
+      "actual": "회복",
+      "is_correct": true,
+      "confidence": 100.0,
+      "reason": "소모품(포션 등) 즉시 사용",
+      "elapsed": 1.9303142999997362
+    },
+    {
+      "story": "요정의 마법 아이템을 얻기 위해 여왕과 거래합니다. (826)",
+      "expected": "흥정",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 0.95,
+      "reason": "거래 조건이 '상점 이용'으로 명확히 나타났습니다.",
+      "elapsed": 2.223451500060037
+    },
+    {
+      "story": "신비로운 예언자와 대화를 시도합니다. (34)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.4308543000370264
+    },
+    {
+      "story": "숲의 환상적인 생물들과 싸웁니다. (803)",
+      "expected": "전투",
+      "actual": "전투",
+      "is_correct": true,
+      "confidence": 1.0,
+      "reason": "무기 사용, 공격 선언, 물리적 위협이 발생하는 즉시 상황.",
+      "elapsed": 2.3551244999980554
+    },
+    {
+      "story": "마법 주문이 잘못되어 예상치 못한 현상이 발생합니다. (122)",
+      "expected": "알 수 없음",
+      "actual": "알 수 없음",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "문장은 시나리오의 단순한 묘사로, 특정 유형의 상황을 설명하지 않고 있다.",
+      "elapsed": 2.6393419000087306
+    },
+    {
+      "story": "악마의 군단과 전투를 벌입니다. (348)",
+      "expected": "전투",
+      "actual": "전투",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "무기 사용, 공격 선언, 물리적 위협이 발생하는 즉시 상황.",
+      "elapsed": 2.446421599946916
+    },
+    {
+      "story": "식물의 힘으로 몸의 상처를 치유합니다. (947)",
+      "expected": "회복",
+      "actual": "회복",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "식물의 힘으로 상처를 치료하는 과정에서 소모품을 즉시 사용하는 상황",
+      "elapsed": 2.6780093999113888
+    },
+    {
+      "story": "오아시스의 물을 얻기 위해 현자와 거래합니다. (959)",
+      "expected": "흥정",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 0.0,
+      "reason": "상거래 조건이 핵심인 상황.",
+      "elapsed": 1.972642100066878
+    },
+    {
+      "story": "고대 문명의 의료 장비로 몸을 회복합니다. (772)",
+      "expected": "회복",
+      "actual": "회복",
+      "is_correct": true,
+      "confidence": 100.0,
+      "reason": "소모품(포션 등) 즉시 사용.",
+      "elapsed": 1.9659745999379084
+    },
+    {
+      "story": "요정의 마법으로 몸과 마음을 치유합니다. (366)",
+      "expected": "회복",
+      "actual": "회복",
+      "is_correct": true,
+      "confidence": 10.0,
+      "reason": "마법 효과로 몸과 마음이 치유되는 상황",
+      "elapsed": 2.093385300016962
+    },
+    {
+      "story": "오아시스의 물을 얻기 위해 현자와 거래합니다. (609)",
+      "expected": "흥정",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 5.0,
+      "reason": "거래 조건이 '물'이라는 물건에 대한 상황",
+      "elapsed": 1.9700905999634415
+    },
+    {
+      "story": "신들의 영역으로 들어가 신들과 대면합니다. (256)",
+      "expected": "탐험",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 0.0,
+      "reason": "신과의 상호작용을 위한 준비 과정에서 감정적 교류와 설득이 핵심입니다.",
+      "elapsed": 2.613002200028859
+    },
+    {
+      "story": "외계 문명의 잔해 속에서 안전한 공간을 찾습니다. (400)",
+      "expected": "휴식",
+      "actual": "탐험",
+      "is_correct": false,
+      "confidence": 1.0,
+      "reason": "이 시나리오는 외계 문명의 잔해를 탐험하는 과정을 묘사하고 있습니다.",
+      "elapsed": 2.593698799959384
+    },
+    {
+      "story": "악마가 봉인에서 풀려나 현실 세계를 위협합니다. (416)",
+      "expected": "알 수 없음",
+      "actual": "전투",
+      "is_correct": false,
+      "confidence": 200.0,
+      "reason": "악마의 풀림과 그로 인한 위협은 즉시 전투 상황으로 분류됩니다.",
+      "elapsed": 2.592433899990283
+    },
+    {
+      "story": "초원 위에서 별을 보며 야영합니다. (183)",
+      "expected": "휴식",
+      "actual": "알 수 없음",
+      "is_correct": false,
+      "confidence": 0.0,
+      "reason": "문장이 짧고 모호하여 특정 유형의 상황을 명확히 분석하기 어렵습니다.",
+      "elapsed": 2.48414870002307
+    },
+    {
+      "story": "고요한 사막의 오아시스에서 숨겨진 유적을 발견합니다. (508)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "사막의 오아시스는 일반적으로 환경과의 상호작용이 주된 목적일 뿐, 유적을 탐험하는 것이 주요 목표입니다.",
+      "elapsed": 3.3224300000583753
+    },
+    {
+      "story": "죽은 자의 기운을 흡수하여 몸을 회복합니다. (394)",
+      "expected": "회복",
+      "actual": "회복",
+      "is_correct": true,
+      "confidence": 0.8,
+      "reason": "소모품(포션 등) 즉시 사용.",
+      "elapsed": 2.0204921000404283
+    },
+    {
+      "story": "불타는 산을 등반하여 불사조의 둥지를 찾습니다. (977)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "등반 시나리오는 환경과의 상호작용이 주요한 특징이며, 탐험 유형으로 분류할 수 있습니다.",
+      "elapsed": 3.0446013000328094
+    },
+    {
+      "story": "설산의 동굴에서 추위를 피해 휴식을 취합니다. (519)",
+      "expected": "휴식",
+      "actual": "휴식",
+      "is_correct": true,
+      "confidence": 200.0,
+      "reason": "안전한 곳에서의 식사, 수면, 자원 회복.",
+      "elapsed": 2.3269863999448717
+    },
+    {
+      "story": "안개 속에서 나타난 환영과 싸웁니다. (166)",
+      "expected": "전투",
+      "actual": "전투",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "안개 속에서 나타난 환영은 무기 사용, 공격 선언, 물리적 위협이 발생하는 즉시 상황입니다.",
+      "elapsed": 3.0358461000723764
+    },
+    {
+      "story": "영혼이 떠도는 망자의 도시를 탐험합니다. (774)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "영혼이 떠도는 망자의 도시를 탐험하는 것은 환경과의 상호작용을 중심으로 하는 탐험 유형입니다.",
+      "elapsed": 3.205533399945125
+    },
+    {
+      "story": "행성의 자연 에너지로 몸을 회복합니다. (436)",
+      "expected": "회복",
+      "actual": "회복",
+      "is_correct": true,
+      "confidence": 100.0,
+      "reason": "소모품(포션 등) 즉시 사용.",
+      "elapsed": 1.9904053999343887
+    },
+    {
+      "story": "유적선을 지키는 공중 몬스터와 싸웁니다. (383)",
+      "expected": "전투",
+      "actual": "전투",
+      "is_correct": true,
+      "confidence": 200.0,
+      "reason": "공중 몬스터와의 전투 상황이 발생합니다.",
+      "elapsed": 2.0867011999944225
+    },
+    {
+      "story": "환상의 숲 깊은 곳에서 유니콘과 함께 휴식을 취합니다. (974)",
+      "expected": "휴식",
+      "actual": "휴식",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "유니콘과 함께 휴식을 취함으로써 자연환경과의 상호작용을 통해 안정감을 느끼는 것.",
+      "elapsed": 3.09662099997513
+    },
+    {
+      "story": "화산 분화구를 탐사하여 희귀 광석을 찾습니다. (186)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "이 시나리오는 화산 분화구를 탐사하는 과정에서 희귀 광석을 찾아내는 것으로, 환경과의 상호작용을 중심으로 진행됩니다.",
+      "elapsed": 3.665811200044118
+    },
+    {
+      "story": "마법진의 수호자와 대화하여 마법을 사용하는 방법을 배웁니다. (286)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.416949500096962
+    },
+    {
+      "story": "피라미드가 붕괴되기 시작하며 탈출해야 합니다. (283)",
+      "expected": "알 수 없음",
+      "actual": "전투",
+      "is_correct": false,
+      "confidence": 50.0,
+      "reason": "피라미드가 붕괴되어 탈출 시도 중입니다.",
+      "elapsed": 2.185133499908261
+    },
+    {
+      "story": "숲의 동물들과 대화하여 그들의 언어를 배웁니다. (454)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 0.9,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.487229499965906
+    },
+    {
+      "story": "깊은 바닷속 고대 유적을 탐험합니다. (837)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "바닷속의 고대 유적을 조사하고, 환경과의 상호작용이 주요한 요소입니다.",
+      "elapsed": 2.8627740999218076
+    },
+    {
+      "story": "시간을 조종하는 몬스터와 싸웁니다. (124)",
+      "expected": "전투",
+      "actual": "전투",
+      "is_correct": true,
+      "confidence": 50.0,
+      "reason": "몬스터가 시간을 조종하고 있으며, 플레이어가 이를 상호 작용하거나 대응해야 합니다.",
+      "elapsed": 2.54874340002425
+    },
+    {
+      "story": "얼음 성 내부의 따뜻한 공간에서 휴식을 취합니다. (582)",
+      "expected": "휴식",
+      "actual": "휴식",
+      "is_correct": true,
+      "confidence": 0.9,
+      "reason": "안전한 곳에서의 식사, 수면, 자원 회복.",
+      "elapsed": 2.3443344000261277
+    },
+    {
+      "story": "도시의 에너지가 불안정해지며 붕괴될 위기에 처합니다. (773)",
+      "expected": "알 수 없음",
+      "actual": "전투",
+      "is_correct": false,
+      "confidence": 0.0,
+      "reason": "에너지 붕괴 위기 상황으로, 무기 사용과 공격 선언이 발생하는 즉시 상황.",
+      "elapsed": 2.6129573000362143
+    },
+    {
+      "story": "어둠의 숲을 탐험하며 숨겨진 고대 유적을 발견합니다. (683)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "문장은 환경과의 상호작용에 초점을 두고 있으며, 어둠의 숲에서 고대 유적을 탐험하는 과정을 묘사하고 있습니다.",
+      "elapsed": 3.4754273000871763
+    },
+    {
+      "story": "수도의 인공지능과 대화하여 문명의 역사를 알아냅니다. (426)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.556488100090064
+    },
+    {
+      "story": "신전의 성스러운 공간에서 마음의 평화를 얻습니다. (162)",
+      "expected": "휴식",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 0.0,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.4063840000890195
+    },
+    {
+      "story": "숲 전체가 어둠의 힘에 휩싸이며 마법이 폭주합니다. (507)",
+      "expected": "알 수 없음",
+      "actual": "전투",
+      "is_correct": false,
+      "confidence": 1.0,
+      "reason": "마법 폭주는 무기 사용, 공격 선언, 물리적 위협이 발생하는 즉시 상황입니다.",
+      "elapsed": 2.7129680999787524
+    },
+    {
+      "story": "도서관에 숨어있는 생존자와 대화하여 정보를 얻습니다. (566)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.44781210005749
+    },
+    {
+      "story": "안개가 갑자기 걷히며 낯선 풍경이 드러납니다. (171)",
+      "expected": "알 수 없음",
+      "actual": "알 수 없음",
+      "is_correct": true,
+      "confidence": 0.5,
+      "reason": "문장이 짧고 모호하여 특정 유형을 분류하기 어렵습니다.",
+      "elapsed": 2.3890678000170738
+    },
+    {
+      "story": "탄광 깊은 곳의 유령과 대화하여 정보를 얻습니다. (174)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.471857500029728
+    },
+    {
+      "story": "꿈의 세계가 현실을 침범하기 시작합니다. (136)",
+      "expected": "알 수 없음",
+      "actual": "알 수 없음",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "문장이 짧고 모호하여 특정 유형에 대한 분류를 명확히 하기 어렵습니다.",
+      "elapsed": 2.523049399955198
+    },
+    {
+      "story": "화산의 희귀 광석을 팔기 위해 광석상과 거래합니다. (189)",
+      "expected": "흥정",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 0.95,
+      "reason": "거래 조건이 '광석 상'이라는 특정 장소와 관련된 정보료 협상으로 분류할 수 있습니다.",
+      "elapsed": 2.726013800012879
+    },
+    {
+      "story": "미지의 행성에서 고대 문명의 흔적을 찾습니다. (494)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 0.85,
+      "reason": "미지의 행성이 존재하는 환경과의 상호작용이 필요합니다.",
+      "elapsed": 2.4193197999848053
+    },
+    {
+      "story": "버려진 우주선에서 외계 생명체를 구출합니다. (697)",
+      "expected": "탐험",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 50.0,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.529415600001812
+    },
+    {
+      "story": "북극의 맹수와 조우하여 싸웁니다. (215)",
+      "expected": "전투",
+      "actual": "전투",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "무기 사용, 공격 선언, 물리적 위협이 발생하는 즉시 상황.",
+      "elapsed": 2.3282623999984935
+    },
+    {
+      "story": "고대 지식을 얻기 위해 인공지능과 거래합니다. (770)",
+      "expected": "흥정",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 1.0,
+      "reason": "거래 조건이 '인공지능과의 상담'으로 분류됩니다.",
+      "elapsed": 2.290579100023024
+    },
+    {
+      "story": "유적의 영혼과 대화하여 사막의 비밀을 알아냅니다. (510)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 3.0,
+      "reason": "사람과의 상호작용이 핵심적인 요소입니다.",
+      "elapsed": 2.1274298999924213
+    },
+    {
+      "story": "던전 깊숙한 곳의 현자와 대화하여 조언을 구합니다. (153)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.532196499989368
+    },
+    {
+      "story": "오아시스가 갑자기 사라지며 사막 한가운데에 남겨집니다. (962)",
+      "expected": "알 수 없음",
+      "actual": "알 수 없음",
+      "is_correct": true,
+      "confidence": 0.5,
+      "reason": "문장이 짧고 모호하여 특정 유형을 분류하기 어렵습니다.",
+      "elapsed": 2.3441147999837995
+    },
+    {
+      "story": "도서관을 배회하는 좀비와 싸웁니다. (565)",
+      "expected": "전투",
+      "actual": "전투",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "좀비가 도서관에서 무기 사용, 공격 선언, 물리적 위협이 발생하는 즉시 상황.",
+      "elapsed": 2.672354400041513
+    },
+    {
+      "story": "해저 화산의 정령과 대화하여 화산의 활동을 멈춰달라 요청합니다. (636)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.516784099978395
+    },
+    {
+      "story": "어둠의 차원으로 통하는 문을 발견하고 탐험합니다. (998)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 0.95,
+      "reason": "문을 통해 어둠의 차원으로 통하는 문을 탐험하는 상황이므로 '탐험' 유형으로 분류할 수 있습니다.",
+      "elapsed": 2.9642918000463396
+    },
+    {
+      "story": "다른 차원이 붕괴되기 시작하며 현실 세계에 영향을 미칩니다. (717)",
+      "expected": "알 수 없음",
+      "actual": "전투",
+      "is_correct": false,
+      "confidence": 0.9,
+      "reason": "차원이 붕괴되며 현실 세계에 영향을 미치는 상황에서 무기 사용과 공격 선언이 발생합니다.",
+      "elapsed": 2.901309399981983
+    },
+    {
+      "story": "어둠의 차원이 현실 세계를 침범하기 시작합니다. (654)",
+      "expected": "알 수 없음",
+      "actual": "전투",
+      "is_correct": false,
+      "confidence": 0.0,
+      "reason": "차원 범죄가 현실 세계로 진입하여 상황이 악화됨.",
+      "elapsed": 2.2591314000310376
+    },
+    {
+      "story": "원주민과 물물교환을 통해 필요한 물품을 얻습니다. (77)",
+      "expected": "흥정",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 0.0,
+      "reason": "상점 이용, 아이템 매매",
+      "elapsed": 1.684586099931039
+    },
+    {
+      "story": "숲에서 채취한 약초로 병든 몸을 치료합니다. (100)",
+      "expected": "회복",
+      "actual": "회복",
+      "is_correct": true,
+      "confidence": 5.0,
+      "reason": "소모품(포션 등) 즉시 사용.",
+      "elapsed": 1.936757200048305
+    },
+    {
+      "story": "폐허에 거대한 지진이 발생합니다. (206)",
+      "expected": "알 수 없음",
+      "actual": "전투",
+      "is_correct": false,
+      "confidence": 1.0,
+      "reason": "지진은 무기 사용, 공격 선언, 물리적 위협이 발생하는 즉시 상황입니다.",
+      "elapsed": 2.475571100017987
+    },
+    {
+      "story": "저주받은 숲의 안전한 동굴에서 잠시 숨을 돌립니다. (764)",
+      "expected": "휴식",
+      "actual": "휴식",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "안전한 곳에서의 식사, 수면, 자원 회복.",
+      "elapsed": 2.2048597999382764
+    },
+    {
+      "story": "행성을 배회하는 외계 생명체와 싸웁니다. (845)",
+      "expected": "전투",
+      "actual": "전투",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "무기 사용, 공격 선언, 물리적 위협이 발생하는 즉시 상황",
+      "elapsed": 2.344718800042756
+    },
+    {
+      "story": "저주를 푸는 방법을 얻기 위해 악령과 거래합니다. (693)",
+      "expected": "흥정",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 0.85,
+      "reason": "거래 조건은 '상점 이용'으로 분류할 수 있습니다.",
+      "elapsed": 2.2819289999315515
+    },
+    {
+      "story": "탄광에서 발견한 약수로 피로를 회복합니다. (177)",
+      "expected": "회복",
+      "actual": "회복",
+      "is_correct": true,
+      "confidence": 0.0,
+      "reason": "소모품(포션 등) 즉시 사용",
+      "elapsed": 1.815800999989733
+    },
+    {
+      "story": "악마의 저주를 풀기 위해 신성한 힘으로 몸을 정화합니다. (415)",
+      "expected": "회복",
+      "actual": "전투",
+      "is_correct": false,
+      "confidence": 0.8,
+      "reason": "악마의 저주의 상황에서, 플레이어가 무기를 사용하여 공격 선언하고 물리적 위협이 발생하는 즉시 상황입니다.",
+      "elapsed": 3.1480725000146776
+    },
+    {
+      "story": "시간의 정령과 대화하여 유물의 위치를 알아냅니다. (440)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 3.0,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.422885400010273
+    },
+    {
+      "story": "감옥에 갇힌 죄수와 대화하여 정보를 얻습니다. (832)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 10.0,
+      "reason": "감옥에서 정보를 얻기 위해 감독과의 대화를 통해 정보를 수집하는 상황입니다.",
+      "elapsed": 2.4796983000123873
+    },
+    {
+      "story": "배가 고파진 당신은 가방을 열어 딱딱한 빵 한 조각을 꺼내 씹어 먹습니다...",
+      "expected": "휴식",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 10.0,
+      "reason": "감정적 교류, 설득",
+      "elapsed": 1.843625699984841
+    },
+    {
+      "story": "저주를 푸는 아이템을 얻기 위해 정령과 거래합니다. (763)",
+      "expected": "흥정",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 0.0,
+      "reason": "거래 조건이 '정령과의 상점 이용'으로 분류할 수 있습니다.",
+      "elapsed": 2.22144859994296
+    },
+    {
+      "story": "성의 얼음 마녀와 대화하여 비밀을 알아냅니다. (930)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 1.0,
+      "reason": "감정적 교류, 설득, 뇌물 공여, 사교적 상호작용.",
+      "elapsed": 2.458505899994634
+    },
+    {
+      "story": "고대 신들의 신전을 탐색합니다. (158)",
+      "expected": "탐험",
+      "actual": "탐험",
+      "is_correct": true,
+      "confidence": 0.9,
+      "reason": "고대 신들의 신전은 미지의 공간 조사와 길 찾기로 분류할 수 있습니다.",
+      "elapsed": 2.536149400053546
+    },
+    {
+      "story": "여관에서 소문을 듣던 중, 수상한 여행자와 눈이 마주쳤습니다. (13)",
+      "expected": "대화",
+      "actual": "대화",
+      "is_correct": true,
+      "confidence": 50.0,
+      "reason": "감정적 교류, 설득",
+      "elapsed": 1.8642225998919457
+    },
+    {
+      "story": "희귀한 보석을 사기 위해 보석상과 가격을 조율합니다. (42)",
+      "expected": "흥정",
+      "actual": "대화",
+      "is_correct": false,
+      "confidence": 10.0,
+      "reason": "사용 가능한 정보료를 협상하여 보석의 가치를 조정하는 상황",
+      "elapsed": 2.4179279999807477
+    },
+    {
+      "story": "갑작스러운 습격! 산적 떼가 나타나 재물을 요구합니다. (19)",
+      "expected": "전투",
+      "actual": "전투",
+      "is_correct": true,
+      "confidence": 0.9,
+      "reason": "갑작스러운 습격과 재물 요구는 무기 사용, 공격 선언 및 물리적 위협이 발생하는 즉시 상황입니다.",
+      "elapsed": 3.0607390000950545
+    }
+  ]
+}

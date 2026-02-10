@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import json
 import os
 import random
@@ -46,7 +47,7 @@ class TestAnalyzeSceneNode(unittest.IsolatedAsyncioTestCase):
         )
 
         # 테스트에 필요한 LLM 매니저를 초기화합니다.
-        self.llm_manager = LLMManager.get_instance("gateway")
+        self.llm_manager = LLMManager.get_instance("ollama")
 
     async def test_analyze_scene_node_logic(self):
         print(
@@ -55,6 +56,8 @@ class TestAnalyzeSceneNode(unittest.IsolatedAsyncioTestCase):
 
         correct_predictions = 0
         total_predictions = len(self.sample_stories)
+        all_details = []
+        total_elapsed_time = 0.0
 
         for expected_type, story in self.sample_stories:
             story_cleaned = story.replace(" súčasťou", "")
@@ -89,9 +92,11 @@ class TestAnalyzeSceneNode(unittest.IsolatedAsyncioTestCase):
                 # 4. 시간 측정 종료
                 end_time = time.perf_counter()
                 elapsed = end_time - start_time
+                total_elapsed_time += elapsed
 
                 # 5. 결과 검증 및 출력
                 self.assertIsNotNone(analysis)
+                is_correct = analysis.phase_type == expected_type
                 print(f"\n[입력 문장]: {story_cleaned}")
                 print(
                     f"[결과] 정답: {expected_type.value} | 예상: {analysis.phase_type.value}"
@@ -100,8 +105,21 @@ class TestAnalyzeSceneNode(unittest.IsolatedAsyncioTestCase):
                 print(f"[분석 이유]: {analysis.reason}")
                 print(f"{'-' * 60}")
 
-                if analysis.phase_type == expected_type:
+                if is_correct:
                     correct_predictions += 1
+
+                # Collect details for JSON output
+                all_details.append(
+                    {
+                        "story": story_cleaned,
+                        "expected": expected_type.value,
+                        "actual": analysis.phase_type.value,
+                        "is_correct": is_correct,
+                        "confidence": analysis.confidence,
+                        "reason": analysis.reason,
+                        "elapsed": elapsed,
+                    }
+                )
 
         accuracy = (
             (correct_predictions / total_predictions) * 100
@@ -114,6 +132,42 @@ class TestAnalyzeSceneNode(unittest.IsolatedAsyncioTestCase):
         print(f" 정확한 예측 수: {correct_predictions}")
         print(f" 전체 정확도: {accuracy:.2f}%")
         print(f"{'=' * 60}")
+
+        # Determine model info
+        model_info = "unknown"
+        if hasattr(self.llm_manager, "model_name"):
+            model_info = self.llm_manager.model_name
+        elif hasattr(self.llm_manager, "model"):
+            model_info = self.llm_manager.model
+        # Special handling for NarrativeChatModel (gateway)
+        elif hasattr(LLMManager, "_instances") and "gateway" in LLMManager._instances:
+            # Get the type of the 'gateway' instance to compare with self.llm_manager's type
+            gateway_instance = LLMManager._instances["gateway"]
+            if isinstance(self.llm_manager, type(gateway_instance)):
+                model_info = "gateway"
+
+        # Prepare final test results dictionary
+        test_results = {
+            "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "accuracy": round(
+                accuracy / 100, 2
+            ),  # Convert percentage to a fraction and round
+            "total_time": round(total_elapsed_time, 2),
+            "model_info": model_info,
+            "details": all_details,
+        }
+
+        # Save results to JSON file
+        results_dir = os.path.join(os.path.dirname(__file__), "test_results")
+        os.makedirs(results_dir, exist_ok=True)  # Ensure directory exists
+        timestamp_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_name = f"llm_classification_{timestamp_str}.json"
+        file_path = os.path.join(results_dir, file_name)
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(test_results, f, ensure_ascii=False, indent=2)
+
+        print(f"\n테스트 결과가 다음 파일에 저장되었습니다: {file_path}")
 
     async def asyncTearDown(self):
         # 각 테스트 후 약간의 지연 시간을 주어 리소스 정리 시간을 확보합니다.
