@@ -32,7 +32,7 @@ class LLMManager:
 
         elif provider == "gemini":
             selected_model = (
-                "gemini-2.5-flash" if APP_ENV == "local" else "gemini-3-pro-preview"
+                "gemini-2.0-flash" if APP_ENV == "local" else "gemini-3-pro-preview"
             )
             instance = ChatGoogleGenerativeAI(
                 model=selected_model, temperature=temperature, api_key=GEMINI_API_KEY
