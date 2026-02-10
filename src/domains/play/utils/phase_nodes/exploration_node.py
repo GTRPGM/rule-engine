@@ -18,6 +18,9 @@ async def exploration_node(state: PlaySessionState) -> Dict[str, Any]:
     player_id = state.current_player_id
     player_state = state.player_state
 
+    rule(state.request)
+    logs.append(f"{state.request}")
+
     entities_in_request = state.request.entities
     npcs = [e for e in entities_in_request if e.entity_type == EntityType.NPC]
     items = [
@@ -105,11 +108,11 @@ async def exploration_node(state: PlaySessionState) -> Dict[str, Any]:
                 rel_type = RelationType.LITTLE_HOSTILE
 
             new_rel = UpdateRelation(
-                    cause_entity_id=player_id,
-                    effect_entity_id=npc.state_entity_id,
-                    type=rel_type,
-                    affinity_score=affinity,
-                )
+                cause_entity_id=player_id,
+                effect_entity_id=npc.state_entity_id,
+                type=rel_type,
+                affinity_score=affinity,
+            )
             relations.append(new_rel)
             rule(f"relations.append({new_rel})")
         new_npc_log = (

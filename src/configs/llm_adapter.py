@@ -1,5 +1,5 @@
-import json
 import asyncio
+import json
 from typing import Any, List, Optional
 
 import httpx
@@ -81,7 +81,7 @@ class NarrativeChatModel(BaseChatModel):
         schema_messages = [self._convert_message_to_schema(m) for m in messages]
 
         request_body = ChatCompletionRequest(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=schema_messages,
             temperature=kwargs.get("temperature", self.temperature),
             max_tokens=kwargs.get("max_tokens"),
