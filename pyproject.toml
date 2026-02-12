@@ -20,6 +20,7 @@ dependencies = [
     "langgraph>=1.0.6",
     "matplotlib>=3.10.8",
     "pandas>=3.0.0",
+    "pandas-stubs~=3.0.0",
     "psycopg2-binary>=2.9.11",
     "pydantic>=2.12.5",
     "python-dotenv>=1.2.1",
