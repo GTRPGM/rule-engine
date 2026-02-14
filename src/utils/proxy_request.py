@@ -2,6 +2,7 @@ import httpx
 from fastapi import HTTPException, status
 
 from configs.http_client import http_holder
+from utils.logger import debug
 
 
 async def proxy_request(
@@ -15,6 +16,7 @@ async def proxy_request(
     """마이크로서비스로 요청을 전달하는 공통 비동기 메서드"""
     url = f"{base_url}{path}"
     client = http_holder.client
+    debug(f"proxy_url: {url}")
 
     if base_url is None or ":None" in str(base_url):
         from utils.logger import logger
