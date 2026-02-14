@@ -23,11 +23,12 @@ if SSH_ENABLED:
             (SSH_HOST, 22),
             ssh_username=SSH_USER,
             ssh_pkey=SSH_KEY_PATH,
-            remote_bind_address=('127.0.0.1', int(REDIS_PORT)),
-            local_bind_address=('127.0.0.1', int(REDIS_PORT))
+            remote_bind_address=('127.0.0.1', REDIS_PORT),
+            local_bind_address=('127.0.0.1', 0)
         )
         redis_tunnel.start()
-        logger.info(f"🚀 Redis용 SSH 터널이 활성화되었습니다. (Port: {REDIS_PORT})")
+        actual_port = redis_tunnel.local_bind_port
+        logger.info(f"🚀 Redis용 SSH 터널이 활성화되었습니다. (Port: {actual_port})")
     except Exception as e:
         logger.error(f"❌ Redis SSH 터널 생성 실패: {e}")
         sys.exit(1)

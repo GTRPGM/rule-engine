@@ -60,6 +60,10 @@ def get_db_cursor():
     """
     conn = None  # conn을 None으로 초기화합니다.
     try:
+        # 터널이 살아있는지 먼저 확인 (디버깅용)
+        if SSH_ENABLED and (not rdb_tunnel or not rdb_tunnel.is_active):
+            raise ConnectionError("RDB SSH 터널이 활성화되어 있지 않습니다.")
+
         conn = connection_pool.getconn()
         cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
         yield cursor
