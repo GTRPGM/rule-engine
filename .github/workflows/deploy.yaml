@@ -19,7 +19,6 @@ env:
 
 jobs:
   build-and-push:
-    needs: build-and-test
     runs-on: ubuntu-22.04
     permissions:
       contents: read
