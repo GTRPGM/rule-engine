@@ -21,6 +21,7 @@ from src.utils.logger import logger
 
 # RDB SSH 터널 정의
 rdb_tunnel = None
+actual_db_port = DB_PORT
 
 if SSH_ENABLED:
     rdb_tunnel = SSHTunnelForwarder(
@@ -28,10 +29,11 @@ if SSH_ENABLED:
         ssh_username=SSH_USER,
         ssh_pkey=SSH_KEY_PATH,
         remote_bind_address=('127.0.0.1', DB_PORT),
-        local_bind_address=('127.0.0.1', DB_PORT)
+        local_bind_address=('127.0.0.1', 0)
     )
     rdb_tunnel.start()
-    logger.info("🚀 PostgreSQL용 SSH 터널이 활성화되었습니다.")
+    actual_db_port = rdb_tunnel.local_bind_port
+    logger.info(f"🚀 PostgreSQL용 SSH 터널 활성화 (Port: {actual_db_port})")
 
 # 커넥션 풀 설정
 try:
@@ -41,7 +43,7 @@ try:
         user=DB_USER,
         password=DB_PASSWORD,
         host=DB_HOST,
-        port=DB_PORT,
+        port=actual_db_port,
         database=DB_NAME,
     )
     logger.info("✅ 데이터베이스 커넥션 풀이 성공적으로 생성되었습니다.")

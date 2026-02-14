@@ -16,6 +16,7 @@ from src.utils.logger import logger
 
 # Redis SSH 터널 정의
 redis_tunnel = None
+actual_redis_port = REDIS_PORT
 
 if SSH_ENABLED:
     try:
@@ -27,8 +28,8 @@ if SSH_ENABLED:
             local_bind_address=('127.0.0.1', 0)
         )
         redis_tunnel.start()
-        actual_port = redis_tunnel.local_bind_port
-        logger.info(f"🚀 Redis용 SSH 터널이 활성화되었습니다. (Port: {actual_port})")
+        actual_redis_port = redis_tunnel.local_bind_port
+        logger.info(f"🚀 Redis용 SSH 터널이 활성화되었습니다. (Port: {actual_redis_port})")
     except Exception as e:
         logger.error(f"❌ Redis SSH 터널 생성 실패: {e}")
         sys.exit(1)
@@ -36,7 +37,7 @@ if SSH_ENABLED:
 # Redis 클라이언트 초기화
 redis_client = redis.StrictRedis(
     host=REDIS_HOST,
-    port=REDIS_PORT,
+    port=actual_redis_port,
     password=REDIS_PASSWORD,
     decode_responses=True,  # 데이터를 문자열로 자동 디코딩
 )
