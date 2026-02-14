@@ -56,7 +56,7 @@ nosetests.xml
 *.pth
 *.pkl
 src/utils/results/
-#test_logs/
+#test/bert_test_logs/
 
 # Jupyter Notebook 임시 파일
 .ipynb_checkpoints/
