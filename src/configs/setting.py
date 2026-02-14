@@ -23,8 +23,8 @@ if SSH_ENABLED:
     DB_HOST = "127.0.0.1"
     REDIS_HOST = "127.0.0.1"
 else:
-    DB_HOST = os.getenv("DB_HOST", "localhost" if (APP_ENV == "local") else REMOTE_HOST)
-    REDIS_HOST = os.getenv("REDIS_HOST", "localhost" if (APP_ENV == "local") else REMOTE_HOST)
+    DB_HOST = os.getenv("DB_HOST", REMOTE_HOST)
+    REDIS_HOST = os.getenv("REDIS_HOST", REMOTE_HOST)
 
 # RDB 설정
 DB_USER = os.getenv("DB_USER")
