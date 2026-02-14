@@ -4,9 +4,34 @@ from contextlib import contextmanager
 import psycopg2
 from fastapi import HTTPException
 from psycopg2 import extras, pool
+from sshtunnel import SSHTunnelForwarder
 
-from src.configs.setting import DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER
+from src.configs.setting import (
+    DB_HOST,
+    DB_NAME,
+    DB_PASSWORD,
+    DB_PORT,
+    DB_USER,
+    SSH_ENABLED,
+    SSH_HOST,
+    SSH_KEY_PATH,
+    SSH_USER,
+)
 from src.utils.logger import logger
+
+# RDB SSH 터널 정의
+rdb_tunnel = None
+
+if SSH_ENABLED:
+    rdb_tunnel = SSHTunnelForwarder(
+        (SSH_HOST, 22),
+        ssh_username=SSH_USER,
+        ssh_pkey=SSH_KEY_PATH,
+        remote_bind_address=('127.0.0.1', DB_PORT),
+        local_bind_address=('127.0.0.1', DB_PORT)
+    )
+    rdb_tunnel.start()
+    logger.info("🚀 PostgreSQL용 SSH 터널이 활성화되었습니다.")
 
 # 커넥션 풀 설정
 try:

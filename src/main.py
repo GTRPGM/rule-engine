@@ -1,3 +1,12 @@
+import warnings
+
+try:
+    from cryptography.utils import CryptographyDeprecationWarning
+    warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
+except ImportError:
+    # 혹시라도 해당 클래스가 없는 경우를 대비한 예외 처리
+    pass
+
 from contextlib import asynccontextmanager
 from typing import Dict
 
@@ -5,14 +14,15 @@ from fastapi import FastAPI, HTTPException, Request, status
 from starlette.middleware.cors import CORSMiddleware
 
 from configs.api_routers import API_ROUTERS
-from configs.database import check_db_connection
+from configs.database import check_db_connection, rdb_tunnel
 from configs.exceptions import init_exception_handlers
-from configs.redis_conn import check_redis_connection
+from configs.redis_conn import check_redis_connection, redis_tunnel
 from src.common.dtos.common_response import CustomJSONResponse
 from src.configs.logging_config import LOGGING_CONFIG
 from src.configs.origins import origins
 from src.configs.setting import APP_ENV, APP_PORT, REMOTE_HOST
 from src.utils.lifespan_handlers import shutdown_event_handler, startup_event_handler
+from utils.logger import info
 
 
 @asynccontextmanager
@@ -22,6 +32,13 @@ async def lifespan(app: FastAPI):
     yield  # 서버가 동작하는 지점
     # 서버가 종료될 때 실행
     await shutdown_event_handler()
+    if rdb_tunnel and rdb_tunnel.is_active:
+        rdb_tunnel.stop()
+        info("🛑 RDB SSH 터널이 안전하게 닫혔습니다.")
+
+    if redis_tunnel:
+        redis_tunnel.stop()
+        info("🛑 Redis SSH 터널이 안전하게 닫혔습니다.")
 
 
 app = FastAPI(

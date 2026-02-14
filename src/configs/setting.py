@@ -4,22 +4,37 @@ from dotenv import load_dotenv
 
 load_dotenv(override=False)
 
+
 # 공통 설정
 REMOTE_HOST = os.getenv("REMOTE_HOST")
+
+# 원격 서버
+APP_HOST = os.getenv("APP_HOST")  # 운영 환경에서는 '0.0.0.0' 주입
+APP_PORT = int(os.getenv("APP_PORT"))
+APP_ENV = os.getenv("APP_ENV")  # local, dev, prod 등
+
+# SSH 터널링 설정 (로컬 환경용)
+SSH_ENABLED = APP_ENV == "local"
+SSH_HOST = REMOTE_HOST
+SSH_USER = os.getenv("SSH_USER")
+SSH_KEY_PATH = os.getenv("SSH_KEY_PATH")
+
+if SSH_ENABLED:
+    DB_HOST = "127.0.0.1"
+    REDIS_HOST = "127.0.0.1"
+else:
+    DB_HOST = os.getenv("DB_HOST", "localhost" if (APP_ENV == "local") else REMOTE_HOST)
+    REDIS_HOST = os.getenv("REDIS_HOST", "localhost" if (APP_ENV == "local") else REMOTE_HOST)
 
 # RDB 설정
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
-
-DB_HOST = os.getenv("DB_HOST", REMOTE_HOST)
 DB_PORT = int(os.getenv("DB_PORT"))
 
 # REDIS
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
-
-REDIS_HOST = os.getenv("REDIS_HOST", REMOTE_HOST)
-REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_PORT = int(os.getenv("REDIS_PORT"))
 
 # LLM
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -44,8 +59,3 @@ LLM_GATEWAY_PORT = os.getenv("LLM_GATEWAY_PORT")
 
 WEB_HOST = os.getenv("WEB_HOST", REMOTE_HOST)
 WEB_PORT = os.getenv("WEB_PORT")
-
-# 원격 서버
-APP_HOST = os.getenv("APP_HOST")  # 운영 환경에서는 '0.0.0.0' 주입
-APP_PORT = int(os.getenv("APP_PORT"))
-APP_ENV = os.getenv("APP_ENV")  # local, dev, prod 등
