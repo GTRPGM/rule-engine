@@ -1,33 +1,19 @@
 import httpx
 from fastapi import HTTPException, status
 
-from common.dtos.proxy_service_dto import ProxyService
 from configs.http_client import http_holder
-from configs.setting import (
-    SCENARIO_SERVICE_HOST,
-    SCENARIO_SERVICE_PORT,
-    STATE_MANAGER_HOST,
-    STATE_MANAGER_PORT,
-)
 
 
 async def proxy_request(
     method: str,
+    base_url: str,
     path: str,
     # token: str,
     params=None,
     json=None,
-    provider: ProxyService = ProxyService.STATE_MANAGER,
 ) -> dict:
     """마이크로서비스로 요청을 전달하는 공통 비동기 메서드"""
-    if provider == ProxyService.STATE_MANAGER:
-        target_host = STATE_MANAGER_HOST
-        target_port = STATE_MANAGER_PORT
-    else:
-        target_host = SCENARIO_SERVICE_HOST
-        target_port = SCENARIO_SERVICE_PORT
-
-    url = f"http://{target_host}:{target_port}{path}"
+    url = f"{base_url}{path}"
     client = http_holder.client
 
     if client is None:

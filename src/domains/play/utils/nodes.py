@@ -6,8 +6,7 @@ from fastapi import HTTPException, status
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableConfig
 
-from common.dtos.proxy_service_dto import ProxyService
-from configs.setting import APP_ENV
+from configs.setting import APP_ENV, STATE_MANAGER_URL
 from domains.info.dtos.world_dtos import WorldInfoKey
 from domains.info.world_service import WorldService
 from domains.play.dtos.play_dtos import (
@@ -54,8 +53,8 @@ async def get_player_state_from_proxy(player_id: str) -> FullPlayerState:
     try:
         response = await proxy_request(
             "GET",
+            STATE_MANAGER_URL,
             f"/state/player/{player_id}",
-            provider=ProxyService.STATE_MANAGER,
         )
 
         data = response.get("data")

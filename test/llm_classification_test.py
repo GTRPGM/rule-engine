@@ -47,7 +47,7 @@ class TestAnalyzeSceneNode(unittest.IsolatedAsyncioTestCase):
         )
 
         # 테스트에 필요한 LLM 매니저를 초기화합니다.
-        self.llm_manager = LLMManager.get_instance("ollama")
+        self.llm_manager = LLMManager.get_instance("gateway")
 
     async def test_analyze_scene_node_logic(self):
         print(

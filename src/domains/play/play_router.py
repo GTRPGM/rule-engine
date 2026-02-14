@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_utils.cbv import cbv
 from starlette.responses import StreamingResponse
 
-from common.dtos.proxy_service_dto import ProxyService
 from common.dtos.wrapped_response import WrappedResponse
 from common.utils.get_services import (
     get_enemy_service,
@@ -13,6 +12,7 @@ from common.utils.get_services import (
     get_play_service,
     get_world_service,
 )
+from configs.setting import STATE_MANAGER_URL
 from domains.info.enemy_service import EnemyService
 from domains.info.item_service import ItemService
 from domains.info.npc_service import NpcService
@@ -61,8 +61,8 @@ class PlayRouter:
     async def player(self, player_id: str):
         return await proxy_request(
             "GET",
+            STATE_MANAGER_URL,
             f"/state/player/{player_id}",
-            provider=ProxyService.STATE_MANAGER,
         )
 
     @play_router.get(

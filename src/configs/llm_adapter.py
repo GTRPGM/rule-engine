@@ -22,7 +22,7 @@ from configs.llm import (
 from configs.llm import (
     ChatMessage as SchemaChatMessage,
 )
-from configs.setting import LLM_GATEWAY_HOST, LLM_GATEWAY_PORT
+from configs.setting import LLM_GATEWAY_URL
 
 
 class NarrativeChatModel(BaseChatModel):
@@ -31,7 +31,7 @@ class NarrativeChatModel(BaseChatModel):
     """
 
     base_url: str = Field(
-        default_factory=lambda: f"http://{LLM_GATEWAY_HOST}:{LLM_GATEWAY_PORT}"
+        default_factory=lambda: LLM_GATEWAY_URL
     )
     client: httpx.AsyncClient
     temperature: float = 0.7
