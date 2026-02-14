@@ -16,6 +16,14 @@ async def proxy_request(
     url = f"{base_url}{path}"
     client = http_holder.client
 
+    if base_url is None or ":None" in str(base_url):
+        from utils.logger import logger
+        logger.error(f"❌ 잘못된 base_url 감지됨: {base_url}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"서비스 URL 설정 오류: {base_url}"
+        )
+
     if client is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
