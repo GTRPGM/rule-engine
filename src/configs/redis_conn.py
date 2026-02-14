@@ -45,7 +45,7 @@ def check_redis_connection():
     try:
         # 터널이 살아있는지 먼저 확인 (디버깅용)
         if SSH_ENABLED and (not redis_tunnel or not redis_tunnel.is_active):
-            raise ConnectionError("SSH 터널이 활성화되어 있지 않습니다.")
+            raise ConnectionError("Redis SSH 터널이 활성화되어 있지 않습니다.")
 
         redis_client.ping()
         logger.info("✅ Redis 서버와 성공적으로 연결되었습니다.")
